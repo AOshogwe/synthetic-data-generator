@@ -1,0 +1,1873 @@
+2025-03-29 23:03:31,604 - root - INFO - Starting synthetic data generation pipeline
+2025-03-29 23:03:33,372 - root - INFO - Connecting to database: healthcare_dataset
+2025-03-29 23:03:33,375 - root - ERROR - Error connecting to database: Could not parse SQLAlchemy URL from string 'healthcare_dataset'
+2025-03-29 23:03:33,376 - root - ERROR - Failed to load data. Aborting pipeline.
+2025-03-29 23:06:16,966 - root - INFO - Starting synthetic data generation pipeline
+2025-03-29 23:06:17,898 - root - INFO - Connecting to database: healthcare_dataset.csv
+2025-03-29 23:06:17,899 - root - ERROR - Error connecting to database: Could not parse SQLAlchemy URL from string 'healthcare_dataset.csv'
+2025-03-29 23:06:17,900 - root - ERROR - Failed to load data. Aborting pipeline.
+2025-03-29 23:08:44,156 - root - INFO - Starting synthetic data generation pipeline
+2025-03-29 23:08:44,991 - root - INFO - Connecting to database: C:\Users\PC\PycharmProjects\synthetic-data-generator\healthcare_dataset.csv
+2025-03-29 23:08:44,992 - root - ERROR - Error connecting to database: Could not parse SQLAlchemy URL from string 'C:\Users\PC\PycharmProjects\synthetic-data-generator\healthcare_dataset.csv'
+2025-03-29 23:08:44,992 - root - ERROR - Failed to load data. Aborting pipeline.
+2025-03-29 23:09:43,760 - root - INFO - Starting synthetic data generation pipeline
+2025-03-29 23:09:44,312 - root - INFO - Connecting to database: C:\Users\PC\PycharmProjects\synthetic-data-generator\healthcare_dataset.csv
+2025-03-29 23:09:44,313 - root - ERROR - Error connecting to database: Could not parse SQLAlchemy URL from string 'C:\Users\PC\PycharmProjects\synthetic-data-generator\healthcare_dataset.csv'
+2025-03-29 23:09:44,314 - root - ERROR - Failed to load data. Aborting pipeline.
+2025-03-29 23:14:53,650 - root - INFO - Starting synthetic data generation pipeline
+2025-03-29 23:14:54,573 - root - INFO - Connecting to database: Data
+2025-03-29 23:14:54,574 - root - ERROR - Error connecting to database: Could not parse SQLAlchemy URL from string 'Data'
+2025-03-29 23:14:54,575 - root - ERROR - Failed to load data. Aborting pipeline.
+2025-03-29 23:15:36,979 - root - INFO - Starting synthetic data generation pipeline
+2025-03-29 23:15:37,593 - root - INFO - Connecting to database: healthcare_dataset.csv
+2025-03-29 23:15:37,595 - root - ERROR - Error connecting to database: Could not parse SQLAlchemy URL from string 'healthcare_dataset.csv'
+2025-03-29 23:15:37,595 - root - ERROR - Failed to load data. Aborting pipeline.
+2025-03-29 23:15:53,181 - root - INFO - Starting synthetic data generation pipeline
+2025-03-29 23:15:53,690 - root - INFO - Connecting to database: ./healthcare_dataset.csv
+2025-03-29 23:15:53,691 - root - ERROR - Error connecting to database: Could not parse SQLAlchemy URL from string './healthcare_dataset.csv'
+2025-03-29 23:15:53,691 - root - ERROR - Failed to load data. Aborting pipeline.
+2025-03-29 23:16:50,726 - root - INFO - Starting synthetic data generation pipeline
+2025-03-29 23:16:51,238 - root - INFO - Connecting to database: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-03-29 23:16:51,239 - root - ERROR - Error connecting to database: Could not parse SQLAlchemy URL from string 'C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv'
+2025-03-29 23:16:51,239 - root - ERROR - Failed to load data. Aborting pipeline.
+2025-03-29 23:19:09,406 - root - INFO - Starting synthetic data generation pipeline
+2025-03-29 23:19:10,370 - root - INFO - Connecting to database: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-03-29 23:19:10,373 - root - ERROR - Error connecting to database: Could not parse SQLAlchemy URL from string 'C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv'
+2025-03-29 23:19:10,373 - root - ERROR - Failed to load data. Aborting pipeline.
+2025-03-29 23:21:59,311 - root - INFO - Starting synthetic data generation pipeline
+2025-03-29 23:21:59,312 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-03-29 23:21:59,313 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-03-29 23:21:59,682 - root - INFO - Inferring schema from data
+2025-03-29 23:21:59,693 - root - INFO - Preprocessing data
+2025-03-29 23:28:11,235 - root - INFO - Starting synthetic data generation pipeline
+2025-03-29 23:28:11,238 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-03-29 23:28:11,239 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-03-29 23:28:11,669 - root - INFO - Inferring schema from data
+2025-03-29 23:28:11,681 - root - INFO - Preprocessing data
+2025-03-29 23:28:11,682 - root - INFO - Preprocessing table: healthcare_dataset
+2025-03-29 23:32:00,976 - root - INFO - Starting synthetic data generation pipeline
+2025-03-29 23:32:00,977 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-03-29 23:32:00,978 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-03-29 23:32:01,282 - root - INFO - Inferring schema from data
+2025-03-29 23:32:01,283 - root - INFO - Preprocessing data
+2025-03-29 23:32:01,284 - root - INFO - Preprocessing table: healthcare_dataset
+2025-03-30 08:55:19,690 - root - INFO - Starting synthetic data generation pipeline
+2025-03-30 08:55:19,692 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-03-30 08:55:19,692 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-03-30 08:55:19,908 - root - INFO - Inferring schema from data
+2025-03-30 08:55:19,915 - root - INFO - Preprocessing data
+2025-03-30 08:55:19,915 - root - INFO - Preprocessing table: healthcare_dataset
+2025-03-30 11:56:46,118 - root - INFO - Starting synthetic data generation pipeline
+2025-03-30 11:56:46,121 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-03-30 11:56:46,121 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-03-30 11:56:46,396 - root - INFO - Inferring schema from data
+2025-03-30 11:56:46,404 - root - INFO - Preprocessing data
+2025-03-30 11:56:46,404 - root - INFO - Preprocessing table: healthcare_dataset
+2025-03-30 11:56:46,419 - root - INFO - Analyzing data
+2025-04-03 22:54:07,883 - root - INFO - Starting synthetic data generation pipeline
+2025-04-03 22:54:07,891 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-03 22:54:07,892 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-03 22:54:08,339 - root - INFO - Inferring schema from data
+2025-04-03 22:54:08,355 - root - INFO - Preprocessing data
+2025-04-03 22:54:08,356 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-03 22:54:08,374 - root - INFO - Analyzing data
+2025-04-03 22:57:36,754 - root - INFO - Starting synthetic data generation pipeline
+2025-04-03 22:57:36,755 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-03 22:57:36,756 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-03 22:57:37,039 - root - INFO - Inferring schema from data
+2025-04-03 22:57:37,041 - root - INFO - Preprocessing data
+2025-04-03 22:57:37,041 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-03 22:57:37,052 - root - INFO - Analyzing data
+2025-04-03 22:57:37,052 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-03 23:00:05,047 - root - INFO - Starting synthetic data generation pipeline
+2025-04-03 23:00:05,049 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-03 23:00:05,050 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-03 23:00:05,397 - root - INFO - Inferring schema from data
+2025-04-03 23:00:05,400 - root - INFO - Preprocessing data
+2025-04-03 23:00:05,401 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-03 23:00:05,414 - root - INFO - Analyzing data
+2025-04-03 23:00:05,414 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-03 23:06:18,824 - root - INFO - Starting synthetic data generation pipeline
+2025-04-03 23:06:18,826 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-03 23:06:18,826 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-03 23:06:19,138 - root - INFO - Inferring schema from data
+2025-04-03 23:06:19,140 - root - INFO - Preprocessing data
+2025-04-03 23:06:19,140 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-03 23:06:19,149 - root - INFO - Analyzing data
+2025-04-03 23:06:19,150 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-03 23:10:31,769 - root - INFO - Starting synthetic data generation pipeline
+2025-04-03 23:10:31,770 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-03 23:10:31,771 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-03 23:10:32,047 - root - INFO - Inferring schema from data
+2025-04-03 23:10:32,049 - root - INFO - Preprocessing data
+2025-04-03 23:10:32,050 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-03 23:10:32,060 - root - INFO - Analyzing data
+2025-04-03 23:10:32,060 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-03 23:10:36,282 - root - INFO - Generating synthetic data using method: auto
+2025-04-03 23:19:05,825 - root - INFO - Starting synthetic data generation pipeline
+2025-04-03 23:19:05,826 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-03 23:19:05,827 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-03 23:19:06,238 - root - INFO - Inferring schema from data
+2025-04-03 23:19:06,249 - root - INFO - Preprocessing data
+2025-04-03 23:19:06,250 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-03 23:19:06,270 - root - INFO - Analyzing data
+2025-04-03 23:19:06,270 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-03 23:19:10,650 - root - INFO - Generating synthetic data using method: auto
+2025-04-03 23:19:10,651 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-03 23:20:52,062 - root - INFO - Starting synthetic data generation pipeline
+2025-04-03 23:20:52,063 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-03 23:20:52,064 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-03 23:20:52,406 - root - INFO - Inferring schema from data
+2025-04-03 23:20:52,408 - root - INFO - Preprocessing data
+2025-04-03 23:20:52,408 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-03 23:20:52,418 - root - INFO - Analyzing data
+2025-04-03 23:20:52,418 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-03 23:20:56,506 - root - INFO - Generating synthetic data using method: auto
+2025-04-03 23:20:56,507 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-03 23:22:13,312 - root - INFO - Starting synthetic data generation pipeline
+2025-04-03 23:22:13,314 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-03 23:22:13,315 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-03 23:22:13,696 - root - INFO - Inferring schema from data
+2025-04-03 23:22:13,699 - root - INFO - Preprocessing data
+2025-04-03 23:22:13,699 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-03 23:22:13,710 - root - INFO - Analyzing data
+2025-04-03 23:22:13,711 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-03 23:22:17,886 - root - INFO - Generating synthetic data using method: auto
+2025-04-03 23:22:17,886 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-03 23:23:00,766 - root - INFO - Starting synthetic data generation pipeline
+2025-04-03 23:23:00,767 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-03 23:23:00,768 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-03 23:23:01,123 - root - INFO - Inferring schema from data
+2025-04-03 23:23:01,125 - root - INFO - Preprocessing data
+2025-04-03 23:23:01,125 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-03 23:23:01,136 - root - INFO - Analyzing data
+2025-04-03 23:23:01,137 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-03 23:23:05,551 - root - INFO - Generating synthetic data using method: auto
+2025-04-03 23:23:05,551 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-03 23:24:39,711 - root - INFO - Starting synthetic data generation pipeline
+2025-04-03 23:24:39,712 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-03 23:24:39,713 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-03 23:24:40,001 - root - INFO - Inferring schema from data
+2025-04-03 23:24:40,003 - root - INFO - Preprocessing data
+2025-04-03 23:24:40,003 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-03 23:24:40,011 - root - INFO - Analyzing data
+2025-04-03 23:24:40,012 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-03 23:24:43,967 - root - INFO - Generating synthetic data using method: auto
+2025-04-03 23:24:43,967 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-03 23:26:30,579 - root - INFO - Starting synthetic data generation pipeline
+2025-04-03 23:26:30,581 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-03 23:26:30,581 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-03 23:26:30,847 - root - INFO - Inferring schema from data
+2025-04-03 23:26:30,850 - root - INFO - Preprocessing data
+2025-04-03 23:26:30,850 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-03 23:26:30,860 - root - INFO - Analyzing data
+2025-04-03 23:26:30,861 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-03 23:26:35,144 - root - INFO - Generating synthetic data using method: auto
+2025-04-03 23:26:35,145 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-03 23:51:57,496 - root - INFO - Starting synthetic data generation pipeline
+2025-04-03 23:51:57,498 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-03 23:51:57,499 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-03 23:51:57,799 - root - INFO - Inferring schema from data
+2025-04-03 23:51:57,801 - root - INFO - Preprocessing data
+2025-04-03 23:51:57,801 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-03 23:51:57,811 - root - INFO - Analyzing data
+2025-04-03 23:51:57,811 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-03 23:52:02,190 - root - INFO - Generating synthetic data using method: auto
+2025-04-03 23:52:02,190 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-04 00:38:29,932 - root - INFO - Starting synthetic data generation pipeline
+2025-04-04 00:38:29,933 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-04 00:38:29,933 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-04 00:38:30,232 - root - INFO - Inferring schema from data
+2025-04-04 00:38:30,235 - root - INFO - Preprocessing data
+2025-04-04 00:38:30,235 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-04 00:38:30,471 - root - INFO - Analyzing data
+2025-04-04 00:38:30,471 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-04 00:38:35,882 - root - INFO - Generating synthetic data using method: auto
+2025-04-04 00:38:35,882 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-04 00:52:01,147 - root - INFO - Starting synthetic data generation pipeline
+2025-04-04 00:52:01,148 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-04 00:52:01,149 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-04 00:52:01,476 - root - INFO - Inferring schema from data
+2025-04-04 00:52:01,479 - root - INFO - Preprocessing data
+2025-04-04 00:52:01,479 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-04 00:52:01,773 - root - INFO - Analyzing data
+2025-04-04 00:52:01,773 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-04 00:52:07,359 - root - INFO - Generating synthetic data using method: auto
+2025-04-04 00:52:07,359 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-04 00:59:34,937 - root - INFO - Starting synthetic data generation pipeline
+2025-04-04 00:59:34,939 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-04 00:59:34,940 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-04 00:59:35,360 - root - INFO - Inferring schema from data
+2025-04-04 00:59:35,363 - root - INFO - Preprocessing data
+2025-04-04 00:59:35,364 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-04 00:59:35,634 - root - INFO - Analyzing data
+2025-04-04 00:59:35,635 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-04 00:59:41,293 - root - INFO - Generating synthetic data using method: auto
+2025-04-04 00:59:41,294 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-04 16:17:25,840 - root - INFO - Starting synthetic data generation pipeline
+2025-04-04 16:17:25,842 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-04 16:17:25,843 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-04 16:17:26,195 - root - INFO - Inferring schema from data
+2025-04-04 16:17:26,203 - root - INFO - Preprocessing data
+2025-04-04 16:17:26,204 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-04 16:17:26,598 - root - INFO - Analyzing data
+2025-04-04 16:17:26,599 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-04 16:17:31,067 - root - INFO - Generating synthetic data using method: auto
+2025-04-04 16:17:31,067 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-04 16:27:11,282 - root - INFO - Starting synthetic data generation pipeline
+2025-04-04 16:27:11,283 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-04 16:27:11,284 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-04 16:27:11,650 - root - INFO - Inferring schema from data
+2025-04-04 16:27:11,652 - root - INFO - Preprocessing data
+2025-04-04 16:27:11,653 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-04 16:27:11,936 - root - INFO - Analyzing data
+2025-04-04 16:27:11,936 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-04 16:27:16,132 - root - INFO - Generating synthetic data using method: auto
+2025-04-04 16:27:16,132 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-04 16:36:46,660 - root - INFO - Starting synthetic data generation pipeline
+2025-04-04 16:36:46,662 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-04 16:36:46,662 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-04 16:36:46,948 - root - INFO - Inferring schema from data
+2025-04-04 16:36:46,950 - root - INFO - Preprocessing data
+2025-04-04 16:36:46,950 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-04 16:36:47,293 - root - INFO - Analyzing data
+2025-04-04 16:36:47,293 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-04 16:36:51,651 - root - INFO - Generating synthetic data using method: auto
+2025-04-04 16:36:51,652 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 07:22:56,896 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 07:22:56,906 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 07:22:56,907 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 07:22:57,193 - root - INFO - Inferring schema from data
+2025-04-05 07:22:57,232 - root - INFO - Preprocessing data
+2025-04-05 07:22:57,233 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 07:22:57,426 - root - INFO - Analyzing data
+2025-04-05 07:22:57,426 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 07:23:00,562 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 07:23:00,563 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 07:29:49,148 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 07:29:49,149 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 07:29:49,149 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 07:29:49,343 - root - INFO - Inferring schema from data
+2025-04-05 07:29:49,344 - root - INFO - Preprocessing data
+2025-04-05 07:29:49,345 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 07:29:49,477 - root - INFO - Analyzing data
+2025-04-05 07:29:49,478 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 07:29:52,499 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 07:29:52,499 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 07:34:56,952 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 07:34:56,953 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 07:34:56,954 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 07:34:57,038 - root - INFO - Inferring schema from data
+2025-04-05 07:34:57,039 - root - INFO - Preprocessing data
+2025-04-05 07:34:57,040 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 07:34:57,178 - root - INFO - Analyzing data
+2025-04-05 07:34:57,179 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 07:34:57,515 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 07:34:57,515 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 07:40:28,669 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 07:40:28,670 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 07:40:28,670 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 07:40:28,704 - root - INFO - Inferring schema from data
+2025-04-05 07:40:28,706 - root - INFO - Preprocessing data
+2025-04-05 07:40:28,706 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 07:40:28,753 - root - INFO - Analyzing data
+2025-04-05 07:40:28,754 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 07:40:29,380 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 07:40:29,381 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 07:44:25,729 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 07:44:25,730 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 07:44:25,730 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 07:44:25,759 - root - INFO - Inferring schema from data
+2025-04-05 07:44:25,761 - root - INFO - Preprocessing data
+2025-04-05 07:44:25,761 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 07:44:25,797 - root - INFO - Analyzing data
+2025-04-05 07:44:25,797 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 07:44:26,350 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 07:44:26,350 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 14:13:44,780 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 14:13:44,783 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 14:13:44,784 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 14:13:44,881 - root - INFO - Inferring schema from data
+2025-04-05 14:13:44,897 - root - INFO - Preprocessing data
+2025-04-05 14:13:44,898 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 14:13:45,041 - root - INFO - Analyzing data
+2025-04-05 14:13:45,042 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 14:13:45,997 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 14:13:45,998 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 14:20:55,609 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 14:20:55,610 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 14:20:55,611 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 14:20:55,652 - root - INFO - Inferring schema from data
+2025-04-05 14:20:55,654 - root - INFO - Preprocessing data
+2025-04-05 14:20:55,655 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 14:20:55,712 - root - INFO - Analyzing data
+2025-04-05 14:20:55,712 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 14:20:56,418 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 14:20:56,418 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 14:26:08,095 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 14:26:08,097 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 14:26:08,098 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 14:26:08,150 - root - INFO - Inferring schema from data
+2025-04-05 14:26:08,152 - root - INFO - Preprocessing data
+2025-04-05 14:26:08,153 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 14:26:08,208 - root - INFO - Analyzing data
+2025-04-05 14:26:08,208 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 14:26:09,136 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 14:26:09,137 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 14:36:13,064 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 14:36:13,066 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 14:36:13,067 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 14:36:13,144 - root - INFO - Inferring schema from data
+2025-04-05 14:36:13,155 - root - INFO - Preprocessing data
+2025-04-05 14:36:13,155 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 14:36:13,238 - root - INFO - Analyzing data
+2025-04-05 14:36:13,239 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 14:36:13,984 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 14:36:13,984 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 15:05:35,911 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 15:05:35,915 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 15:05:35,916 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 15:05:36,023 - root - INFO - Inferring schema from data
+2025-04-05 15:05:36,035 - root - INFO - Preprocessing data
+2025-04-05 15:05:36,036 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 15:05:36,140 - root - INFO - Analyzing data
+2025-04-05 15:05:36,141 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 15:05:36,976 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 15:05:36,976 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 15:37:31,228 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 15:37:31,230 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 15:37:31,230 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 15:37:31,311 - root - INFO - Inferring schema from data
+2025-04-05 15:37:31,320 - root - INFO - Preprocessing data
+2025-04-05 15:37:31,320 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 15:37:31,405 - root - INFO - Analyzing data
+2025-04-05 15:37:31,406 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 15:37:32,472 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 15:37:32,473 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 15:56:43,243 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 15:56:43,246 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 15:56:43,247 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 15:56:43,349 - root - INFO - Inferring schema from data
+2025-04-05 15:56:43,361 - root - INFO - Preprocessing data
+2025-04-05 15:56:43,362 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 15:56:43,460 - root - INFO - Analyzing data
+2025-04-05 15:56:43,461 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 15:56:44,357 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 15:56:44,357 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 16:30:25,548 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 16:30:25,553 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 16:30:25,554 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 16:30:25,617 - root - INFO - Inferring schema from data
+2025-04-05 16:30:25,623 - root - INFO - Preprocessing data
+2025-04-05 16:30:25,623 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 16:30:25,692 - root - INFO - Analyzing data
+2025-04-05 16:30:25,692 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 16:30:26,679 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 16:30:26,679 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 17:57:26,185 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 17:57:26,186 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 17:57:26,187 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 17:57:26,267 - root - INFO - Inferring schema from data
+2025-04-05 17:57:26,273 - root - INFO - Preprocessing data
+2025-04-05 17:57:26,274 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 17:57:26,338 - root - INFO - Analyzing data
+2025-04-05 17:57:26,339 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 17:57:26,919 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 17:57:26,919 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 17:59:57,145 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 17:59:57,146 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 17:59:57,146 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 17:59:57,177 - root - INFO - Inferring schema from data
+2025-04-05 17:59:57,179 - root - INFO - Preprocessing data
+2025-04-05 17:59:57,180 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 17:59:57,227 - root - INFO - Analyzing data
+2025-04-05 17:59:57,228 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 17:59:57,787 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 17:59:57,788 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 18:02:52,737 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 18:02:52,738 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 18:02:52,738 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 18:02:52,768 - root - INFO - Inferring schema from data
+2025-04-05 18:02:52,770 - root - INFO - Preprocessing data
+2025-04-05 18:02:52,770 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 18:02:52,811 - root - INFO - Analyzing data
+2025-04-05 18:02:52,811 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 18:02:53,370 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 18:02:53,370 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 18:53:39,467 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 18:53:39,469 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 18:53:39,469 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 18:53:39,535 - root - INFO - Inferring schema from data
+2025-04-05 18:53:39,545 - root - INFO - Preprocessing data
+2025-04-05 18:53:39,545 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 18:53:39,607 - root - INFO - Analyzing data
+2025-04-05 18:53:39,608 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 18:53:40,581 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 18:53:40,581 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 19:05:15,673 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 19:05:15,676 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 19:05:15,677 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 19:05:15,761 - root - INFO - Inferring schema from data
+2025-04-05 19:05:15,769 - root - INFO - Preprocessing data
+2025-04-05 19:05:15,770 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 19:05:15,856 - root - INFO - Analyzing data
+2025-04-05 19:05:15,856 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 19:05:16,857 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 19:05:16,858 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 19:10:57,241 - root - INFO - Evaluating synthetic data
+2025-04-05 19:12:07,475 - root - INFO - Starting synthetic data generation pipeline
+2025-04-05 19:12:07,476 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-05 19:12:07,477 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-05 19:12:07,563 - root - INFO - Inferring schema from data
+2025-04-05 19:12:07,565 - root - INFO - Preprocessing data
+2025-04-05 19:12:07,566 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-05 19:12:07,634 - root - INFO - Analyzing data
+2025-04-05 19:12:07,634 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-05 19:12:08,591 - root - INFO - Generating synthetic data using method: auto
+2025-04-05 19:12:08,591 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-05 19:17:40,788 - root - INFO - Evaluating synthetic data
+2025-04-05 19:17:40,788 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-10 14:06:10,949 - root - INFO - Starting synthetic data generation pipeline
+2025-04-10 14:06:10,954 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-10 14:06:10,956 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-10 14:06:11,067 - root - INFO - Inferring schema from data
+2025-04-10 14:06:11,077 - root - INFO - Preprocessing data
+2025-04-10 14:06:11,077 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-10 14:06:11,159 - root - INFO - Analyzing data
+2025-04-10 14:06:11,159 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-10 14:06:11,997 - root - INFO - Generating synthetic data using method: auto
+2025-04-10 14:06:11,997 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-10 14:12:21,032 - root - INFO - Starting synthetic data generation pipeline
+2025-04-10 14:12:21,034 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-10 14:12:21,035 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-10 14:12:21,104 - root - INFO - Inferring schema from data
+2025-04-10 14:12:21,107 - root - INFO - Preprocessing data
+2025-04-10 14:12:21,108 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-10 14:12:21,190 - root - INFO - Analyzing data
+2025-04-10 14:12:21,191 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-10 14:12:22,016 - root - INFO - Generating synthetic data using method: auto
+2025-04-10 14:12:22,017 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-10 14:17:31,031 - root - INFO - Starting synthetic data generation pipeline
+2025-04-10 14:17:31,033 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-10 14:17:31,033 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-10 14:17:31,080 - root - INFO - Inferring schema from data
+2025-04-10 14:17:31,082 - root - INFO - Preprocessing data
+2025-04-10 14:17:31,082 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-10 14:17:31,133 - root - INFO - Analyzing data
+2025-04-10 14:17:31,133 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-10 14:17:31,869 - root - INFO - Generating synthetic data using method: auto
+2025-04-10 14:17:31,869 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-10 14:23:38,342 - root - INFO - Starting synthetic data generation pipeline
+2025-04-10 14:23:38,343 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-10 14:23:38,344 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-10 14:23:38,409 - root - INFO - Inferring schema from data
+2025-04-10 14:23:38,412 - root - INFO - Preprocessing data
+2025-04-10 14:23:38,412 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-10 14:23:38,487 - root - INFO - Analyzing data
+2025-04-10 14:23:38,488 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-10 14:23:39,348 - root - INFO - Generating synthetic data using method: auto
+2025-04-10 14:23:39,348 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-10 14:28:08,412 - root - INFO - Evaluating synthetic data
+2025-04-10 14:28:08,413 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-10 14:28:23,486 - root - INFO - Table healthcare_dataset - Overall score: 0.5310
+2025-04-10 14:28:23,487 - root - INFO - Validating synthetic data
+2025-04-10 14:32:44,081 - root - INFO - Starting synthetic data generation pipeline
+2025-04-10 14:32:44,083 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-10 14:32:44,085 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-10 14:32:44,178 - root - INFO - Inferring schema from data
+2025-04-10 14:32:44,182 - root - INFO - Preprocessing data
+2025-04-10 14:32:44,183 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-10 14:32:44,291 - root - INFO - Analyzing data
+2025-04-10 14:32:44,291 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-10 14:32:45,214 - root - INFO - Generating synthetic data using method: auto
+2025-04-10 14:32:45,214 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-10 14:37:02,900 - root - INFO - Evaluating synthetic data
+2025-04-10 14:37:02,900 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-10 14:37:18,440 - root - INFO - Table healthcare_dataset - Overall score: 0.5311
+2025-04-10 14:37:18,444 - root - INFO - Validating synthetic data
+2025-04-10 14:37:18,444 - root - INFO - Validating table: healthcare_dataset
+2025-04-10 14:37:18,483 - root - WARNING - Table healthcare_dataset has 2 validation errors
+2025-04-10 14:37:18,484 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-10 14:41:46,238 - root - INFO - Starting synthetic data generation pipeline
+2025-04-10 14:41:46,241 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-10 14:41:46,242 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-10 14:41:46,327 - root - INFO - Inferring schema from data
+2025-04-10 14:41:46,329 - root - INFO - Preprocessing data
+2025-04-10 14:41:46,329 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-10 14:41:46,406 - root - INFO - Analyzing data
+2025-04-10 14:41:46,407 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-10 14:41:47,272 - root - INFO - Generating synthetic data using method: auto
+2025-04-10 14:41:47,273 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-10 14:46:02,467 - root - INFO - Evaluating synthetic data
+2025-04-10 14:46:02,468 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-10 14:46:17,125 - root - INFO - Table healthcare_dataset - Overall score: 0.5297
+2025-04-10 14:46:17,125 - root - INFO - Validating synthetic data
+2025-04-10 14:46:17,126 - root - INFO - Validating table: healthcare_dataset
+2025-04-10 14:46:17,150 - root - WARNING - Table healthcare_dataset has 2 validation errors
+2025-04-10 14:46:17,150 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-10 14:53:49,008 - root - INFO - Starting synthetic data generation pipeline
+2025-04-10 14:53:49,010 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-10 14:53:49,011 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-10 14:53:49,080 - root - INFO - Inferring schema from data
+2025-04-10 14:53:49,083 - root - INFO - Preprocessing data
+2025-04-10 14:53:49,083 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-10 14:53:49,160 - root - INFO - Analyzing data
+2025-04-10 14:53:49,160 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-10 14:53:50,174 - root - INFO - Generating synthetic data using method: auto
+2025-04-10 14:53:50,175 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-10 14:58:17,923 - root - INFO - Evaluating synthetic data
+2025-04-10 14:58:17,924 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-10 14:58:33,567 - root - INFO - Table healthcare_dataset - Overall score: 0.5297
+2025-04-10 14:58:33,568 - root - INFO - Validating synthetic data
+2025-04-10 14:58:33,568 - root - INFO - Validating table: healthcare_dataset
+2025-04-10 14:58:33,604 - root - WARNING - Table healthcare_dataset has 2 validation errors
+2025-04-10 14:58:33,605 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-10 14:58:33,747 - root - INFO - Pipeline completed successfully in 284.74 seconds
+2025-04-18 11:42:58,827 - root - INFO - Starting synthetic data generation pipeline
+2025-04-18 11:42:58,834 - root - INFO - Loading CSV files from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data
+2025-04-18 11:42:58,836 - root - INFO - Loading CSV file: healthcare_dataset.csv
+2025-04-18 11:42:59,000 - root - INFO - Inferring schema from data
+2025-04-18 11:42:59,016 - root - INFO - Preprocessing data
+2025-04-18 11:42:59,017 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-18 11:42:59,133 - root - INFO - Analyzing data
+2025-04-18 11:42:59,134 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-18 11:43:00,099 - root - INFO - Generating synthetic data using method: auto
+2025-04-18 11:43:00,099 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-18 11:47:30,474 - root - INFO - Evaluating synthetic data
+2025-04-18 11:47:30,474 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-18 11:47:49,595 - root - INFO - Table healthcare_dataset - Overall score: 0.5317
+2025-04-18 11:47:49,603 - root - INFO - Validating synthetic data
+2025-04-18 11:47:49,606 - root - INFO - Validating table: healthcare_dataset
+2025-04-18 11:47:49,673 - root - WARNING - Table healthcare_dataset has 2 validation errors
+2025-04-18 11:47:49,673 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-18 11:47:49,895 - root - INFO - Pipeline completed successfully in 291.07 seconds
+2025-04-18 23:32:49,837 - root - INFO - Starting synthetic data generation pipeline
+2025-04-18 23:32:49,841 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-18 23:32:49,842 - root - ERROR - Pipeline failed: 'SyntheticDataPipeline' object has no attribute 'load_data'
+2025-04-18 23:35:37,326 - root - INFO - Starting synthetic data generation pipeline
+2025-04-18 23:35:37,327 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-18 23:35:37,471 - root - INFO - Inferring schema from data
+2025-04-18 23:35:37,471 - root - ERROR - Pipeline failed: 'SyntheticDataPipeline' object has no attribute 'infer_schema'
+2025-04-18 23:36:58,179 - root - INFO - Starting synthetic data generation pipeline
+2025-04-18 23:36:58,179 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-18 23:36:58,212 - root - INFO - Inferring schema from data
+2025-04-18 23:36:58,212 - root - INFO - Inferring schema from data
+2025-04-18 23:36:58,229 - root - INFO - Preprocessing data
+2025-04-18 23:36:58,230 - root - ERROR - Pipeline failed: name 'DataPreprocessor' is not defined
+2025-04-18 23:42:01,250 - root - INFO - Starting synthetic data generation pipeline
+2025-04-18 23:42:01,250 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-18 23:42:01,284 - root - INFO - Inferring schema from data
+2025-04-18 23:42:01,285 - root - INFO - Inferring schema from data
+2025-04-18 23:42:01,287 - root - INFO - Preprocessing data
+2025-04-18 23:42:01,287 - root - INFO - Preprocessing data
+2025-04-18 23:42:01,287 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-18 23:42:01,336 - root - INFO - Analyzing data relationships
+2025-04-18 23:42:01,337 - root - INFO - Analyzing data
+2025-04-18 23:42:01,337 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-18 23:42:01,929 - root - INFO - Generating synthetic data using method: auto
+2025-04-18 23:42:01,930 - root - INFO - Generating synthetic data using method: auto
+2025-04-18 23:42:01,930 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-18 23:45:22,000 - root - INFO - Evaluating synthetic data
+2025-04-18 23:45:22,001 - root - INFO - Evaluating synthetic data
+2025-04-18 23:45:22,001 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-18 23:45:33,138 - root - INFO - Table healthcare_dataset - Overall score: 0.5303
+2025-04-18 23:45:33,140 - root - INFO - Validating synthetic data
+2025-04-18 23:45:33,140 - root - INFO - Validating synthetic data
+2025-04-18 23:45:33,140 - root - INFO - Validating table: healthcare_dataset
+2025-04-18 23:45:33,141 - root - ERROR - Pipeline failed: list indices must be integers or slices, not str
+2025-04-18 23:45:33,157 - root - ERROR - Traceback (most recent call last):
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\pipeline.py", line 505, in run_pipeline
+    validation_results = self.validate_synthetic_data()
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\pipeline.py", line 429, in validate_synthetic_data
+    if table_results['errors']:
+       ~~~~~~~~~~~~~^^^^^^^^^^
+TypeError: list indices must be integers or slices, not str
+
+2025-04-18 23:51:13,549 - root - INFO - Starting synthetic data generation pipeline
+2025-04-18 23:51:13,549 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-18 23:51:13,586 - root - INFO - Inferring schema from data
+2025-04-18 23:51:13,586 - root - INFO - Inferring schema from data
+2025-04-18 23:51:13,588 - root - INFO - Preprocessing data
+2025-04-18 23:51:13,588 - root - INFO - Preprocessing data
+2025-04-18 23:51:13,588 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-18 23:51:13,628 - root - INFO - Analyzing data relationships
+2025-04-18 23:51:13,628 - root - INFO - Analyzing data
+2025-04-18 23:51:13,629 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-18 23:51:14,185 - root - INFO - Generating synthetic data using method: auto
+2025-04-18 23:51:14,185 - root - INFO - Generating synthetic data using method: auto
+2025-04-18 23:51:14,185 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-18 23:54:41,564 - root - INFO - Evaluating synthetic data
+2025-04-18 23:54:41,564 - root - INFO - Evaluating synthetic data
+2025-04-18 23:54:41,565 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-18 23:54:52,893 - root - INFO - Table healthcare_dataset - Overall score: 0.5297
+2025-04-18 23:54:52,894 - root - INFO - Validating synthetic data
+2025-04-18 23:54:52,895 - root - INFO - Validating synthetic data
+2025-04-18 23:54:52,895 - root - INFO - Validating table: healthcare_dataset
+2025-04-18 23:54:52,896 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-04-18 23:54:52,896 - root - WARNING -   - Missing column: healthcare_dataset
+2025-04-18 23:54:52,896 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-18 23:54:52,897 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-18 23:54:53,038 - root - INFO - Pipeline completed successfully in 219.49 seconds
+2025-04-21 23:48:12,599 - root - INFO - Starting synthetic data generation pipeline
+2025-04-21 23:48:12,601 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-21 23:48:12,691 - root - INFO - Inferring schema from data
+2025-04-21 23:48:12,691 - root - INFO - Inferring schema from data
+2025-04-21 23:48:12,702 - root - INFO - Identifying name columns
+2025-04-21 23:48:31,040 - root - INFO - Preprocessing data
+2025-04-21 23:48:31,041 - root - INFO - Preprocessing data
+2025-04-21 23:48:31,041 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-21 23:48:31,041 - root - ERROR - Pipeline failed: 'DataCleaningPipeline' object has no attribute 'fit_transform'
+2025-04-21 23:48:31,047 - root - ERROR - Traceback (most recent call last):
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\pipeline.py", line 614, in run_pipeline
+    self.preprocess_data()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\pipeline.py", line 203, in preprocess_data
+    self.original_data[table_name] = self.transformer.fit_transform(df)
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'DataCleaningPipeline' object has no attribute 'fit_transform'. Did you mean: 'transform'?
+
+2025-04-21 23:50:13,419 - root - INFO - Starting synthetic data generation pipeline
+2025-04-21 23:50:13,419 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-21 23:50:13,451 - root - INFO - Inferring schema from data
+2025-04-21 23:50:13,452 - root - INFO - Inferring schema from data
+2025-04-21 23:50:13,453 - root - INFO - Identifying name columns
+2025-04-21 23:50:17,539 - root - INFO - Preprocessing data
+2025-04-21 23:50:17,539 - root - INFO - Preprocessing data
+2025-04-21 23:50:17,540 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-21 23:50:17,670 - root - INFO - Analyzing data relationships
+2025-04-21 23:50:17,670 - root - INFO - Analyzing data
+2025-04-21 23:50:17,670 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-21 23:50:18,408 - root - INFO - Generating synthetic data using method: auto
+2025-04-21 23:50:18,408 - root - INFO - Generating synthetic data using method: auto
+2025-04-21 23:50:18,409 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-21 23:53:49,015 - root - INFO - Generating synthetic names for column: Name
+2025-04-21 23:53:49,023 - root - INFO - Evaluating synthetic data
+2025-04-21 23:53:49,024 - root - INFO - Evaluating synthetic data
+2025-04-21 23:53:49,025 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-21 23:54:04,065 - root - INFO - Table healthcare_dataset - Overall score: 0.5267
+2025-04-21 23:54:04,067 - root - INFO - Validating synthetic data
+2025-04-21 23:54:04,067 - root - INFO - Validating synthetic data
+2025-04-21 23:54:04,068 - root - INFO - Validating table: healthcare_dataset
+2025-04-21 23:54:04,068 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-04-21 23:54:04,068 - root - WARNING -   - Missing column: healthcare_dataset
+2025-04-21 23:54:04,069 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-21 23:54:04,069 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-21 23:54:04,271 - root - INFO - Pipeline completed successfully in 230.85 seconds
+2025-04-22 00:01:02,105 - root - INFO - Starting synthetic data generation pipeline
+2025-04-22 00:01:02,105 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-22 00:01:02,150 - root - INFO - Inferring schema from data
+2025-04-22 00:01:02,150 - root - INFO - Inferring schema from data
+2025-04-22 00:01:02,156 - root - INFO - Identifying name columns
+2025-04-22 00:01:22,267 - root - INFO - Preprocessing data
+2025-04-22 00:01:22,267 - root - INFO - Preprocessing data
+2025-04-22 00:01:22,267 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-22 00:01:22,343 - root - INFO - Analyzing data relationships
+2025-04-22 00:01:22,344 - root - INFO - Analyzing data
+2025-04-22 00:01:22,344 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-22 00:01:22,960 - root - INFO - Generating synthetic data using method: auto
+2025-04-22 00:01:22,961 - root - INFO - Generating synthetic data using method: auto
+2025-04-22 00:01:22,961 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-22 00:05:08,264 - root - INFO - Generating synthetic names for column: Name
+2025-04-22 00:05:08,272 - root - INFO - Evaluating synthetic data
+2025-04-22 00:05:08,273 - root - INFO - Evaluating synthetic data
+2025-04-22 00:05:08,273 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-22 00:05:24,273 - root - INFO - Table healthcare_dataset - Overall score: 0.5257
+2025-04-22 00:05:24,274 - root - INFO - Validating synthetic data
+2025-04-22 00:05:24,274 - root - INFO - Validating synthetic data
+2025-04-22 00:05:24,275 - root - INFO - Validating table: healthcare_dataset
+2025-04-22 00:05:24,276 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-04-22 00:05:24,276 - root - WARNING -   - Missing column: healthcare_dataset
+2025-04-22 00:05:24,276 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-22 00:05:24,277 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-22 00:05:24,387 - root - INFO - Pipeline completed successfully in 262.28 seconds
+2025-04-22 00:07:06,173 - root - INFO - Starting synthetic data generation pipeline
+2025-04-22 00:07:06,174 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-22 00:07:06,206 - root - INFO - Inferring schema from data
+2025-04-22 00:07:06,206 - root - INFO - Inferring schema from data
+2025-04-22 00:07:06,208 - root - INFO - Identifying name columns
+2025-04-22 00:07:11,058 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-22 00:07:58,753 - root - INFO - Preprocessing data
+2025-04-22 00:07:58,753 - root - INFO - Preprocessing data
+2025-04-22 00:07:58,754 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-22 00:07:58,800 - root - INFO - Analyzing data relationships
+2025-04-22 00:07:58,801 - root - INFO - Analyzing data
+2025-04-22 00:07:58,801 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-22 00:07:59,374 - root - INFO - Generating synthetic data using method: auto
+2025-04-22 00:07:59,374 - root - INFO - Generating synthetic data using method: auto
+2025-04-22 00:07:59,380 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-22 00:11:26,753 - root - INFO - Generating synthetic names for column: Name
+2025-04-22 00:11:26,761 - root - INFO - Evaluating synthetic data
+2025-04-22 00:11:26,761 - root - INFO - Evaluating synthetic data
+2025-04-22 00:11:26,762 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-22 00:11:41,246 - root - INFO - Table healthcare_dataset - Overall score: 0.5258
+2025-04-22 00:11:41,247 - root - INFO - Validating synthetic data
+2025-04-22 00:11:41,247 - root - INFO - Validating synthetic data
+2025-04-22 00:11:41,248 - root - INFO - Validating table: healthcare_dataset
+2025-04-22 00:11:41,248 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-04-22 00:11:41,249 - root - WARNING -   - Missing column: healthcare_dataset
+2025-04-22 00:11:41,249 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-22 00:11:41,249 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-22 00:11:41,400 - root - INFO - Pipeline completed successfully in 275.23 seconds
+2025-04-22 19:55:43,808 - root - INFO - Starting synthetic data generation pipeline
+2025-04-22 19:55:43,809 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-22 19:55:43,915 - root - INFO - Inferring schema from data
+2025-04-22 19:55:43,916 - root - INFO - Inferring schema from data
+2025-04-22 19:55:43,922 - root - INFO - Identifying name columns
+2025-04-22 19:55:50,755 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-22 19:57:15,045 - root - INFO - Preprocessing data
+2025-04-22 19:57:15,045 - root - INFO - Preprocessing data
+2025-04-22 19:57:15,046 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-22 19:57:15,179 - root - INFO - Analyzing data relationships
+2025-04-22 19:57:15,180 - root - INFO - Analyzing data
+2025-04-22 19:57:15,181 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-22 19:57:16,312 - root - INFO - Generating synthetic data using method: auto
+2025-04-22 19:57:16,313 - root - INFO - Generating synthetic data using method: auto
+2025-04-22 19:57:16,313 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-22 20:02:49,218 - root - INFO - Generating synthetic names for column: Name
+2025-04-22 20:02:49,234 - root - INFO - Evaluating synthetic data
+2025-04-22 20:02:49,234 - root - INFO - Evaluating synthetic data
+2025-04-22 20:02:49,234 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-22 20:03:15,997 - root - INFO - Table healthcare_dataset - Overall score: 0.5272
+2025-04-22 20:03:16,000 - root - INFO - Validating synthetic data
+2025-04-22 20:03:16,000 - root - INFO - Validating synthetic data
+2025-04-22 20:03:16,002 - root - INFO - Validating table: healthcare_dataset
+2025-04-22 20:03:16,003 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-04-22 20:03:16,003 - root - WARNING -   - Missing column: healthcare_dataset
+2025-04-22 20:03:16,003 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-22 20:03:16,004 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-22 20:03:16,250 - root - INFO - Pipeline completed successfully in 452.44 seconds
+2025-04-30 13:46:09,858 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 13:46:09,858 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 13:46:09,911 - root - INFO - Inferring schema from data
+2025-04-30 13:46:09,912 - root - INFO - Inferring schema from data
+2025-04-30 13:46:09,918 - root - INFO - Identifying name columns
+2025-04-30 13:46:17,198 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 13:46:41,529 - root - INFO - Detecting data relationships and dependencies
+2025-04-30 13:46:41,529 - root - INFO - Detecting temporal relationships between columns
+2025-04-30 13:46:41,627 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 13:46:41,657 - root - INFO - Detecting conditional dependencies between columns
+2025-04-30 13:46:41,699 - root - INFO - Preprocessing data
+2025-04-30 13:46:41,699 - root - INFO - Preprocessing data
+2025-04-30 13:46:41,700 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 13:46:41,776 - root - INFO - Analyzing data relationships
+2025-04-30 13:46:41,777 - root - INFO - Analyzing data
+2025-04-30 13:46:41,777 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 13:46:43,029 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 13:46:43,030 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 13:46:43,030 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 13:48:50,401 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 13:48:50,401 - root - INFO - Post-processing table: healthcare_dataset
+2025-04-30 13:48:50,401 - root - INFO - Evaluating synthetic data
+2025-04-30 13:48:50,402 - root - INFO - Evaluating synthetic data
+2025-04-30 13:48:50,402 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-30 13:48:52,140 - root - INFO - Table healthcare_dataset - Overall score: 0.6000
+2025-04-30 13:48:52,141 - root - INFO - Validating synthetic data
+2025-04-30 13:48:52,141 - root - INFO - Validating synthetic data
+2025-04-30 13:48:52,141 - root - INFO - Validating table: healthcare_dataset
+2025-04-30 13:48:52,142 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-04-30 13:48:52,142 - root - WARNING -   - Missing column: healthcare_dataset
+2025-04-30 13:48:52,142 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 13:48:52,142 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 13:48:52,150 - root - INFO - Pipeline completed successfully in 162.29 seconds
+2025-04-30 13:50:52,811 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 13:50:52,812 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 13:50:52,847 - root - INFO - Inferring schema from data
+2025-04-30 13:50:52,847 - root - INFO - Inferring schema from data
+2025-04-30 13:50:52,849 - root - INFO - Identifying name columns
+2025-04-30 13:50:56,083 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 13:51:00,952 - root - INFO - Detecting data relationships and dependencies
+2025-04-30 13:51:00,952 - root - INFO - Detecting temporal relationships between columns
+2025-04-30 13:51:01,007 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 13:51:01,012 - root - INFO - Detecting conditional dependencies between columns
+2025-04-30 13:51:01,035 - root - INFO - Preprocessing data
+2025-04-30 13:51:01,035 - root - INFO - Preprocessing data
+2025-04-30 13:51:01,036 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 13:51:01,102 - root - INFO - Analyzing data relationships
+2025-04-30 13:51:01,102 - root - INFO - Analyzing data
+2025-04-30 13:51:01,103 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 13:51:02,435 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 13:51:02,435 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 13:51:02,435 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 13:53:09,401 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 13:53:09,402 - root - INFO - Post-processing table: healthcare_dataset
+2025-04-30 13:53:09,402 - root - INFO - Evaluating synthetic data
+2025-04-30 13:53:09,402 - root - INFO - Evaluating synthetic data
+2025-04-30 13:53:09,403 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-30 13:53:11,152 - root - INFO - Table healthcare_dataset - Overall score: 0.6000
+2025-04-30 13:53:11,153 - root - INFO - Validating synthetic data
+2025-04-30 13:53:11,153 - root - INFO - Validating synthetic data
+2025-04-30 13:53:11,154 - root - INFO - Validating table: healthcare_dataset
+2025-04-30 13:53:11,155 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-04-30 13:53:11,156 - root - WARNING -   - Missing column: healthcare_dataset
+2025-04-30 13:53:11,157 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 13:53:11,158 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 13:53:11,173 - root - INFO - Pipeline completed successfully in 138.36 seconds
+2025-04-30 13:59:19,942 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 13:59:19,943 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 13:59:19,990 - root - INFO - Inferring schema from data
+2025-04-30 13:59:19,991 - root - INFO - Inferring schema from data
+2025-04-30 13:59:19,997 - root - INFO - Identifying name columns
+2025-04-30 13:59:23,363 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 13:59:26,953 - root - INFO - Detecting data relationships and dependencies
+2025-04-30 13:59:26,953 - root - INFO - Detecting temporal relationships between columns
+2025-04-30 13:59:27,022 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 13:59:27,034 - root - INFO - Detecting conditional dependencies between columns
+2025-04-30 13:59:27,063 - root - INFO - Preprocessing data
+2025-04-30 13:59:27,064 - root - INFO - Preprocessing data
+2025-04-30 13:59:27,064 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 13:59:27,124 - root - INFO - Analyzing data relationships
+2025-04-30 13:59:27,124 - root - INFO - Analyzing data
+2025-04-30 13:59:27,124 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 13:59:28,388 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 13:59:28,388 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 13:59:28,389 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 14:01:40,293 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 14:01:40,294 - root - ERROR - Pipeline failed: name 'copy' is not defined
+2025-04-30 14:01:40,297 - root - ERROR - Traceback (most recent call last):
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\pipeline.py", line 1250, in run_pipeline
+    original_synthetic_data = copy.deepcopy(self.synthetic_data)
+                              ^^^^
+NameError: name 'copy' is not defined. Did you forget to import 'copy'?
+
+2025-04-30 14:02:30,480 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 14:02:30,481 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 14:02:30,516 - root - INFO - Inferring schema from data
+2025-04-30 14:02:30,516 - root - INFO - Inferring schema from data
+2025-04-30 14:02:30,517 - root - INFO - Identifying name columns
+2025-04-30 14:02:33,846 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 14:02:39,297 - root - INFO - Detecting data relationships and dependencies
+2025-04-30 14:02:39,297 - root - INFO - Detecting temporal relationships between columns
+2025-04-30 14:02:39,342 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 14:02:39,347 - root - INFO - Detecting conditional dependencies between columns
+2025-04-30 14:02:39,366 - root - INFO - Preprocessing data
+2025-04-30 14:02:39,366 - root - INFO - Preprocessing data
+2025-04-30 14:02:39,366 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 14:02:39,419 - root - INFO - Analyzing data relationships
+2025-04-30 14:02:39,419 - root - INFO - Analyzing data
+2025-04-30 14:02:39,419 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 14:02:40,656 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 14:02:40,656 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 14:02:40,656 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 14:04:47,273 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 14:04:47,274 - root - WARNING - No data to post-process for table healthcare_dataset
+2025-04-30 14:04:47,274 - root - INFO - Table healthcare_dataset ready for export: 0 rows, 0 columns
+2025-04-30 14:04:47,274 - root - ERROR - Table healthcare_dataset is empty before export!
+2025-04-30 14:04:47,275 - root - INFO - Evaluating synthetic data
+2025-04-30 14:04:47,275 - root - INFO - Evaluating synthetic data
+2025-04-30 14:04:47,275 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-30 14:04:48,908 - root - INFO - Table healthcare_dataset - Overall score: 0.6000
+2025-04-30 14:04:48,908 - root - INFO - Validating synthetic data
+2025-04-30 14:04:48,909 - root - INFO - Validating synthetic data
+2025-04-30 14:04:48,909 - root - INFO - Validating table: healthcare_dataset
+2025-04-30 14:04:48,910 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-04-30 14:04:48,910 - root - WARNING -   - Missing column: healthcare_dataset
+2025-04-30 14:04:48,910 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 14:04:48,911 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 14:04:48,954 - root - INFO - Pipeline completed successfully in 138.47 seconds
+2025-04-30 14:08:45,328 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 14:08:45,328 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 14:08:45,369 - root - INFO - Inferring schema from data
+2025-04-30 14:08:45,370 - root - INFO - Inferring schema from data
+2025-04-30 14:08:45,371 - root - INFO - Identifying name columns
+2025-04-30 14:08:48,135 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 14:09:01,775 - root - INFO - Detecting data relationships and dependencies
+2025-04-30 14:09:01,775 - root - INFO - Detecting temporal relationships between columns
+2025-04-30 14:09:01,818 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 14:09:01,822 - root - INFO - Detecting conditional dependencies between columns
+2025-04-30 14:09:01,841 - root - INFO - Preprocessing data
+2025-04-30 14:09:01,841 - root - INFO - Preprocessing data
+2025-04-30 14:09:01,842 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 14:09:01,897 - root - INFO - Analyzing data relationships
+2025-04-30 14:09:01,897 - root - INFO - Analyzing data
+2025-04-30 14:09:01,897 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 14:09:03,130 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 14:09:03,130 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 14:09:03,131 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 14:11:11,666 - root - INFO - Checking synthetic data generation results
+2025-04-30 14:11:11,666 - root - ERROR - Generated synthetic data for healthcare_dataset is empty - investigation needed
+2025-04-30 14:11:11,667 - root - INFO - Original data for healthcare_dataset exists with 8010 rows
+2025-04-30 14:11:11,667 - root - WARNING - Attempting emergency fallback for healthcare_dataset
+2025-04-30 14:11:11,672 - root - INFO - Emergency fallback created 8010 rows for healthcare_dataset
+2025-04-30 14:11:11,672 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 14:11:11,673 - root - INFO - Post-processing table: healthcare_dataset
+2025-04-30 14:11:11,674 - root - INFO - Post-processing 8010 rows for table healthcare_dataset
+2025-04-30 14:11:11,675 - root - INFO - Original DataFrame columns: ['Name', 'Age', 'Gender', 'Blood Type', 'Medical Condition', 'Date of Admission', 'Doctor', 'Hospital', 'Insurance Provider', 'Billing Amount', 'Room Number', 'Admission Type', 'Discharge Date', 'Medication', 'Test Results']
+2025-04-30 14:11:11,675 - root - INFO - Found 1 temporal relationships to enforce
+2025-04-30 14:11:11,675 - root - INFO - Enforcing temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 14:11:11,705 - root - INFO - Processing 8010 valid date pairs
+2025-04-30 14:11:11,706 - root - INFO - Post-processing complete: 8010 rows remaining
+2025-04-30 14:11:11,706 - root - INFO - Table healthcare_dataset ready for export: 8010 rows, 15 columns
+2025-04-30 14:11:11,707 - root - INFO - Evaluating synthetic data
+2025-04-30 14:11:11,707 - root - INFO - Evaluating synthetic data
+2025-04-30 14:11:11,707 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-30 14:11:15,763 - root - INFO - Table healthcare_dataset - Overall score: 0.5386
+2025-04-30 14:11:15,764 - root - INFO - Validating synthetic data
+2025-04-30 14:11:15,764 - root - INFO - Validating synthetic data
+2025-04-30 14:11:15,764 - root - INFO - Validating table: healthcare_dataset
+2025-04-30 14:11:15,765 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-04-30 14:11:15,765 - root - WARNING -   - Missing column: healthcare_dataset
+2025-04-30 14:11:15,765 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 14:11:15,766 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 14:11:15,898 - root - INFO - Pipeline completed successfully in 150.57 seconds
+2025-04-30 14:22:15,816 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 14:22:15,816 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 14:22:15,855 - root - INFO - Inferring schema from data
+2025-04-30 14:22:15,855 - root - INFO - Inferring schema from data
+2025-04-30 14:22:15,856 - root - INFO - Identifying name columns
+2025-04-30 14:22:20,016 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 14:22:30,596 - root - INFO - Preprocessing data
+2025-04-30 14:22:30,597 - root - INFO - Preprocessing data
+2025-04-30 14:22:30,597 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 14:22:30,639 - root - INFO - Analyzing data relationships
+2025-04-30 14:22:30,640 - root - INFO - Analyzing data
+2025-04-30 14:22:30,640 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 14:22:31,196 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 14:22:31,197 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 14:22:31,197 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 14:25:49,417 - root - INFO - Generating synthetic names for column: Name
+2025-04-30 14:25:49,425 - root - INFO - Checking synthetic data generation results
+2025-04-30 14:25:49,426 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 14:25:49,428 - root - INFO - Post-processing table: healthcare_dataset
+2025-04-30 14:25:49,431 - root - INFO - Post-processing 8010 rows for table healthcare_dataset
+2025-04-30 14:25:49,431 - root - INFO - Original DataFrame columns: ['Name', 'Age', 'Gender', 'Blood Type', 'Medical Condition', 'Date of Admission', 'Doctor', 'Hospital', 'Insurance Provider', 'Billing Amount', 'Room Number', 'Admission Type', 'Discharge Date', 'Medication', 'Test Results']
+2025-04-30 14:25:49,431 - root - INFO - Post-processing complete: 8010 rows remaining
+2025-04-30 14:25:49,432 - root - INFO - Table healthcare_dataset ready for export: 8010 rows, 15 columns
+2025-04-30 14:25:49,432 - root - INFO - Evaluating synthetic data
+2025-04-30 14:25:49,433 - root - INFO - Evaluating synthetic data
+2025-04-30 14:25:49,433 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-30 14:26:04,658 - root - INFO - Table healthcare_dataset - Overall score: 0.5267
+2025-04-30 14:26:04,668 - root - INFO - Validating synthetic data
+2025-04-30 14:26:04,669 - root - INFO - Validating synthetic data
+2025-04-30 14:26:04,669 - root - INFO - Validating table: healthcare_dataset
+2025-04-30 14:26:04,670 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-04-30 14:26:04,670 - root - WARNING -   - Missing column: healthcare_dataset
+2025-04-30 14:26:04,670 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 14:26:04,671 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 14:26:04,811 - root - INFO - Pipeline completed successfully in 229.00 seconds
+2025-04-30 14:39:08,070 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 14:39:08,071 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 14:39:08,121 - root - INFO - Inferring schema from data
+2025-04-30 14:39:08,121 - root - INFO - Inferring schema from data
+2025-04-30 14:39:08,127 - root - INFO - Identifying name columns
+2025-04-30 14:39:19,510 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 14:39:27,897 - root - INFO - Detecting data relationships and dependencies
+2025-04-30 14:39:27,898 - root - INFO - Detecting temporal relationships between columns
+2025-04-30 14:39:27,898 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-04-30 14:39:27,957 - root - INFO - Found 2 potential date columns: ['Date of Admission', 'Discharge Date']
+2025-04-30 14:39:27,957 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-04-30 14:39:28,014 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 14:39:28,026 - root - INFO - Preprocessing data
+2025-04-30 14:39:28,027 - root - INFO - Preprocessing data
+2025-04-30 14:39:28,027 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 14:39:28,079 - root - INFO - Analyzing data relationships
+2025-04-30 14:39:28,079 - root - INFO - Analyzing data
+2025-04-30 14:39:28,080 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 14:39:28,831 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 14:39:28,831 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 14:39:28,831 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 14:42:58,408 - root - INFO - Generating synthetic names for column: Name
+2025-04-30 14:42:58,417 - root - INFO - Checking synthetic data generation results
+2025-04-30 14:42:58,418 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 14:42:58,420 - root - INFO - Post-processing table: healthcare_dataset
+2025-04-30 14:42:58,424 - root - INFO - Post-processing 8010 rows for table healthcare_dataset
+2025-04-30 14:42:58,424 - root - INFO - Original DataFrame columns: ['Name', 'Age', 'Gender', 'Blood Type', 'Medical Condition', 'Date of Admission', 'Doctor', 'Hospital', 'Insurance Provider', 'Billing Amount', 'Room Number', 'Admission Type', 'Discharge Date', 'Medication', 'Test Results']
+2025-04-30 14:42:58,425 - root - INFO - Found 1 temporal relationships to enforce
+2025-04-30 14:42:58,425 - root - INFO - Enforcing temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 14:42:58,468 - root - INFO - Processing 8010 valid date pairs
+2025-04-30 14:42:58,469 - root - INFO - Fixing 3947 inconsistent date pairs
+2025-04-30 14:42:58,832 - root - INFO - Post-processing complete: 8010 rows remaining
+2025-04-30 14:42:58,833 - root - INFO - Table healthcare_dataset ready for export: 8010 rows, 15 columns
+2025-04-30 14:42:58,834 - root - INFO - Evaluating synthetic data
+2025-04-30 14:42:58,834 - root - INFO - Evaluating synthetic data
+2025-04-30 14:42:58,834 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-30 14:43:08,571 - root - ERROR - Pipeline failed: '<' not supported between instances of 'Timestamp' and 'str'
+2025-04-30 14:43:08,617 - root - ERROR - Traceback (most recent call last):
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\pipeline.py", line 1360, in run_pipeline
+    evaluation_results = self.evaluate_synthetic_data()
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\pipeline.py", line 1154, in evaluate_synthetic_data
+    stats_results = self.evaluator.evaluate_statistical_similarity(
+        original_df, synthetic_df
+    )
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\evaluation\statistical_evaluator.py", line 334, in evaluate_statistical_similarity
+    return evaluator.evaluate(original_df, synthetic_df)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\evaluation\statistical_evaluator.py", line 47, in evaluate
+    metrics = self._evaluate_numeric_column(
+        original_df[column], synthetic_df[column]
+    )
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\evaluation\statistical_evaluator.py", line 128, in _evaluate_numeric_column
+    return self._evaluate_categorical_column(original, synthetic)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\evaluation\statistical_evaluator.py", line 84, in _evaluate_categorical_column
+    all_categories = sorted(set(orig_freq.index) | set(synth_freq.index))
+TypeError: '<' not supported between instances of 'Timestamp' and 'str'
+
+2025-04-30 15:42:31,277 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 15:42:31,279 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 15:42:31,355 - root - INFO - Inferring schema from data
+2025-04-30 15:42:31,356 - root - INFO - Inferring schema from data
+2025-04-30 15:42:31,369 - root - INFO - Identifying name columns
+2025-04-30 15:43:04,247 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 15:43:10,501 - root - INFO - Detecting data relationships and dependencies
+2025-04-30 15:43:10,501 - root - INFO - Detecting temporal relationships between columns
+2025-04-30 15:43:10,501 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-04-30 15:43:10,566 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-04-30 15:43:10,566 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-04-30 15:43:10,607 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 15:43:10,620 - root - INFO - Preprocessing data
+2025-04-30 15:43:10,620 - root - INFO - Preprocessing data
+2025-04-30 15:43:10,621 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 15:43:10,679 - root - INFO - Analyzing data relationships
+2025-04-30 15:43:10,680 - root - INFO - Analyzing data
+2025-04-30 15:43:10,680 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 15:43:11,253 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 15:43:11,253 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 15:43:11,254 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 15:46:29,029 - root - INFO - Checking synthetic data generation results
+2025-04-30 15:46:29,029 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 15:46:29,030 - root - INFO - Evaluating synthetic data
+2025-04-30 15:46:29,030 - root - INFO - Evaluating synthetic data
+2025-04-30 15:46:29,031 - root - INFO - Validating synthetic data
+2025-04-30 15:46:29,031 - root - INFO - Validating synthetic data
+2025-04-30 15:46:29,031 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 15:46:29,032 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 15:46:29,033 - root - INFO - Pipeline completed successfully in 237.76 seconds
+2025-04-30 15:47:44,132 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 15:47:44,132 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 15:47:44,174 - root - INFO - Inferring schema from data
+2025-04-30 15:47:44,175 - root - INFO - Inferring schema from data
+2025-04-30 15:47:44,176 - root - INFO - Identifying name columns
+2025-04-30 15:48:48,144 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 15:48:55,085 - root - INFO - Detecting data relationships and dependencies
+2025-04-30 15:48:55,086 - root - INFO - Detecting temporal relationships between columns
+2025-04-30 15:48:55,086 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-04-30 15:48:55,129 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-04-30 15:48:55,129 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-04-30 15:48:55,191 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 15:48:55,196 - root - INFO - Detecting conditional dependencies between columns
+2025-04-30 15:48:55,197 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-04-30 15:48:55,238 - root - INFO - Found 2 date columns for conditional dependencies
+2025-04-30 15:48:55,251 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-04-30 15:48:55,251 - root - INFO - Preprocessing data
+2025-04-30 15:48:55,252 - root - INFO - Preprocessing data
+2025-04-30 15:48:55,252 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 15:48:55,291 - root - INFO - Analyzing data relationships
+2025-04-30 15:48:55,291 - root - INFO - Analyzing data
+2025-04-30 15:48:55,292 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 15:48:55,841 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 15:48:55,842 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 15:48:55,842 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 15:52:11,380 - root - INFO - Checking synthetic data generation results
+2025-04-30 15:52:11,380 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 15:52:11,381 - root - INFO - Evaluating synthetic data
+2025-04-30 15:52:11,381 - root - INFO - Evaluating synthetic data
+2025-04-30 15:52:11,381 - root - INFO - Validating synthetic data
+2025-04-30 15:52:11,382 - root - INFO - Validating synthetic data
+2025-04-30 15:52:11,382 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 15:52:11,383 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 15:52:11,388 - root - INFO - Pipeline completed successfully in 267.26 seconds
+2025-04-30 15:53:30,392 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 15:53:30,392 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 15:53:30,422 - root - INFO - Inferring schema from data
+2025-04-30 15:53:30,423 - root - INFO - Inferring schema from data
+2025-04-30 15:53:30,424 - root - INFO - Identifying name columns
+2025-04-30 15:53:37,023 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 15:53:41,273 - root - INFO - Detecting data relationships and dependencies
+2025-04-30 15:53:41,273 - root - INFO - Detecting temporal relationships between columns
+2025-04-30 15:53:41,274 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-04-30 15:53:41,331 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-04-30 15:53:41,332 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-04-30 15:53:41,381 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 15:53:41,387 - root - INFO - Detecting conditional dependencies between columns
+2025-04-30 15:53:41,388 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-04-30 15:53:41,443 - root - INFO - Found 2 date columns for conditional dependencies
+2025-04-30 15:53:41,459 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-04-30 15:53:41,459 - root - INFO - Preprocessing data
+2025-04-30 15:53:41,459 - root - INFO - Preprocessing data
+2025-04-30 15:53:41,460 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 15:53:41,503 - root - INFO - Analyzing data relationships
+2025-04-30 15:53:41,503 - root - INFO - Analyzing data
+2025-04-30 15:53:41,504 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 15:53:42,322 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 15:53:42,322 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 15:53:42,323 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 15:57:05,982 - root - INFO - Checking synthetic data generation results
+2025-04-30 15:57:05,982 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 15:57:05,983 - root - INFO - Evaluating synthetic data
+2025-04-30 15:57:05,983 - root - INFO - Evaluating synthetic data
+2025-04-30 15:57:05,983 - root - INFO - Validating synthetic data
+2025-04-30 15:57:05,984 - root - INFO - Validating synthetic data
+2025-04-30 15:57:05,984 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 15:57:05,984 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 15:57:05,985 - root - INFO - Pipeline completed successfully in 215.59 seconds
+2025-04-30 16:00:24,462 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 16:00:24,463 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 16:00:24,606 - root - INFO - Inferring schema from data
+2025-04-30 16:00:24,608 - root - INFO - Inferring schema from data
+2025-04-30 16:00:24,619 - root - INFO - Identifying name columns
+2025-04-30 16:02:01,831 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 16:02:06,510 - root - INFO - Detecting data relationships and dependencies
+2025-04-30 16:02:06,511 - root - INFO - Detecting temporal relationships between columns
+2025-04-30 16:02:06,511 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-04-30 16:02:06,623 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-04-30 16:02:06,624 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-04-30 16:02:06,673 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 16:02:06,710 - root - INFO - Detecting conditional dependencies between columns
+2025-04-30 16:02:06,710 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-04-30 16:02:06,749 - root - INFO - Found 2 date columns for conditional dependencies
+2025-04-30 16:02:06,817 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-04-30 16:02:06,818 - root - INFO - Preprocessing data
+2025-04-30 16:02:06,818 - root - INFO - Preprocessing data
+2025-04-30 16:02:06,818 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 16:02:06,909 - root - INFO - Analyzing data relationships
+2025-04-30 16:02:06,909 - root - INFO - Analyzing data
+2025-04-30 16:02:06,910 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 16:02:07,544 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 16:02:07,545 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 16:02:07,545 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 16:05:50,114 - root - INFO - Checking synthetic data generation results
+2025-04-30 16:05:50,115 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 16:05:50,115 - root - INFO - Evaluating synthetic data
+2025-04-30 16:05:50,115 - root - INFO - Evaluating synthetic data
+2025-04-30 16:05:50,116 - root - INFO - Validating synthetic data
+2025-04-30 16:05:50,116 - root - INFO - Validating synthetic data
+2025-04-30 16:05:50,116 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 16:05:50,117 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 16:05:50,118 - root - INFO - Pipeline completed successfully in 325.66 seconds
+2025-04-30 16:12:48,065 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 16:12:48,067 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 16:12:48,129 - root - INFO - Inferring schema from data
+2025-04-30 16:12:48,129 - root - INFO - Inferring schema from data
+2025-04-30 16:12:48,136 - root - INFO - Identifying name columns
+2025-04-30 16:12:50,126 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 16:12:53,075 - root - INFO - Preprocessing data
+2025-04-30 16:12:53,078 - root - INFO - Preprocessing data
+2025-04-30 16:12:53,078 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 16:12:53,136 - root - INFO - Analyzing data relationships
+2025-04-30 16:12:53,136 - root - INFO - Analyzing data
+2025-04-30 16:12:53,137 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 16:12:53,725 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 16:12:53,725 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 16:12:53,725 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 16:16:17,319 - root - INFO - Checking synthetic data generation results
+2025-04-30 16:16:17,320 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 16:16:17,320 - root - INFO - Evaluating synthetic data
+2025-04-30 16:16:17,320 - root - INFO - Evaluating synthetic data
+2025-04-30 16:16:17,321 - root - INFO - Validating synthetic data
+2025-04-30 16:16:17,321 - root - INFO - Validating synthetic data
+2025-04-30 16:16:17,321 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 16:16:17,322 - root - INFO - Exporting synthetic data to csv format: synthetic_banking
+2025-04-30 16:16:17,323 - root - INFO - Pipeline completed successfully in 209.26 seconds
+2025-04-30 18:57:45,647 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 18:57:45,650 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 18:57:45,780 - root - INFO - Inferring schema from data
+2025-04-30 18:57:45,781 - root - INFO - Inferring schema from data
+2025-04-30 18:57:45,797 - root - INFO - Identifying name columns
+2025-04-30 18:58:27,423 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 18:58:30,343 - root - INFO - Preprocessing data
+2025-04-30 18:58:30,344 - root - INFO - Preprocessing data
+2025-04-30 18:58:30,344 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 18:58:30,467 - root - INFO - Analyzing data relationships
+2025-04-30 18:58:30,468 - root - INFO - Analyzing data
+2025-04-30 18:58:30,469 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 18:58:31,445 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 18:58:31,445 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 18:58:31,445 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 19:02:33,934 - root - INFO - Checking synthetic data generation results
+2025-04-30 19:02:33,935 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 19:02:33,936 - root - INFO - Evaluating synthetic data
+2025-04-30 19:02:33,936 - root - INFO - Evaluating synthetic data
+2025-04-30 19:02:33,936 - root - INFO - Validating synthetic data
+2025-04-30 19:02:33,937 - root - INFO - Validating synthetic data
+2025-04-30 19:02:33,937 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:02:33,963 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-04-30 19:02:33,964 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:02:33,964 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:02:33,965 - root - INFO - Pipeline completed successfully in 288.32 seconds
+2025-04-30 19:04:13,716 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 19:04:13,717 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 19:04:13,769 - root - INFO - Inferring schema from data
+2025-04-30 19:04:13,770 - root - INFO - Inferring schema from data
+2025-04-30 19:04:13,771 - root - INFO - Identifying name columns
+2025-04-30 19:04:15,821 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 19:04:18,871 - root - INFO - Preprocessing data
+2025-04-30 19:04:18,871 - root - INFO - Preprocessing data
+2025-04-30 19:04:18,872 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 19:04:18,950 - root - INFO - Analyzing data relationships
+2025-04-30 19:04:18,950 - root - INFO - Analyzing data
+2025-04-30 19:04:18,951 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 19:04:19,830 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 19:04:19,830 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 19:04:19,831 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 19:08:12,998 - root - INFO - Checking synthetic data generation results
+2025-04-30 19:08:12,998 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 19:08:12,999 - root - INFO - Evaluating synthetic data
+2025-04-30 19:08:12,999 - root - INFO - Evaluating synthetic data
+2025-04-30 19:08:12,999 - root - INFO - Validating synthetic data
+2025-04-30 19:08:13,000 - root - INFO - Validating synthetic data
+2025-04-30 19:08:13,000 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:08:13,001 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-04-30 19:08:13,001 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:08:13,002 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:08:13,002 - root - INFO - Pipeline completed successfully in 239.29 seconds
+2025-04-30 19:17:13,834 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 19:17:13,836 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 19:17:13,931 - root - INFO - Inferring schema from data
+2025-04-30 19:17:13,932 - root - INFO - Inferring schema from data
+2025-04-30 19:17:13,943 - root - INFO - Identifying name columns
+2025-04-30 19:17:16,453 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 19:17:19,462 - root - INFO - Preprocessing data
+2025-04-30 19:17:19,463 - root - INFO - Preprocessing data
+2025-04-30 19:17:19,464 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 19:17:19,549 - root - INFO - Analyzing data relationships
+2025-04-30 19:17:19,549 - root - INFO - Analyzing data
+2025-04-30 19:17:19,550 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 19:17:20,368 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 19:17:20,369 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 19:17:20,373 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 19:21:24,896 - root - INFO - Checking synthetic data generation results
+2025-04-30 19:21:24,896 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 19:21:24,897 - root - INFO - Evaluating synthetic data
+2025-04-30 19:21:24,897 - root - INFO - Evaluating synthetic data
+2025-04-30 19:21:24,897 - root - INFO - Validating synthetic data
+2025-04-30 19:21:24,898 - root - INFO - Validating synthetic data
+2025-04-30 19:21:24,898 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:21:24,899 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-04-30 19:21:24,900 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:21:24,900 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:21:24,901 - root - ERROR - No synthetic data to export
+2025-04-30 19:21:24,901 - root - ERROR - Failed to export synthetic data.
+2025-04-30 19:23:13,457 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 19:23:13,458 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 19:23:13,543 - root - INFO - Inferring schema from data
+2025-04-30 19:23:13,545 - root - INFO - Inferring schema from data
+2025-04-30 19:23:13,548 - root - INFO - Identifying name columns
+2025-04-30 19:23:15,720 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 19:23:18,230 - root - INFO - Detecting data relationships and dependencies
+2025-04-30 19:23:18,230 - root - INFO - Detecting temporal relationships between columns
+2025-04-30 19:23:18,231 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-04-30 19:23:18,394 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-04-30 19:23:18,394 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-04-30 19:23:18,517 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 19:23:18,532 - root - INFO - Detecting conditional dependencies between columns
+2025-04-30 19:23:18,532 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-04-30 19:23:18,607 - root - INFO - Found 2 date columns for conditional dependencies
+2025-04-30 19:23:18,629 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-04-30 19:23:18,629 - root - INFO - Preprocessing data
+2025-04-30 19:23:18,630 - root - INFO - Preprocessing data
+2025-04-30 19:23:18,630 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 19:23:18,695 - root - INFO - Analyzing data relationships
+2025-04-30 19:23:18,696 - root - INFO - Analyzing data
+2025-04-30 19:23:18,696 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 19:23:19,638 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 19:23:19,639 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 19:23:19,639 - root - INFO - Generating synthetic data for table: healthcare_dataset
+2025-04-30 19:27:15,966 - root - INFO - Checking synthetic data generation results
+2025-04-30 19:27:15,967 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 19:27:15,967 - root - INFO - Evaluating synthetic data
+2025-04-30 19:27:15,968 - root - INFO - Evaluating synthetic data
+2025-04-30 19:27:15,968 - root - INFO - Validating synthetic data
+2025-04-30 19:27:15,969 - root - INFO - Validating synthetic data
+2025-04-30 19:27:15,969 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:27:15,971 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-04-30 19:27:15,972 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:27:15,972 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:27:15,973 - root - ERROR - No synthetic data to export
+2025-04-30 19:27:15,973 - root - ERROR - Failed to export synthetic data.
+2025-04-30 19:32:44,641 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 19:32:44,641 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 19:32:44,699 - root - INFO - Inferring schema from data
+2025-04-30 19:32:44,700 - root - INFO - Inferring schema from data
+2025-04-30 19:32:44,702 - root - INFO - Identifying name columns
+2025-04-30 19:32:47,674 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 19:32:51,513 - root - INFO - Detecting data relationships and dependencies
+2025-04-30 19:32:51,514 - root - INFO - Detecting temporal relationships between columns
+2025-04-30 19:32:51,514 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-04-30 19:32:51,605 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-04-30 19:32:51,606 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-04-30 19:32:51,688 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 19:32:51,697 - root - INFO - Detecting conditional dependencies between columns
+2025-04-30 19:32:51,698 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-04-30 19:32:51,780 - root - INFO - Found 2 date columns for conditional dependencies
+2025-04-30 19:32:51,796 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-04-30 19:32:51,797 - root - INFO - Preprocessing data
+2025-04-30 19:32:51,797 - root - INFO - Preprocessing data
+2025-04-30 19:32:51,798 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 19:32:51,856 - root - INFO - Analyzing data relationships
+2025-04-30 19:32:51,857 - root - INFO - Analyzing data
+2025-04-30 19:32:51,857 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 19:32:52,722 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 19:32:52,722 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 19:32:52,722 - root - INFO - Generating synthetic data for table: healthcare_dataset with shape (8010, 15)
+2025-04-30 19:32:52,723 - root - INFO - Training models for healthcare_dataset with auto method
+2025-04-30 19:36:43,438 - root - INFO - Generated synthetic data with shape: (8010, 15)
+2025-04-30 19:36:43,439 - root - INFO - Successfully stored synthetic data for healthcare_dataset with shape (8010, 15)
+2025-04-30 19:36:43,439 - root - INFO - Table healthcare_dataset synthetic data: 8010 rows, 15 columns
+2025-04-30 19:36:43,440 - root - INFO - Table healthcare_dataset has 8010 rows of synthetic data
+2025-04-30 19:36:43,440 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 19:36:43,447 - root - INFO - Post-processing table: healthcare_dataset
+2025-04-30 19:36:43,451 - root - INFO - Post-processing 8010 rows for table healthcare_dataset
+2025-04-30 19:36:43,452 - root - INFO - Original DataFrame columns: ['Name', 'Age', 'Gender', 'Blood Type', 'Medical Condition', 'Date of Admission', 'Doctor', 'Hospital', 'Insurance Provider', 'Billing Amount', 'Room Number', 'Admission Type', 'Discharge Date', 'Medication', 'Test Results']
+2025-04-30 19:36:43,452 - root - INFO - Found 1 temporal relationships to enforce
+2025-04-30 19:36:43,453 - root - INFO - Enforcing temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 19:36:43,546 - root - INFO - Processing 8010 valid date pairs
+2025-04-30 19:36:43,548 - root - INFO - Fixing 3889 inconsistent date pairs
+2025-04-30 19:36:44,087 - root - INFO - Post-processing complete: 8010 rows remaining
+2025-04-30 19:36:44,089 - root - INFO - Table healthcare_dataset ready for export: 8010 rows, 15 columns
+2025-04-30 19:36:44,090 - root - INFO - Evaluating synthetic data
+2025-04-30 19:36:44,090 - root - INFO - Evaluating synthetic data
+2025-04-30 19:36:44,091 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-30 19:36:59,721 - root - INFO - Table healthcare_dataset - Overall score: 0.5293
+2025-04-30 19:36:59,725 - root - INFO - Validating synthetic data
+2025-04-30 19:36:59,725 - root - INFO - Validating synthetic data
+2025-04-30 19:36:59,726 - root - INFO - Validating table: healthcare_dataset
+2025-04-30 19:36:59,727 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-04-30 19:36:59,727 - root - WARNING -   - Missing column: healthcare_dataset
+2025-04-30 19:36:59,727 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:36:59,730 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-04-30 19:36:59,730 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:36:59,730 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:36:59,731 - root - INFO - Exporting 1 non-empty tables
+2025-04-30 19:36:59,881 - root - INFO - Exported 8010 rows to C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking\healthcare_dataset.csv
+2025-04-30 19:36:59,881 - root - INFO - Pipeline completed successfully in 255.24 seconds
+2025-04-30 19:44:01,283 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 19:44:01,285 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 19:44:01,375 - root - INFO - Inferring schema from data
+2025-04-30 19:44:01,376 - root - INFO - Inferring schema from data
+2025-04-30 19:44:01,386 - root - INFO - Identifying name columns
+2025-04-30 19:44:04,617 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 19:44:16,827 - root - INFO - Detecting data relationships and dependencies
+2025-04-30 19:44:16,828 - root - INFO - Detecting temporal relationships between columns
+2025-04-30 19:44:16,828 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-04-30 19:44:16,979 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-04-30 19:44:16,980 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-04-30 19:44:17,065 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 19:44:17,083 - root - INFO - Detecting conditional dependencies between columns
+2025-04-30 19:44:17,084 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-04-30 19:44:17,159 - root - INFO - Found 2 date columns for conditional dependencies
+2025-04-30 19:44:17,189 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-04-30 19:44:17,190 - root - INFO - Preprocessing data
+2025-04-30 19:44:17,190 - root - INFO - Preprocessing data
+2025-04-30 19:44:17,190 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 19:44:17,260 - root - INFO - Analyzing data relationships
+2025-04-30 19:44:17,261 - root - INFO - Analyzing data
+2025-04-30 19:44:17,261 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 19:44:18,112 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 19:44:18,112 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 19:44:18,113 - root - INFO - Generating synthetic data for table: healthcare_dataset with shape (8010, 15)
+2025-04-30 19:44:18,113 - root - INFO - Training models for healthcare_dataset with auto method
+2025-04-30 19:50:19,383 - root - INFO - Generated synthetic data with shape: (8010, 15)
+2025-04-30 19:50:19,385 - root - INFO - Successfully stored synthetic data for healthcare_dataset with shape (8010, 15)
+2025-04-30 19:50:19,385 - root - INFO - Table healthcare_dataset synthetic data: 8010 rows, 15 columns
+2025-04-30 19:50:19,386 - root - INFO - Table healthcare_dataset has 8010 rows of synthetic data
+2025-04-30 19:50:19,386 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 19:50:19,390 - root - INFO - Post-processing table: healthcare_dataset
+2025-04-30 19:50:19,393 - root - INFO - Post-processing 8010 rows for table healthcare_dataset
+2025-04-30 19:50:19,394 - root - INFO - Original DataFrame columns: ['Name', 'Age', 'Gender', 'Blood Type', 'Medical Condition', 'Date of Admission', 'Doctor', 'Hospital', 'Insurance Provider', 'Billing Amount', 'Room Number', 'Admission Type', 'Discharge Date', 'Medication', 'Test Results']
+2025-04-30 19:50:19,394 - root - INFO - Found 1 temporal relationships to enforce
+2025-04-30 19:50:19,395 - root - INFO - Enforcing temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 19:50:19,499 - root - INFO - Processing 8010 valid date pairs
+2025-04-30 19:50:19,500 - root - INFO - Fixing 3949 inconsistent date pairs
+2025-04-30 19:50:20,111 - root - INFO - Post-processing complete: 8010 rows remaining
+2025-04-30 19:50:20,113 - root - INFO - Table healthcare_dataset ready for export: 8010 rows, 15 columns
+2025-04-30 19:50:20,113 - root - INFO - Evaluating synthetic data
+2025-04-30 19:50:20,114 - root - INFO - Evaluating synthetic data
+2025-04-30 19:50:20,114 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-30 19:50:34,890 - root - INFO - Table healthcare_dataset - Overall score: 0.5299
+2025-04-30 19:50:34,890 - root - INFO - Validating synthetic data
+2025-04-30 19:50:34,891 - root - INFO - Validating synthetic data
+2025-04-30 19:50:34,891 - root - INFO - Validating table: healthcare_dataset
+2025-04-30 19:50:34,892 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-04-30 19:50:34,892 - root - WARNING -   - Missing column: healthcare_dataset
+2025-04-30 19:50:34,893 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:50:34,896 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-04-30 19:50:34,897 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:50:34,897 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 19:50:34,897 - root - INFO - Exporting 1 non-empty tables
+2025-04-30 19:50:35,076 - root - INFO - Exported 8010 rows to C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking\healthcare_dataset.csv
+2025-04-30 19:50:35,077 - root - INFO - Pipeline completed successfully in 393.79 seconds
+2025-04-30 20:05:27,081 - root - INFO - Starting synthetic data generation pipeline
+2025-04-30 20:05:27,082 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-04-30 20:05:27,176 - root - INFO - Inferring schema from data
+2025-04-30 20:05:27,177 - root - INFO - Inferring schema from data
+2025-04-30 20:05:27,180 - root - INFO - Identifying name columns
+2025-04-30 20:05:34,468 - root - INFO - Identifying columns for abstraction/dummy data
+2025-04-30 20:06:01,407 - root - INFO - Detecting data relationships and dependencies
+2025-04-30 20:06:01,408 - root - INFO - Detecting temporal relationships between columns
+2025-04-30 20:06:01,409 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-04-30 20:06:01,514 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-04-30 20:06:01,515 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-04-30 20:06:01,614 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 20:06:01,623 - root - INFO - Detecting conditional dependencies between columns
+2025-04-30 20:06:01,624 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-04-30 20:06:01,703 - root - INFO - Found 2 date columns for conditional dependencies
+2025-04-30 20:06:01,725 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-04-30 20:06:01,726 - root - INFO - Preprocessing data
+2025-04-30 20:06:01,726 - root - INFO - Preprocessing data
+2025-04-30 20:06:01,726 - root - INFO - Preprocessing table: healthcare_dataset
+2025-04-30 20:06:01,795 - root - INFO - Analyzing data relationships
+2025-04-30 20:06:01,796 - root - INFO - Analyzing data
+2025-04-30 20:06:01,796 - root - INFO - Analyzing table: healthcare_dataset
+2025-04-30 20:06:02,591 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 20:06:02,591 - root - INFO - Generating synthetic data using method: auto
+2025-04-30 20:06:02,592 - root - INFO - Generating synthetic data for table: healthcare_dataset with shape (8010, 15)
+2025-04-30 20:06:02,592 - root - INFO - Training models for healthcare_dataset with auto method
+2025-04-30 20:09:57,951 - root - INFO - Generated synthetic data with shape: (8010, 15)
+2025-04-30 20:09:57,951 - root - INFO - Applying name abstraction for table: healthcare_dataset
+2025-04-30 20:09:57,956 - root - INFO - Generating synthetic names for column: Name
+2025-04-30 20:09:57,977 - root - INFO - Applying general column abstractions for table: healthcare_dataset
+2025-04-30 20:09:57,982 - root - INFO - Applying abstraction 'random_in_range' to column 'Room Number'
+2025-04-30 20:09:57,984 - root - INFO - Successfully stored synthetic data for healthcare_dataset with shape (8010, 15)
+2025-04-30 20:09:57,985 - root - INFO - Table healthcare_dataset synthetic data: 8010 rows, 15 columns
+2025-04-30 20:09:57,985 - root - INFO - Table healthcare_dataset has 8010 rows of synthetic data
+2025-04-30 20:09:57,986 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-04-30 20:09:57,987 - root - INFO - Post-processing table: healthcare_dataset
+2025-04-30 20:09:57,989 - root - INFO - Post-processing 8010 rows for table healthcare_dataset
+2025-04-30 20:09:57,990 - root - INFO - Original DataFrame columns: ['Name', 'Age', 'Gender', 'Blood Type', 'Medical Condition', 'Date of Admission', 'Doctor', 'Hospital', 'Insurance Provider', 'Billing Amount', 'Room Number', 'Admission Type', 'Discharge Date', 'Medication', 'Test Results']
+2025-04-30 20:09:57,990 - root - INFO - Found 1 temporal relationships to enforce
+2025-04-30 20:09:57,991 - root - INFO - Enforcing temporal relationship: Date of Admission -> Discharge Date
+2025-04-30 20:09:58,070 - root - INFO - Processing 8010 valid date pairs
+2025-04-30 20:09:58,071 - root - INFO - Fixing 3865 inconsistent date pairs
+2025-04-30 20:09:58,532 - root - INFO - Post-processing complete: 8010 rows remaining
+2025-04-30 20:09:58,534 - root - INFO - Table healthcare_dataset ready for export: 8010 rows, 15 columns
+2025-04-30 20:09:58,534 - root - INFO - Evaluating synthetic data
+2025-04-30 20:09:58,534 - root - INFO - Evaluating synthetic data
+2025-04-30 20:09:58,535 - root - INFO - Evaluating table: healthcare_dataset
+2025-04-30 20:10:17,479 - root - INFO - Table healthcare_dataset - Overall score: 0.5252
+2025-04-30 20:10:17,480 - root - INFO - Validating synthetic data
+2025-04-30 20:10:17,480 - root - INFO - Validating synthetic data
+2025-04-30 20:10:17,481 - root - INFO - Validating table: healthcare_dataset
+2025-04-30 20:10:17,482 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-04-30 20:10:17,482 - root - WARNING -   - Missing column: healthcare_dataset
+2025-04-30 20:10:17,483 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 20:10:17,491 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-04-30 20:10:17,492 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 20:10:17,492 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-04-30 20:10:17,493 - root - INFO - Exporting 1 non-empty tables
+2025-04-30 20:10:17,637 - root - INFO - Exported 8010 rows to C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking\healthcare_dataset.csv
+2025-04-30 20:10:17,638 - root - INFO - Pipeline completed successfully in 290.56 seconds
+2025-05-07 21:19:11,792 - root - INFO - Starting synthetic data generation pipeline
+2025-05-07 21:19:11,794 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-05-07 21:19:11,862 - root - INFO - Inferring schema from data
+2025-05-07 21:19:11,863 - root - INFO - Inferring schema from data
+2025-05-07 21:19:11,873 - root - INFO - Identifying name columns
+2025-05-07 21:19:17,936 - root - INFO - Identifying columns for abstraction/dummy data
+2025-05-07 21:20:35,576 - root - INFO - Detecting data relationships and dependencies
+2025-05-07 21:20:35,577 - root - INFO - Detecting temporal relationships between columns
+2025-05-07 21:20:35,577 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-05-07 21:20:35,657 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-05-07 21:20:35,657 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-05-07 21:20:35,697 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-05-07 21:20:35,711 - root - INFO - Detecting conditional dependencies between columns
+2025-05-07 21:20:35,712 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-05-07 21:20:35,754 - root - INFO - Found 2 date columns for conditional dependencies
+2025-05-07 21:20:35,777 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-05-07 21:20:35,777 - root - INFO - Preprocessing data
+2025-05-07 21:20:35,777 - root - INFO - Preprocessing data
+2025-05-07 21:20:35,778 - root - INFO - Preprocessing table: healthcare_dataset
+2025-05-07 21:20:35,828 - root - INFO - Analyzing data relationships
+2025-05-07 21:20:35,829 - root - INFO - Analyzing data
+2025-05-07 21:20:35,829 - root - INFO - Analyzing table: healthcare_dataset
+2025-05-07 21:20:36,455 - root - INFO - Generating synthetic data using method: auto
+2025-05-07 21:20:36,456 - root - INFO - Generating synthetic data using method: auto
+2025-05-07 21:20:36,456 - root - INFO - Generating synthetic data for table: healthcare_dataset with shape (8010, 15)
+2025-05-07 21:20:36,457 - root - ERROR - Pipeline failed: cannot access local variable 'synthetic_df' where it is not associated with a value
+2025-05-07 21:20:36,459 - root - ERROR - Traceback (most recent call last):
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\pipeline.py", line 1750, in run_pipeline
+    generation_success = self.generate_synthetic_data(method=generation_method)
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\pipeline.py", line 1340, in generate_synthetic_data
+    if synthetic_df is None or synthetic_df.empty:
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'synthetic_df' where it is not associated with a value
+
+2025-05-07 21:25:31,143 - root - INFO - Starting synthetic data generation pipeline
+2025-05-07 21:25:31,144 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-05-07 21:25:31,176 - root - INFO - Inferring schema from data
+2025-05-07 21:25:31,176 - root - INFO - Inferring schema from data
+2025-05-07 21:25:31,177 - root - INFO - Identifying name columns
+2025-05-07 21:25:34,182 - root - INFO - Identifying columns for abstraction/dummy data
+2025-05-07 21:25:40,971 - root - INFO - Identifying columns for synthesis
+2025-05-07 21:25:49,492 - root - INFO - Detecting data relationships and dependencies
+2025-05-07 21:25:49,493 - root - INFO - Detecting temporal relationships between columns
+2025-05-07 21:25:49,493 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-05-07 21:25:49,548 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-05-07 21:25:49,549 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-05-07 21:25:49,590 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-05-07 21:25:49,596 - root - INFO - Detecting conditional dependencies between columns
+2025-05-07 21:25:49,597 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-05-07 21:25:49,636 - root - INFO - Found 2 date columns for conditional dependencies
+2025-05-07 21:25:49,648 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-05-07 21:25:49,648 - root - INFO - Preprocessing data
+2025-05-07 21:25:49,648 - root - INFO - Preprocessing data
+2025-05-07 21:25:49,649 - root - INFO - Preprocessing table: healthcare_dataset
+2025-05-07 21:25:49,689 - root - INFO - Analyzing data relationships
+2025-05-07 21:25:49,690 - root - INFO - Analyzing data
+2025-05-07 21:25:49,690 - root - INFO - Analyzing table: healthcare_dataset
+2025-05-07 21:25:50,255 - root - INFO - Generating synthetic data using method: auto
+2025-05-07 21:25:50,255 - root - INFO - Generating synthetic data using method: auto
+2025-05-07 21:25:50,256 - root - INFO - Generating synthetic data for table: healthcare_dataset with shape (8010, 15)
+2025-05-07 21:25:50,256 - root - ERROR - Pipeline failed: cannot access local variable 'synthetic_df' where it is not associated with a value
+2025-05-07 21:25:50,257 - root - ERROR - Traceback (most recent call last):
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\pipeline.py", line 1769, in run_pipeline
+    generation_success = self.generate_synthetic_data(method=generation_method)
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\pipeline.py", line 1344, in generate_synthetic_data
+    if synthetic_df is None or synthetic_df.empty:
+       ^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'synthetic_df' where it is not associated with a value
+
+2025-05-07 21:33:10,439 - root - INFO - Starting synthetic data generation pipeline
+2025-05-07 21:33:10,441 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-05-07 21:33:10,476 - root - INFO - Inferring schema from data
+2025-05-07 21:33:10,476 - root - INFO - Inferring schema from data
+2025-05-07 21:33:10,478 - root - INFO - Identifying name columns
+2025-05-07 21:33:12,856 - root - INFO - Identifying columns for abstraction/dummy data
+2025-05-07 21:33:20,536 - root - INFO - Identifying columns for synthesis
+2025-05-07 21:33:40,373 - root - INFO - Detecting data relationships and dependencies
+2025-05-07 21:33:40,373 - root - INFO - Detecting temporal relationships between columns
+2025-05-07 21:33:40,374 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-05-07 21:33:40,421 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-05-07 21:33:40,421 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-05-07 21:33:40,460 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-05-07 21:33:40,466 - root - INFO - Detecting conditional dependencies between columns
+2025-05-07 21:33:40,467 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-05-07 21:33:40,504 - root - INFO - Found 2 date columns for conditional dependencies
+2025-05-07 21:33:40,516 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-05-07 21:33:40,517 - root - INFO - Preprocessing data
+2025-05-07 21:33:40,517 - root - INFO - Preprocessing data
+2025-05-07 21:33:40,518 - root - INFO - Preprocessing table: healthcare_dataset
+2025-05-07 21:33:40,562 - root - INFO - Analyzing data relationships
+2025-05-07 21:33:40,562 - root - INFO - Analyzing data
+2025-05-07 21:33:40,563 - root - INFO - Analyzing table: healthcare_dataset
+2025-05-07 21:33:41,122 - root - INFO - Generating synthetic data using method: auto
+2025-05-07 21:33:41,123 - root - INFO - Generating synthetic data using method: auto
+2025-05-07 21:33:41,123 - root - INFO - Generating synthetic data for table: healthcare_dataset with shape (8010, 15)
+2025-05-07 21:33:41,123 - root - INFO - Columns to synthesize: 3, Columns to copy: 12
+2025-05-07 21:33:41,124 - root - INFO - Training models with auto method on all columns
+2025-05-07 21:37:17,254 - root - INFO - Applying name abstraction for table: healthcare_dataset
+2025-05-07 21:37:17,258 - root - INFO - Generating synthetic names for column: Name
+2025-05-07 21:37:17,268 - root - INFO - Applying general column abstractions for table: healthcare_dataset
+2025-05-07 21:37:17,272 - root - INFO - Generated synthetic data for healthcare_dataset: 8010 rows, 15 columns
+2025-05-07 21:37:17,272 - root - INFO - Table healthcare_dataset synthetic data: 8010 rows, 15 columns
+2025-05-07 21:37:17,273 - root - INFO - Table healthcare_dataset has 8010 rows of synthetic data
+2025-05-07 21:37:17,273 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-05-07 21:37:17,275 - root - INFO - Post-processing table: healthcare_dataset
+2025-05-07 21:37:17,276 - root - INFO - Post-processing 8010 rows for table healthcare_dataset
+2025-05-07 21:37:17,276 - root - INFO - Original DataFrame columns: ['Age', 'Gender', 'Date of Admission', 'Name', 'Blood Type', 'Medical Condition', 'Doctor', 'Hospital', 'Insurance Provider', 'Billing Amount', 'Room Number', 'Admission Type', 'Discharge Date', 'Medication', 'Test Results']
+2025-05-07 21:37:17,277 - root - INFO - Found 1 temporal relationships to enforce
+2025-05-07 21:37:17,277 - root - INFO - Enforcing temporal relationship: Date of Admission -> Discharge Date
+2025-05-07 21:37:17,335 - root - INFO - Processing 8010 valid date pairs
+2025-05-07 21:37:17,336 - root - INFO - Fixing 3997 inconsistent date pairs
+2025-05-07 21:37:17,727 - root - INFO - Post-processing complete: 8010 rows remaining
+2025-05-07 21:37:17,729 - root - INFO - Table healthcare_dataset ready for export: 8010 rows, 15 columns
+2025-05-07 21:37:17,729 - root - INFO - Evaluating synthetic data
+2025-05-07 21:37:17,730 - root - INFO - Evaluating synthetic data
+2025-05-07 21:37:17,730 - root - INFO - Evaluating table: healthcare_dataset
+2025-05-07 21:37:28,931 - root - INFO - Table healthcare_dataset - Overall score: 0.5302
+2025-05-07 21:37:28,931 - root - INFO - Validating synthetic data
+2025-05-07 21:37:28,933 - root - INFO - Validating synthetic data
+2025-05-07 21:37:28,934 - root - INFO - Validating table: healthcare_dataset
+2025-05-07 21:37:28,937 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-05-07 21:37:28,937 - root - WARNING -   - Missing column: healthcare_dataset
+2025-05-07 21:37:28,939 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-07 21:37:28,943 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-05-07 21:37:28,944 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-07 21:37:28,945 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-07 21:37:28,945 - root - INFO - Exporting 1 non-empty tables
+2025-05-07 21:37:29,075 - root - INFO - Exported 8010 rows to C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking\healthcare_dataset.csv
+2025-05-07 21:37:29,076 - root - INFO - Pipeline completed successfully in 258.64 seconds
+2025-05-07 21:46:36,717 - root - INFO - Starting synthetic data generation pipeline
+2025-05-07 21:46:36,718 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-05-07 21:46:36,754 - root - INFO - Inferring schema from data
+2025-05-07 21:46:36,754 - root - INFO - Inferring schema from data
+2025-05-07 21:46:36,756 - root - INFO - Identifying name columns
+2025-05-07 21:46:42,004 - root - INFO - Identifying columns for abstraction/dummy data
+2025-05-07 21:46:44,864 - root - INFO - Identifying columns for synthesis
+2025-05-07 21:47:10,837 - root - INFO - Detecting data relationships and dependencies
+2025-05-07 21:47:10,838 - root - INFO - Detecting temporal relationships between columns
+2025-05-07 21:47:10,838 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-05-07 21:47:10,879 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-05-07 21:47:10,879 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-05-07 21:47:10,921 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-05-07 21:47:10,928 - root - INFO - Detecting conditional dependencies between columns
+2025-05-07 21:47:10,928 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-05-07 21:47:10,966 - root - INFO - Found 2 date columns for conditional dependencies
+2025-05-07 21:47:10,984 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-05-07 21:47:10,984 - root - INFO - Preprocessing data
+2025-05-07 21:47:10,985 - root - INFO - Preprocessing data
+2025-05-07 21:47:10,986 - root - INFO - Preprocessing table: healthcare_dataset
+2025-05-07 21:47:11,025 - root - INFO - Analyzing data relationships
+2025-05-07 21:47:11,026 - root - INFO - Analyzing data
+2025-05-07 21:47:11,026 - root - INFO - Analyzing table: healthcare_dataset
+2025-05-07 21:47:11,574 - root - INFO - Generating synthetic data using method: auto
+2025-05-07 21:47:11,574 - root - INFO - Generating synthetic data using method: auto
+2025-05-07 21:47:11,575 - root - INFO - Generating synthetic data for table: healthcare_dataset with shape (8010, 15)
+2025-05-07 21:47:11,576 - root - INFO - Columns to synthesize: 3, Columns to copy: 12
+2025-05-07 21:47:11,576 - root - INFO - Training models with auto method on all columns
+2025-05-07 21:50:46,042 - root - INFO - Applying name abstraction for table: healthcare_dataset
+2025-05-07 21:50:46,045 - root - INFO - Generating synthetic names for column: Name
+2025-05-07 21:50:46,057 - root - INFO - Applying general column abstractions for table: healthcare_dataset
+2025-05-07 21:50:46,061 - root - INFO - Generated synthetic data for healthcare_dataset: 8010 rows, 15 columns
+2025-05-07 21:50:46,061 - root - INFO - Table healthcare_dataset synthetic data: 8010 rows, 15 columns
+2025-05-07 21:50:46,062 - root - INFO - Table healthcare_dataset has 8010 rows of synthetic data
+2025-05-07 21:50:46,063 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-05-07 21:50:46,064 - root - INFO - Post-processing table: healthcare_dataset
+2025-05-07 21:50:46,066 - root - INFO - Post-processing 8010 rows for table healthcare_dataset
+2025-05-07 21:50:46,066 - root - INFO - Original DataFrame columns: ['Age', 'Gender', 'Room Number', 'Name', 'Blood Type', 'Medical Condition', 'Date of Admission', 'Doctor', 'Hospital', 'Insurance Provider', 'Billing Amount', 'Admission Type', 'Discharge Date', 'Medication', 'Test Results']
+2025-05-07 21:50:46,066 - root - INFO - Found 1 temporal relationships to enforce
+2025-05-07 21:50:46,067 - root - INFO - Enforcing temporal relationship: Date of Admission -> Discharge Date
+2025-05-07 21:50:46,112 - root - INFO - Processing 8010 valid date pairs
+2025-05-07 21:50:46,113 - root - INFO - Post-processing complete: 8010 rows remaining
+2025-05-07 21:50:46,115 - root - INFO - Table healthcare_dataset ready for export: 8010 rows, 15 columns
+2025-05-07 21:50:46,115 - root - INFO - Evaluating synthetic data
+2025-05-07 21:50:46,115 - root - INFO - Evaluating synthetic data
+2025-05-07 21:50:46,116 - root - INFO - Evaluating table: healthcare_dataset
+2025-05-07 21:50:57,098 - root - INFO - Table healthcare_dataset - Overall score: 0.5314
+2025-05-07 21:50:57,111 - root - INFO - Validating synthetic data
+2025-05-07 21:50:57,111 - root - INFO - Validating synthetic data
+2025-05-07 21:50:57,112 - root - INFO - Validating table: healthcare_dataset
+2025-05-07 21:50:57,113 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-05-07 21:50:57,113 - root - WARNING -   - Missing column: healthcare_dataset
+2025-05-07 21:50:57,113 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-07 21:50:57,119 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-05-07 21:50:57,120 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-07 21:50:57,120 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-07 21:50:57,121 - root - INFO - Exporting 1 non-empty tables
+2025-05-07 21:50:57,164 - root - ERROR - Error exporting healthcare_dataset to CSV: [Errno 13] Permission denied: 'C:\\Users\\PC\\PycharmProjects\\synthetic-data-generator\\synthetic_banking\\healthcare_dataset.csv'
+2025-05-07 21:50:57,164 - root - ERROR - Failed to export synthetic data.
+2025-05-07 21:51:27,157 - root - INFO - Starting synthetic data generation pipeline
+2025-05-07 21:51:27,157 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-05-07 21:51:27,192 - root - INFO - Inferring schema from data
+2025-05-07 21:51:27,193 - root - INFO - Inferring schema from data
+2025-05-07 21:51:27,194 - root - INFO - Identifying name columns
+2025-05-07 21:51:34,038 - root - INFO - Identifying columns for abstraction/dummy data
+2025-05-07 21:51:40,868 - root - INFO - Identifying columns for synthesis
+2025-05-07 21:51:50,391 - root - INFO - Detecting data relationships and dependencies
+2025-05-07 21:51:50,392 - root - INFO - Detecting temporal relationships between columns
+2025-05-07 21:51:50,392 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-05-07 21:51:50,439 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-05-07 21:51:50,439 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-05-07 21:51:50,480 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-05-07 21:51:50,493 - root - INFO - Detecting conditional dependencies between columns
+2025-05-07 21:51:50,494 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-05-07 21:51:50,533 - root - INFO - Found 2 date columns for conditional dependencies
+2025-05-07 21:51:50,551 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-05-07 21:51:50,551 - root - INFO - Preprocessing data
+2025-05-07 21:51:50,552 - root - INFO - Preprocessing data
+2025-05-07 21:51:50,552 - root - INFO - Preprocessing table: healthcare_dataset
+2025-05-07 21:51:50,594 - root - INFO - Analyzing data relationships
+2025-05-07 21:51:50,594 - root - INFO - Analyzing data
+2025-05-07 21:51:50,595 - root - INFO - Analyzing table: healthcare_dataset
+2025-05-07 21:51:51,147 - root - INFO - Generating synthetic data using method: auto
+2025-05-07 21:51:51,148 - root - INFO - Generating synthetic data using method: auto
+2025-05-07 21:51:51,148 - root - INFO - Generating synthetic data for table: healthcare_dataset with shape (8010, 15)
+2025-05-07 21:51:51,149 - root - INFO - Columns to synthesize: 3, Columns to copy: 12
+2025-05-07 21:51:51,149 - root - INFO - Training models with auto method on all columns
+2025-05-07 21:55:17,422 - root - INFO - Applying name abstraction for table: healthcare_dataset
+2025-05-07 21:55:17,426 - root - INFO - Generating synthetic names for column: Name
+2025-05-07 21:55:17,434 - root - INFO - Applying general column abstractions for table: healthcare_dataset
+2025-05-07 21:55:17,437 - root - INFO - Generated synthetic data for healthcare_dataset: 8010 rows, 15 columns
+2025-05-07 21:55:17,437 - root - INFO - Table healthcare_dataset synthetic data: 8010 rows, 15 columns
+2025-05-07 21:55:17,438 - root - INFO - Table healthcare_dataset has 8010 rows of synthetic data
+2025-05-07 21:55:17,438 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-05-07 21:55:17,439 - root - INFO - Post-processing table: healthcare_dataset
+2025-05-07 21:55:17,441 - root - INFO - Post-processing 8010 rows for table healthcare_dataset
+2025-05-07 21:55:17,442 - root - INFO - Original DataFrame columns: ['Age', 'Gender', 'Room Number', 'Name', 'Blood Type', 'Medical Condition', 'Date of Admission', 'Doctor', 'Hospital', 'Insurance Provider', 'Billing Amount', 'Admission Type', 'Discharge Date', 'Medication', 'Test Results']
+2025-05-07 21:55:17,442 - root - INFO - Found 1 temporal relationships to enforce
+2025-05-07 21:55:17,442 - root - INFO - Enforcing temporal relationship: Date of Admission -> Discharge Date
+2025-05-07 21:55:17,487 - root - INFO - Processing 8010 valid date pairs
+2025-05-07 21:55:17,488 - root - INFO - Post-processing complete: 8010 rows remaining
+2025-05-07 21:55:17,489 - root - INFO - Table healthcare_dataset ready for export: 8010 rows, 15 columns
+2025-05-07 21:55:17,490 - root - INFO - Evaluating synthetic data
+2025-05-07 21:55:17,490 - root - INFO - Evaluating synthetic data
+2025-05-07 21:55:17,490 - root - INFO - Evaluating table: healthcare_dataset
+2025-05-07 21:55:27,511 - root - INFO - Table healthcare_dataset - Overall score: 0.5304
+2025-05-07 21:55:27,512 - root - INFO - Validating synthetic data
+2025-05-07 21:55:27,512 - root - INFO - Validating synthetic data
+2025-05-07 21:55:27,512 - root - INFO - Validating table: healthcare_dataset
+2025-05-07 21:55:27,513 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-05-07 21:55:27,514 - root - WARNING -   - Missing column: healthcare_dataset
+2025-05-07 21:55:27,514 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-07 21:55:27,517 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-05-07 21:55:27,518 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-07 21:55:27,519 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-07 21:55:27,519 - root - INFO - Exporting 1 non-empty tables
+2025-05-07 21:55:27,607 - root - INFO - Exported 8010 rows to C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking\healthcare_dataset.csv
+2025-05-07 21:55:27,608 - root - INFO - Pipeline completed successfully in 240.45 seconds
+2025-05-08 12:46:50,793 - root - INFO - Starting synthetic data generation pipeline
+2025-05-08 12:46:50,795 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-05-08 12:46:50,870 - root - INFO - Inferring schema from data
+2025-05-08 12:46:50,870 - root - INFO - Inferring schema from data
+2025-05-08 12:46:50,877 - root - INFO - Identifying name columns
+2025-05-08 12:46:59,632 - root - INFO - Identifying columns for abstraction/dummy data
+2025-05-08 12:47:24,871 - root - INFO - Identifying columns for synthesis
+2025-05-08 12:48:22,594 - root - INFO - Detecting data relationships and dependencies
+2025-05-08 12:48:22,594 - root - INFO - Detecting temporal relationships between columns
+2025-05-08 12:48:22,595 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-05-08 12:48:22,663 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-05-08 12:48:22,664 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-05-08 12:48:22,710 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-05-08 12:48:22,721 - root - INFO - Detecting conditional dependencies between columns
+2025-05-08 12:48:22,721 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-05-08 12:48:22,761 - root - INFO - Found 2 date columns for conditional dependencies
+2025-05-08 12:48:22,792 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-05-08 12:48:22,792 - root - INFO - Preprocessing data
+2025-05-08 12:48:22,793 - root - INFO - Preprocessing data
+2025-05-08 12:48:22,793 - root - INFO - Preprocessing table: healthcare_dataset
+2025-05-08 12:48:22,848 - root - INFO - Analyzing data relationships
+2025-05-08 12:48:22,848 - root - INFO - Analyzing data
+2025-05-08 12:48:22,848 - root - INFO - Analyzing table: healthcare_dataset
+2025-05-08 12:48:23,517 - root - INFO - Generating synthetic data using method: auto
+2025-05-08 12:48:23,517 - root - INFO - Generating synthetic data using method: auto
+2025-05-08 12:48:23,517 - root - INFO - Generating synthetic data for table: healthcare_dataset with shape (8010, 15)
+2025-05-08 12:48:23,518 - root - INFO - Columns to synthesize: 3, Columns to copy: 12
+2025-05-08 12:48:23,518 - root - INFO - Training models with auto method on all columns
+2025-05-08 12:52:17,645 - root - INFO - Skipping name abstraction as per user preference
+2025-05-08 12:52:17,647 - root - INFO - Applying general column abstractions for table: healthcare_dataset
+2025-05-08 12:52:17,651 - root - INFO - Generated synthetic data for healthcare_dataset: 8010 rows, 15 columns
+2025-05-08 12:52:17,652 - root - INFO - Table healthcare_dataset synthetic data: 8010 rows, 15 columns
+2025-05-08 12:52:17,653 - root - INFO - Table healthcare_dataset has 8010 rows of synthetic data
+2025-05-08 12:52:17,654 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-05-08 12:52:17,655 - root - INFO - Post-processing table: healthcare_dataset
+2025-05-08 12:52:17,656 - root - INFO - Post-processing 8010 rows for table healthcare_dataset
+2025-05-08 12:52:17,657 - root - INFO - Original DataFrame columns: ['Age', 'Gender', 'Blood Type', 'Name', 'Medical Condition', 'Date of Admission', 'Doctor', 'Hospital', 'Insurance Provider', 'Billing Amount', 'Room Number', 'Admission Type', 'Discharge Date', 'Medication', 'Test Results']
+2025-05-08 12:52:17,657 - root - INFO - Found 1 temporal relationships to enforce
+2025-05-08 12:52:17,657 - root - INFO - Enforcing temporal relationship: Date of Admission -> Discharge Date
+2025-05-08 12:52:17,719 - root - INFO - Processing 8010 valid date pairs
+2025-05-08 12:52:17,720 - root - INFO - Post-processing complete: 8010 rows remaining
+2025-05-08 12:52:17,722 - root - INFO - Table healthcare_dataset ready for export: 8010 rows, 15 columns
+2025-05-08 12:52:17,722 - root - INFO - Evaluating synthetic data
+2025-05-08 12:52:17,723 - root - INFO - Evaluating synthetic data
+2025-05-08 12:52:17,723 - root - INFO - Evaluating table: healthcare_dataset
+2025-05-08 12:52:23,300 - root - INFO - Table healthcare_dataset - Overall score: 0.5374
+2025-05-08 12:52:23,301 - root - INFO - Validating synthetic data
+2025-05-08 12:52:23,303 - root - INFO - Validating synthetic data
+2025-05-08 12:52:23,303 - root - INFO - Validating table: healthcare_dataset
+2025-05-08 12:52:23,311 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-05-08 12:52:23,312 - root - WARNING -   - Missing column: healthcare_dataset
+2025-05-08 12:52:23,323 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-08 12:52:23,337 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-05-08 12:52:23,338 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-08 12:52:23,341 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-08 12:52:23,341 - root - INFO - Exporting 1 non-empty tables
+2025-05-08 12:52:23,646 - root - INFO - Exported 8010 rows to C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking\healthcare_dataset.csv
+2025-05-08 12:52:23,646 - root - INFO - Pipeline completed successfully in 332.85 seconds
+2025-05-08 13:24:37,623 - root - INFO - Starting synthetic data generation pipeline
+2025-05-08 13:24:37,623 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-05-08 13:24:37,664 - root - INFO - Inferring schema from data
+2025-05-08 13:24:37,664 - root - INFO - Inferring schema from data
+2025-05-08 13:24:37,673 - root - INFO - Identifying name columns
+2025-05-08 13:24:55,310 - root - INFO - Identifying columns for abstraction/dummy data
+2025-05-08 13:24:58,320 - root - INFO - Identifying columns for synthesis
+2025-05-08 13:26:13,152 - root - INFO - Detecting data relationships and dependencies
+2025-05-08 13:26:13,153 - root - INFO - Detecting temporal relationships between columns
+2025-05-08 13:26:13,153 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-05-08 13:26:13,222 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-05-08 13:26:13,222 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-05-08 13:26:13,263 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-05-08 13:26:13,288 - root - INFO - Detecting conditional dependencies between columns
+2025-05-08 13:26:13,289 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-05-08 13:26:13,329 - root - INFO - Found 2 date columns for conditional dependencies
+2025-05-08 13:26:13,356 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-05-08 13:26:13,356 - root - INFO - Preprocessing data
+2025-05-08 13:26:13,357 - root - INFO - Preprocessing data
+2025-05-08 13:26:13,357 - root - INFO - Preprocessing table: healthcare_dataset
+2025-05-08 13:26:13,401 - root - INFO - Analyzing data relationships
+2025-05-08 13:26:13,401 - root - INFO - Analyzing data
+2025-05-08 13:26:13,402 - root - INFO - Analyzing table: healthcare_dataset
+2025-05-08 13:26:14,018 - root - INFO - Generating synthetic data using method: auto
+2025-05-08 13:26:14,018 - root - INFO - Generating synthetic data using method: auto
+2025-05-08 13:26:14,018 - root - INFO - Using perturbation mode instead of full synthesis
+2025-05-08 13:26:14,019 - root - INFO - Generating perturbed data with controlled deviations
+2025-05-08 13:26:14,019 - root - INFO - Perturbing data for table: healthcare_dataset
+2025-05-08 13:26:14,020 - root - INFO - Applying data perturbation to maintain similarity with controlled deviations
+2025-05-08 13:26:14,021 - root - INFO - Identified column types: {'Name': 'categorical', 'Age': 'numeric', 'Gender': 'categorical', 'Blood Type': 'categorical', 'Medical Condition': 'categorical', 'Date of Admission': 'datetime', 'Doctor': 'categorical', 'Hospital': 'categorical', 'Insurance Provider': 'categorical', 'Billing Amount': 'numeric', 'Room Number': 'numeric', 'Admission Type': 'categorical', 'Discharge Date': 'datetime', 'Medication': 'categorical', 'Test Results': 'categorical'}
+2025-05-08 13:26:24,033 - root - INFO - Perturbation complete for healthcare_dataset
+2025-05-08 13:26:24,034 - root - INFO - Applying column abstractions for table: healthcare_dataset
+2025-05-08 13:26:24,041 - root - INFO - Successfully generated perturbed data for healthcare_dataset with 8010 rows
+2025-05-08 13:26:24,042 - root - INFO - Table healthcare_dataset has 8010 rows of synthetic data
+2025-05-08 13:26:24,042 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-05-08 13:26:24,043 - root - INFO - Post-processing table: healthcare_dataset
+2025-05-08 13:26:24,044 - root - INFO - Post-processing 8010 rows for table healthcare_dataset
+2025-05-08 13:26:24,044 - root - INFO - Original DataFrame columns: ['Name', 'Age', 'Gender', 'Blood Type', 'Medical Condition', 'Date of Admission', 'Doctor', 'Hospital', 'Insurance Provider', 'Billing Amount', 'Room Number', 'Admission Type', 'Discharge Date', 'Medication', 'Test Results']
+2025-05-08 13:26:24,045 - root - INFO - Found 1 temporal relationships to enforce
+2025-05-08 13:26:24,045 - root - INFO - Enforcing temporal relationship: Date of Admission -> Discharge Date
+2025-05-08 13:26:24,072 - root - INFO - Processing 8010 valid date pairs
+2025-05-08 13:26:24,073 - root - INFO - Fixing 534 inconsistent date pairs
+2025-05-08 13:26:24,134 - root - INFO - Post-processing complete: 8010 rows remaining
+2025-05-08 13:26:24,136 - root - INFO - Table healthcare_dataset ready for export: 8010 rows, 15 columns
+2025-05-08 13:26:24,136 - root - INFO - Evaluating synthetic data
+2025-05-08 13:26:24,136 - root - INFO - Evaluating synthetic data
+2025-05-08 13:26:24,137 - root - INFO - Evaluating table: healthcare_dataset
+2025-05-08 13:26:31,688 - root - INFO - Table healthcare_dataset - Overall score: 0.5239
+2025-05-08 13:26:31,689 - root - INFO - Validating synthetic data
+2025-05-08 13:26:31,689 - root - INFO - Validating synthetic data
+2025-05-08 13:26:31,689 - root - INFO - Validating table: healthcare_dataset
+2025-05-08 13:26:31,690 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-05-08 13:26:31,690 - root - WARNING -   - Missing column: healthcare_dataset
+2025-05-08 13:26:31,691 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-08 13:26:31,693 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-05-08 13:26:31,693 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-08 13:26:31,694 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-08 13:26:31,694 - root - INFO - Exporting 1 non-empty tables
+2025-05-08 13:26:31,773 - root - INFO - Exported 8010 rows to C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking\healthcare_dataset.csv
+2025-05-08 13:26:31,774 - root - INFO - Pipeline completed successfully in 114.15 seconds
+2025-05-21 16:16:24,801 - root - INFO - Starting synthetic data generation pipeline
+2025-05-21 16:16:24,802 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\healthcare_dataset.csv
+2025-05-21 16:16:24,897 - root - INFO - Inferring schema from data
+2025-05-21 16:16:24,898 - root - INFO - Inferring schema from data
+2025-05-21 16:16:24,905 - root - INFO - Identifying name columns
+2025-05-21 16:16:38,445 - root - INFO - Identifying columns for abstraction/dummy data
+2025-05-21 16:17:00,703 - root - INFO - Identifying columns for synthesis
+2025-05-21 16:17:29,362 - root - INFO - Detecting data relationships and dependencies
+2025-05-21 16:17:29,364 - root - INFO - Detecting temporal relationships between columns
+2025-05-21 16:17:29,367 - root - INFO - Detecting temporal relationships for table: healthcare_dataset
+2025-05-21 16:17:29,499 - root - INFO - Found 2 date columns: ['Date of Admission', 'Discharge Date']
+2025-05-21 16:17:29,499 - root - INFO - Analyzing potential relationship: Date of Admission -> Discharge Date
+2025-05-21 16:17:29,614 - root - INFO - Detected temporal relationship: Date of Admission -> Discharge Date
+2025-05-21 16:17:29,637 - root - INFO - Detecting conditional dependencies between columns
+2025-05-21 16:17:29,638 - root - INFO - Detecting conditional dependencies for table: healthcare_dataset
+2025-05-21 16:17:29,696 - root - INFO - Found 2 date columns for conditional dependencies
+2025-05-21 16:17:29,726 - root - INFO - Found 3 potential categorical columns: ['Blood Type', 'Admission Type', 'Test Results']
+2025-05-21 16:17:29,727 - root - INFO - Preprocessing data
+2025-05-21 16:17:29,727 - root - INFO - Preprocessing data
+2025-05-21 16:17:29,727 - root - INFO - Preprocessing table: healthcare_dataset
+2025-05-21 16:17:29,801 - root - INFO - Analyzing data relationships
+2025-05-21 16:17:29,801 - root - INFO - Analyzing data
+2025-05-21 16:17:29,801 - root - INFO - Analyzing table: healthcare_dataset
+2025-05-21 16:17:30,787 - root - INFO - Generating synthetic data using method: auto
+2025-05-21 16:17:30,787 - root - INFO - Generating synthetic data using method: auto
+2025-05-21 16:17:30,787 - root - INFO - Generating synthetic data for table: healthcare_dataset with shape (8010, 15)
+2025-05-21 16:17:30,788 - root - INFO - Columns to synthesize: 15, Columns to copy: 0
+2025-05-21 16:17:30,788 - root - INFO - Training models with auto method on all columns
+2025-05-21 16:22:51,252 - root - INFO - Applying name abstraction for table: healthcare_dataset
+2025-05-21 16:22:51,258 - root - INFO - Generating synthetic names for column: Name
+2025-05-21 16:22:51,276 - root - INFO - Applying general column abstractions for table: healthcare_dataset
+2025-05-21 16:22:51,281 - root - INFO - Generated synthetic data for healthcare_dataset: 8010 rows, 15 columns
+2025-05-21 16:22:51,282 - root - INFO - Table healthcare_dataset synthetic data: 8010 rows, 15 columns
+2025-05-21 16:22:51,283 - root - INFO - Table healthcare_dataset has 8010 rows of synthetic data
+2025-05-21 16:22:51,283 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-05-21 16:22:51,286 - root - INFO - Post-processing table: healthcare_dataset
+2025-05-21 16:22:51,288 - root - INFO - Post-processing 8010 rows for table healthcare_dataset
+2025-05-21 16:22:51,289 - root - INFO - Original DataFrame columns: ['Name', 'Age', 'Gender', 'Blood Type', 'Medical Condition', 'Date of Admission', 'Doctor', 'Hospital', 'Insurance Provider', 'Billing Amount', 'Room Number', 'Admission Type', 'Discharge Date', 'Medication', 'Test Results']
+2025-05-21 16:22:51,289 - root - INFO - Found 1 temporal relationships to enforce
+2025-05-21 16:22:51,289 - root - INFO - Enforcing temporal relationship: Date of Admission -> Discharge Date
+2025-05-21 16:22:51,361 - root - INFO - Processing 8010 valid date pairs
+2025-05-21 16:22:51,362 - root - INFO - Fixing 3919 inconsistent date pairs
+2025-05-21 16:22:51,906 - root - INFO - Post-processing complete: 8010 rows remaining
+2025-05-21 16:22:51,907 - root - INFO - Table healthcare_dataset ready for export: 8010 rows, 15 columns
+2025-05-21 16:22:51,907 - root - INFO - Evaluating synthetic data
+2025-05-21 16:22:51,908 - root - INFO - Evaluating synthetic data
+2025-05-21 16:22:51,908 - root - INFO - Evaluating table: healthcare_dataset
+2025-05-21 16:23:12,808 - root - INFO - Table healthcare_dataset - Overall score: 0.5269
+2025-05-21 16:23:12,809 - root - INFO - Validating synthetic data
+2025-05-21 16:23:12,809 - root - INFO - Validating synthetic data
+2025-05-21 16:23:12,809 - root - INFO - Validating table: healthcare_dataset
+2025-05-21 16:23:12,810 - root - WARNING - Table healthcare_dataset has 1 validation errors
+2025-05-21 16:23:12,810 - root - WARNING -   - Missing column: healthcare_dataset
+2025-05-21 16:23:12,810 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-21 16:23:12,816 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-05-21 16:23:12,816 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-21 16:23:12,817 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-05-21 16:23:12,817 - root - INFO - Exporting 1 non-empty tables
+2025-05-21 16:23:12,911 - root - INFO - Exported 8010 rows to C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking\healthcare_dataset.csv
+2025-05-21 16:23:12,911 - root - INFO - Pipeline completed successfully in 408.11 seconds
