@@ -14,6 +14,15 @@ from models.generation_engine import SyntheticGenerationEngine
 from evaluation.statistical_evaluator import SyntheticDataEvaluator
 from export.validator import DataValidator
 from export.adapters import ExportAdapter
+from models.address_synthesis import AddressSynthesizer
+
+try:
+    from geopy.geocoders import Nominatim
+    from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
+    import usaddress
+    GIS_AVAILABLE = True
+except ImportError:
+    GIS_AVAILABLE = False
 
 class SyntheticDataPipeline:
     """
@@ -1263,7 +1272,7 @@ class SyntheticDataPipeline:
                         print(f"  - Converted {after_count - before_count} values to NaN")
 
                         # Fill NaN values
-                        mean_val = df[col].mean()
+                        mean_val = df[col]. mean()
                         df[col] = df[col].fillna(mean_val)
                         print(f"  - Filled NaN values with mean: {mean_val:.2f}")
 
@@ -1495,6 +1504,15 @@ class SyntheticDataPipeline:
             for table_name in self.synthetic_data.keys():
                 logging.info(f"Applying age grouping to synthetic data for table: {table_name}")
                 self.synthetic_data[table_name] = self.apply_age_grouping(
+                    self.synthetic_data[table_name], table_name
+                )
+
+        # Apply address synthesis if configured
+        if hasattr(self, 'should_apply_address_synthesis') and self.should_apply_address_synthesis:
+            logging.info("Applying address synthesis to all synthetic data tables")
+            for table_name in self.synthetic_data.keys():
+                logging.info(f"Applying address synthesis to synthetic data for table: {table_name}")
+                self.synthetic_data[table_name] = self.apply_address_synthesis(
                     self.synthetic_data[table_name], table_name
                 )
 
@@ -2949,6 +2967,192 @@ class SyntheticDataPipeline:
         for group, count in group_counts.items():
             print(f"  {group}: {count} values")
 
+    def identify_address_synthesis_options(self):
+        """Interactive configuration for address synthesis settings"""
+        print("\n=== Address Synthesis Settings ===")
+        print("Do you want to anonymize/synthesize address columns? (yes/no)")
+        user_input = input("> ").strip().lower()
+
+        self.should_apply_address_synthesis = user_input.startswith('y')
+
+        if self.should_apply_address_synthesis:
+            print("\nAddress synthesis will help protect privacy by anonymizing location data")
+
+            # Initialize the address synthesizer
+            print("Initializing address synthesizer...")
+            enable_gis = True
+            if not GIS_AVAILABLE:
+                print("Note: GIS libraries not available. Install with: pip install geopy usaddress")
+                print("Continuing with basic address synthesis...")
+                enable_gis = False
+
+            self.address_synthesizer = AddressSynthesizer(enable_gis=enable_gis)
+
+            # Find potential address columns
+            address_columns = []
+            for table_name, df in self.original_data.items():
+                identified_cols = self.address_synthesizer.identify_address_columns(df)
+                for col in identified_cols:
+                    address_columns.append((table_name, col))
+
+            # Also check for manually identifiable address columns
+            for table_name, df in self.original_data.items():
+                for column in df.columns:
+                    if any(addr_keyword in column.lower() for addr_keyword in
+                           ['address', 'addr', 'street', 'location', 'residence']):
+                        if (table_name, column) not in address_columns:
+                            address_columns.append((table_name, column))
+
+            if not address_columns:
+                print("No potential address columns found in your data.")
+                self.should_apply_address_synthesis = False
+                return
+
+            print(f"\nFound {len(address_columns)} potential address column(s):")
+            for i, (table_name, column) in enumerate(address_columns):
+                sample_values = self.original_data[table_name][column].dropna().sample(
+                    min(3, len(self.original_data[table_name]))).tolist()
+                print(f"{i + 1}. {table_name}.{column} - Examples: {sample_values}")
+
+            print("\nSelect which columns should be anonymized (comma-separated numbers, 'all', or 'none'):")
+            selection = input("> ").strip().lower()
+
+            selected_columns = []
+            if selection == 'all':
+                selected_columns = address_columns
+            elif selection != 'none':
+                try:
+                    selected_indices = [int(idx.strip()) - 1 for idx in selection.split(',')]
+                    selected_columns = [address_columns[idx] for idx in selected_indices if
+                                        0 <= idx < len(address_columns)]
+                except:
+                    print("Invalid input, no columns selected")
+
+            if not selected_columns:
+                self.should_apply_address_synthesis = False
+                return
+
+            # Configure address anonymization method
+            print(f"\nSelected {len(selected_columns)} column(s) for address anonymization")
+            print("Choose address anonymization method:")
+            print("1. Remove house numbers only (keep street, city, state, zip)")
+            print("2. Keep street name only")
+            print("3. Keep city and state only")
+            print("4. Keep zip code only")
+            print("5. Keep general area (city, state, zip)")
+            print("6. Generate realistic synthetic addresses")
+
+            method_choice = input("> ").strip()
+
+            # Map choices to method names
+            method_mapping = {
+                '1': 'remove_house_number',
+                '2': 'street_only',
+                '3': 'city_state_only',
+                '4': 'zip_only',
+                '5': 'general_area',
+                '6': 'synthesize_realistic'
+            }
+
+            method = method_mapping.get(method_choice, 'remove_house_number')
+            method_descriptions = {
+                'remove_house_number': 'Remove house numbers only',
+                'street_only': 'Keep street name only',
+                'city_state_only': 'Keep city and state only',
+                'zip_only': 'Keep zip code only',
+                'general_area': 'Keep general area',
+                'synthesize_realistic': 'Generate realistic synthetic addresses'
+            }
+
+            print(f"Selected method: {method_descriptions[method]}")
+
+            # Store configuration in schema
+            for table_name, column in selected_columns:
+                if table_name not in self.schema:
+                    self.schema[table_name] = {'columns': {}}
+                if 'columns' not in self.schema[table_name]:
+                    self.schema[table_name]['columns'] = {}
+                if column not in self.schema[table_name]['columns']:
+                    self.schema[table_name]['columns'][column] = {}
+
+                self.schema[table_name]['columns'][column]['address_synthesis'] = {
+                    'method': method,
+                    'enabled': True
+                }
+                print(f"Address synthesis configured for {table_name}.{column}")
+
+            # Show preview
+            print(f"\nAddress anonymization will be applied using: {method_descriptions[method]}")
+
+            # Show a preview of how the anonymization will look
+            for table_name, column in selected_columns[:1]:  # Show preview for first column only
+                self.demonstrate_address_synthesis(
+                    self.original_data[table_name],
+                    column,
+                    method
+                )
+        else:
+            print("Address synthesis will NOT be applied")
+
+    def demonstrate_address_synthesis(self, df, column, method):
+        """Show a preview of how address synthesis will look"""
+        print(f"\nAddress Synthesis Preview for column '{column}':")
+        print("-" * 50)
+
+        # Show original values
+        original_sample = df[column].dropna().head(5)
+        print("Original addresses (sample):")
+        for addr in original_sample:
+            print(f"  {addr}")
+
+        print(f"\nAfter applying '{method}' method:")
+
+        # Apply synthesis to the sample
+        synthesizer = getattr(self, 'address_synthesizer', AddressSynthesizer())
+        for addr in original_sample:
+            anonymized = synthesizer.anonymize_address(str(addr), method)
+            print(f"  {addr} → {anonymized}")
+
+    def apply_address_synthesis(self, df, table_name):
+        """Apply address synthesis to specified columns"""
+        if not hasattr(self, 'should_apply_address_synthesis') or not self.should_apply_address_synthesis:
+            logging.info("Address synthesis not enabled, skipping")
+            return df
+
+        result_df = df.copy()
+        schema_info = self.schema.get(table_name, {}).get('columns', {})
+
+        applied_synthesis = False
+        for column, info in schema_info.items():
+            if column not in df.columns:
+                continue
+
+            synthesis_config = info.get('address_synthesis')
+            if not synthesis_config or not synthesis_config.get('enabled'):
+                continue
+
+            logging.info(f"Applying address synthesis to column {column}")
+
+            try:
+                method = synthesis_config.get('method', 'remove_house_number')
+
+                # Use the address synthesizer
+                synthesizer = getattr(self, 'address_synthesizer', AddressSynthesizer())
+                result_df[column] = synthesizer.process_address_column(result_df[column], method)
+
+                logging.info(f"Address synthesis successfully applied to {column}")
+                applied_synthesis = True
+
+            except Exception as e:
+                logging.error(f"Error applying address synthesis to column {column}: {str(e)}")
+
+        if applied_synthesis:
+            logging.info(f"Address synthesis completed for table {table_name}")
+        else:
+            logging.info(f"No address synthesis configurations found for table {table_name}")
+
+        return result_df
+
     def run_pipeline(self, input_path, output_path, format_type="csv", generation_method="auto",
                      interactive=False, apply_perturbation=False, perturbation_factor=0.2, print_evaluation=True):
         """Run the full pipeline with error handling"""
@@ -2995,6 +3199,7 @@ class SyntheticDataPipeline:
                  # Add perturbation configuration
                  self.identify_perturbation_options()
                  self.identify_age_grouping_options()  # NEW: Age grouping configuration
+                 self.identify_address_synthesis_options()  # NEW: Address synthesis configuration
 
             # Step 4: Detect relationships (add this before preprocessing)
             logging.info("Detecting data relationships and dependencies")
