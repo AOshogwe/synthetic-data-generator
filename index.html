@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthetic Data Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <style>
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        .step-active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .step-completed {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .config-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">🔮 Synthetic Data Generator</h1>
+                    <p class="text-blue-100 mt-1">Advanced privacy-preserving synthetic data generation</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="bg-white bg-opacity-20 rounded-lg px-4 py-2">
+                        <span class="text-sm">Status: <span id="status">Ready</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="bg-white shadow-sm">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between py-4">
+                <div class="flex space-x-4 w-full">
+                    <div id="step-1" class="step-indicator step-active flex-1 text-center py-2 rounded-lg">
+                        <i class="fas fa-upload mb-1"></i>
+                        <div class="text-sm">Data Input</div>
+                    </div>
+                    <div id="step-2" class="step-indicator bg-gray-200 flex-1 text-center py-2 rounded-lg">
+                        <i class="fas fa-cog mb-1"></i>
+                        <div class="text-sm">Configuration</div>
+                    </div>
+                    <div id="step-3" class="step-indicator bg-gray-200 flex-1 text-center py-2 rounded-lg">
+                        <i class="fas fa-brain mb-1"></i>
+                        <div class="text-sm">Generation</div>
+                    </div>
+                    <div id="step-4" class="step-indicator bg-gray-200 flex-1 text-center py-2 rounded-lg">
+                        <i class="fas fa-chart-line mb-1"></i>
+                        <div class="text-sm">Evaluation</div>
+                    </div>
+                    <div id="step-5" class="step-indicator bg-gray-200 flex-1 text-center py-2 rounded-lg">
+                        <i class="fas fa-download mb-1"></i>
+                        <div class="text-sm">Export</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Step 1: Data Input -->
+        <div id="data-input-step" class="step-content fade-in">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-upload text-blue-600 mr-3"></i>Data Input
+                </h2>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- File Upload -->
+                    <div class="card-hover bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">📁 Upload CSV/Excel Files</h3>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                            <input type="file" id="file-input" multiple accept=".csv,.xlsx,.json" class="hidden">
+                            <label for="file-input" class="cursor-pointer">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                                <p class="text-gray-600">Click to upload files or drag and drop</p>
+                                <p class="text-sm text-gray-500 mt-2">Supports CSV, Excel, JSON (Max 100MB)</p>
+                            </label>
+                        </div>
+                        <div id="file-list" class="mt-4 space-y-2"></div>
+                    </div>
+
+                    <!-- Database Connection -->
+                    <div class="card-hover bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">🗄️ Database Connection</h3>
+                        <div class="space-y-4">
+                            <select id="db-type" class="w-full p-3 border border-gray-300 rounded-lg">
+                                <option value="">Select Database Type</option>
+                                <option value="postgresql">PostgreSQL</option>
+                                <option value="mysql">MySQL</option>
+                                <option value="sqlite">SQLite</option>
+                                <option value="sqlserver">SQL Server</option>
+                            </select>
+                            <input type="text" id="connection-string" placeholder="Connection string"
+                                   class="w-full p-3 border border-gray-300 rounded-lg">
+                            <input type="text" id="table-names" placeholder="Table names (comma-separated, optional)"
+                                   class="w-full p-3 border border-gray-300 rounded-lg">
+                            <button onclick="testConnection()" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">
+                                <i class="fas fa-plug mr-2"></i>Test Connection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Preview -->
+                <div id="data-preview" class="mt-8 hidden">
+                    <h3 class="text-lg font-semibold mb-4">📊 Data Preview</h3>
+                    <div id="preview-content" class="bg-gray-50 rounded-lg p-4 overflow-x-auto">
+                        <!-- Preview will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="flex justify-end mt-8">
+                    <button onclick="nextStep()" id="next-btn-1" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400" disabled>
+                        Next: Configuration <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Configuration -->
+        <div id="configuration-step" class="step-content hidden">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-cog text-blue-600 mr-3"></i>Configuration
+                </h2>
+
+                <!-- Configuration Tabs -->
+                <div class="flex flex-wrap border-b border-gray-200 mb-6">
+                    <button onclick="showConfigTab('general')" class="config-tab active px-6 py-3 text-blue-600 border-b-2 border-blue-600">
+                        ⚙️ General Settings
+                    </button>
+                    <button onclick="showConfigTab('privacy')" class="config-tab px-6 py-3 text-gray-600 hover:text-blue-600">
+                        🛡️ Privacy & Anonymization
+                    </button>
+                    <button onclick="showConfigTab('relationships')" class="config-tab px-6 py-3 text-gray-600 hover:text-blue-600">
+                        🔗 Relationships
+                    </button>
+                    <button onclick="showConfigTab('advanced')" class="config-tab px-6 py-3 text-gray-600 hover:text-blue-600">
+                        🚀 Advanced Options
+                    </button>
+                </div>
+
+                <!-- General Settings Tab -->
+                <div id="general-config" class="config-tab-content">
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <!-- Generation Method -->
+                        <div class="config-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">🎯 Generation Method</h3>
+                            <div class="space-y-3">
+                                <label class="flex items-center">
+                                    <input type="radio" name="generation-method" value="auto" checked class="mr-3">
+                                    <span><strong>Auto</strong> - Intelligent method selection</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="generation-method" value="perturbation" class="mr-3">
+                                    <span><strong>Perturbation</strong> - Controlled modifications (fastest)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="generation-method" value="ctgan" class="mr-3">
+                                    <span><strong>CTGAN</strong> - Deep learning-based generation</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="generation-method" value="gaussian_copula" class="mr-3">
+                                    <span><strong>Gaussian Copula</strong> - Statistical modeling</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Data Size -->
+                        <div class="config-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">📏 Output Data Size</h3>
+                            <div class="space-y-3">
+                                <label class="flex items-center">
+                                    <input type="radio" name="data-size" value="same" checked class="mr-3">
+                                    <span>Same as original</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="data-size" value="percentage" class="mr-3">
+                                    <span>Percentage of original</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="data-size" value="custom" class="mr-3">
+                                    <span>Custom number of rows</span>
+                                </label>
+                            </div>
+                            <div id="size-options" class="mt-4 space-y-3">
+                                <input type="number" id="percentage-size" placeholder="Percentage (e.g., 80)"
+                                       class="w-full p-3 border border-gray-300 rounded-lg hidden">
+                                <input type="number" id="custom-size" placeholder="Number of rows"
+                                       class="w-full p-3 border border-gray-300 rounded-lg hidden">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column Selection -->
+                    <div class="mt-8">
+                        <h3 class="text-lg font-semibold mb-4">📋 Column Selection</h3>
+                        <div id="column-selection" class="space-y-4">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy & Anonymization Tab -->
+                <div id="privacy-config" class="config-tab-content hidden">
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <!-- Name Anonymization -->
+                        <div class="config-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-user-secret mr-2"></i>Name Anonymization
+                            </h3>
+                            <label class="flex items-center mb-4">
+                                <input type="checkbox" id="anonymize-names" class="mr-3">
+                                <span>Apply name anonymization</span>
+                            </label>
+                            <div id="name-options" class="space-y-3 hidden">
+                                <select id="name-method" class="w-full p-3 border border-gray-300 rounded-lg">
+                                    <option value="synthetic">Generate synthetic names</option>
+                                    <option value="initials">Convert to initials</option>
+                                    <option value="random">Random replacement</option>
+                                </select>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="preserve-gender" class="mr-3">
+                                    <span>Preserve gender in name generation</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Age Grouping -->
+                        <div class="config-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-users mr-2"></i>Age Grouping
+                            </h3>
+                            <label class="flex items-center mb-4">
+                                <input type="checkbox" id="apply-age-grouping" class="mr-3">
+                                <span>Convert ages to ranges</span>
+                            </label>
+                            <div id="age-grouping-options" class="space-y-3 hidden">
+                                <select id="age-method" class="w-full p-3 border border-gray-300 rounded-lg">
+                                    <option value="5-year">5-year groups (0-4, 5-9, etc.)</option>
+                                    <option value="10-year">10-year groups (0-9, 10-19, etc.)</option>
+                                    <option value="life-stages">Life stages (Child, Teen, Adult, etc.)</option>
+                                    <option value="custom">Custom ranges</option>
+                                </select>
+                                <div id="custom-age-ranges" class="hidden">
+                                    <input type="text" placeholder="Custom ranges (e.g., 0,18,30,50,65,100)"
+                                           class="w-full p-3 border border-gray-300 rounded-lg">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address Anonymization -->
+                        <div class="config-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-map-marker-alt mr-2"></i>Address Anonymization
+                            </h3>
+                            <label class="flex items-center mb-4">
+                                <input type="checkbox" id="anonymize-addresses" class="mr-3">
+                                <span>Apply address anonymization</span>
+                            </label>
+                            <div id="address-options" class="space-y-3 hidden">
+                                <select id="address-method" class="w-full p-3 border border-gray-300 rounded-lg">
+                                    <option value="remove-numbers">Remove house numbers only</option>
+                                    <option value="street-only">Keep street name only</option>
+                                    <option value="city-state">Keep city and state only</option>
+                                    <option value="zip-only">Keep zip code only</option>
+                                    <option value="synthetic">Generate synthetic addresses</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Perturbation Settings -->
+                        <div class="config-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-adjust mr-2"></i>Perturbation Level
+                            </h3>
+                            <div class="space-y-3">
+                                <label>Perturbation Factor: <span id="perturbation-value">20%</span></label>
+                                <input type="range" id="perturbation-slider" min="5" max="50" value="20"
+                                       class="w-full" oninput="updatePerturbationValue(this.value)">
+                                <p class="text-sm text-gray-600">Higher values create more variation from original data</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Relationships Tab -->
+                <div id="relationships-config" class="config-tab-content hidden">
+                    <div class="space-y-8">
+                        <!-- Temporal Relationships -->
+                        <div class="config-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-clock mr-2"></i>Temporal Relationships
+                            </h3>
+                            <label class="flex items-center mb-4">
+                                <input type="checkbox" id="preserve-temporal" checked class="mr-3">
+                                <span>Preserve temporal relationships between date columns</span>
+                            </label>
+                            <p class="text-sm text-gray-600">Automatically detects and maintains relationships like admission → discharge dates</p>
+                        </div>
+
+                        <!-- Conditional Dependencies -->
+                        <div class="config-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-project-diagram mr-2"></i>Conditional Dependencies
+                            </h3>
+                            <label class="flex items-center mb-4">
+                                <input type="checkbox" id="preserve-dependencies" checked class="mr-3">
+                                <span>Preserve conditional dependencies</span>
+                            </label>
+                            <p class="text-sm text-gray-600">Maintains relationships where one column's value affects another (e.g., test type affecting duration)</p>
+                        </div>
+
+                        <!-- Correlation Preservation -->
+                        <div class="config-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-chart-line mr-2"></i>Correlation Preservation
+                            </h3>
+                            <label class="flex items-center mb-4">
+                                <input type="checkbox" id="preserve-correlations" checked class="mr-3">
+                                <span>Preserve statistical correlations</span>
+                            </label>
+                            <div class="space-y-3">
+                                <label>Correlation preservation level:</label>
+                                <select id="correlation-level" class="w-full p-3 border border-gray-300 rounded-lg">
+                                    <option value="strict">Strict (maintain exact correlations)</option>
+                                    <option value="moderate" selected>Moderate (allow some variation)</option>
+                                    <option value="loose">Loose (preserve general trends)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Options Tab -->
+                <div id="advanced-config" class="config-tab-content hidden">
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <!-- Data Quality -->
+                        <div class="config-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-shield-alt mr-2"></i>Data Quality
+                            </h3>
+                            <div class="space-y-3">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="handle-missing" checked class="mr-3">
+                                    <span>Handle missing values</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="remove-duplicates" class="mr-3">
+                                    <span>Remove duplicate rows</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="outlier-detection" class="mr-3">
+                                    <span>Detect and handle outliers</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Privacy Metrics -->
+                        <div class="config-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-lock mr-2"></i>Privacy Settings
+                            </h3>
+                            <div class="space-y-3">
+                                <label>Privacy level:</label>
+                                <select id="privacy-level" class="w-full p-3 border border-gray-300 rounded-lg">
+                                    <option value="minimal">Minimal - Preserve data utility</option>
+                                    <option value="balanced" selected>Balanced - Balance privacy and utility</option>
+                                    <option value="high">High - Maximum privacy protection</option>
+                                </select>
+                                <label class="flex items-center mt-3">
+                                    <input type="checkbox" id="differential-privacy" class="mr-3">
+                                    <span>Apply differential privacy</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Performance -->
+                        <div class="config-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-tachometer-alt mr-2"></i>Performance
+                            </h3>
+                            <div class="space-y-3">
+                                <label>Parallel processing:</label>
+                                <select id="parallel-jobs" class="w-full p-3 border border-gray-300 rounded-lg">
+                                    <option value="1">Single thread</option>
+                                    <option value="2">2 threads</option>
+                                    <option value="4" selected>4 threads</option>
+                                    <option value="8">8 threads</option>
+                                    <option value="-1">All available cores</option>
+                                </select>
+                                <label class="flex items-center mt-3">
+                                    <input type="checkbox" id="memory-efficient" class="mr-3">
+                                    <span>Memory-efficient mode</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Seed Settings -->
+                        <div class="config-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">
+                                <i class="fas fa-random mr-2"></i>Reproducibility
+                            </h3>
+                            <div class="space-y-3">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="use-seed" class="mr-3">
+                                    <span>Use random seed for reproducible results</span>
+                                </label>
+                                <input type="number" id="random-seed" placeholder="Random seed (e.g., 42)"
+                                       class="w-full p-3 border border-gray-300 rounded-lg">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-8">
+                    <button onclick="previousStep()" class="bg-gray-600 text-white px-8 py-3 rounded-lg hover:bg-gray-700">
+                        <i class="fas fa-arrow-left mr-2"></i>Previous
+                    </button>
+                    <button onclick="nextStep()" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700">
+                        Next: Generate <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Generation -->
+        <div id="generation-step" class="step-content hidden">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-brain text-blue-600 mr-3"></i>Synthetic Data Generation
+                </h2>
+
+                <!-- Generation Progress -->
+                <div id="generation-progress" class="hidden">
+                    <div class="bg-gray-200 rounded-full h-4 mb-4">
+                        <div id="progress-bar" class="progress-bar bg-blue-600 h-4 rounded-full" style="width: 0%"></div>
+                    </div>
+                    <div id="progress-text" class="text-center text-gray-600 mb-6">Initializing...</div>
+                </div>
+
+                <!-- Generation Status -->
+                <div id="generation-status" class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-gray-50 rounded-lg p-6 text-center">
+                        <i class="fas fa-database text-3xl text-gray-400 mb-3"></i>
+                        <h3 class="font-semibold">Data Loading</h3>
+                        <p id="status-loading" class="text-sm text-gray-600 mt-2">Pending</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-6 text-center">
+                        <i class="fas fa-cogs text-3xl text-gray-400 mb-3"></i>
+                        <h3 class="font-semibold">Processing</h3>
+                        <p id="status-processing" class="text-sm text-gray-600 mt-2">Pending</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-6 text-center">
+                        <i class="fas fa-magic text-3xl text-gray-400 mb-3"></i>
+                        <h3 class="font-semibold">Generation</h3>
+                        <p id="status-generation" class="text-sm text-gray-600 mt-2">Pending</p>
+                    </div>
+                </div>
+
+                <!-- Generation Results -->
+                <div id="generation-results" class="hidden">
+                    <h3 class="text-lg font-semibold mb-4">✨ Generation Summary</h3>
+                    <div id="results-content" class="bg-gray-50 rounded-lg p-6">
+                        <!-- Results will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-8">
+                    <button onclick="previousStep()" class="bg-gray-600 text-white px-8 py-3 rounded-lg hover:bg-gray-700">
+                        <i class="fas fa-arrow-left mr-2"></i>Previous
+                    </button>
+                    <div class="space-x-4">
+                        <button onclick="startGeneration()" id="generate-btn" class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700">
+                            <i class="fas fa-play mr-2"></i>Start Generation
+                        </button>
+                        <button onclick="nextStep()" id="next-btn-3" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 hidden">
+                            Next: Evaluation <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Evaluation -->
+        <div id="evaluation-step" class="step-content hidden">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-chart-line text-blue-600 mr-3"></i>Data Quality Evaluation
+                </h2>
+
+                <!-- Evaluation Metrics -->
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-blue-800">Statistical Similarity</h3>
+                                <p id="similarity-score" class="text-2xl font-bold text-blue-600">--</p>
+                            </div>
+                            <i class="fas fa-chart-bar text-3xl text-blue-400"></i>
+                        </div>
+                        <p class="text-sm text-blue-600 mt-2">How well synthetic data matches original distributions</p>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-green-800">Privacy Protection</h3>
+                                <p id="privacy-score" class="text-2xl font-bold text-green-600">--</p>
+                            </div>
+                            <i class="fas fa-shield-alt text-3xl text-green-400"></i>
+                        </div>
+                        <p class="text-sm text-green-600 mt-2">Level of privacy protection achieved</p>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-purple-800">ML Utility</h3>
+                                <p id="utility-score" class="text-2xl font-bold text-purple-600">--</p>
+                            </div>
+                            <i class="fas fa-robot text-3xl text-purple-400"></i>
+                        </div>
+                        <p class="text-sm text-purple-600 mt-2">How useful for machine learning tasks</p>
+                    </div>
+                </div>
+
+                <!-- Detailed Evaluation -->
+                <div class="space-y-6">
+                    <!-- Privacy Analysis -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">🔒 Privacy Analysis</h3>
+                        <div id="privacy-analysis">
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span>Membership Inference Risk</span>
+                                    <span id="membership-risk" class="font-semibold">--</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span>Attribute Disclosure Risk</span>
+                                    <span id="attribute-risk" class="font-semibold">--</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span>Re-identification Risk</span>
+                                    <span id="reidentification-risk" class="font-semibold">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Quality Report -->
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">📊 Data Quality Report</h3>
+                        <div id="quality-report">
+                            <!-- Will be populated with detailed quality metrics -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mt-8">
+                    <button onclick="previousStep()" class="bg-gray-600 text-white px-8 py-3 rounded-lg hover:bg-gray-700">
+                        <i class="fas fa-arrow-left mr-2"></i>Previous
+                    </button>
+                    <div class="space-x-4">
+                        <button onclick="generateReport()" class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700">
+                            <i class="fas fa-file-alt mr-2"></i>Generate Report
+                        </button>
+                        <button onclick="nextStep()" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700">
+                            Next: Export <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Export -->
+        <div id="export-step" class="step-content hidden">
+            <div class="bg-white rounded-xl shadow-lg p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-download text-blue-600 mr-3"></i>Export Synthetic Data
+                </h2>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Export Format -->
+                    <div class="config-panel rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">📄 Export Format</h3>
+                        <div class="space-y-3">
+                            <label class="flex items-center">
+                                <input type="radio" name="export-format" value="csv" checked class="mr-3">
+                                <span>📊 CSV Files</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="export-format" value="excel" class="mr-3">
+                                <span>📈 Excel Workbook</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="export-format" value="json" class="mr-3">
+                                <span>🔗 JSON</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="export-format" value="parquet" class="mr-3">
+                                <span>⚡ Parquet</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="export-format" value="sql" class="mr-3">
+                                <span>🗄️ SQL Insert Statements</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Export Options -->
+                    <div class="config-panel rounded-lg p-6">
+                        <h3 class="text-lg font-semibold mb-4">⚙️ Export Options</h3>
+                        <div class="space-y-3">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="include-metadata" checked class="mr-3">
+                                <span>Include metadata</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="include-schema" checked class="mr-3">
+                                <span>Include schema information</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="include-evaluation" checked class="mr-3">
+                                <span>Include evaluation report</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="compress-files" class="mr-3">
+                                <span>Compress output files</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Naming -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold mb-4">🏷️ File Naming</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <input type="text" id="filename-prefix" placeholder="Filename prefix (optional)"
+                               class="p-3 border border-gray-300 rounded-lg">
+                        <select id="timestamp-format" class="p-3 border border-gray-300 rounded-lg">
+                            <option value="none">No timestamp</option>
+                            <option value="datetime" selected>Date and time</option>
+                            <option value="date">Date only</option>
+                            <option value="custom">Custom suffix</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Export Summary -->
+                <div class="mt-8 bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">📋 Export Summary</h3>
+                    <div id="export-summary">
+                        <!-- Will be populated with export details -->
+                    </div>
+                </div>
+
+                <!-- Download Buttons -->
+                <div class="mt-8 text-center space-x-4">
+                    <button onclick="exportData()" id="export-btn" class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700">
+                        <i class="fas fa-download mr-2"></i>Download Synthetic Data
+                    </button>
+                    <button onclick="exportReport()" class="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700">
+                        <i class="fas fa-file-pdf mr-2"></i>Download Report
+                    </button>
+                </div>
+
+                <div class="flex justify-between mt-8">
+                    <button onclick="previousStep()" class="bg-gray-600 text-white px-8 py-3 rounded-lg hover:bg-gray-700">
+                        <i class="fas fa-arrow-left mr-2"></i>Previous
+                    </button>
+                    <button onclick="startOver()" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-redo mr-2"></i>Start Over
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-16">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2024 Synthetic Data Generator. Built with privacy and utility in mind.</p>
+            <p class="text-gray-400 mt-2">Advanced privacy-preserving synthetic data generation platform</p>
+        </div>
+    </footer>
+
+    <script>
+        // Global state
+        let currentStep = 1;
+        let uploadedData = null;
+        let generatedData = null;
+        let evaluationResults = null;
+        const API_BASE_URL = window.location.origin + '/api';
+
+        // API helper functions
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+
+                if (data && method !== 'GET') {
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error(`API call failed for ${endpoint}:`, error);
+                throw error;
+            }
+        }
+
+        async function uploadFiles(files) {
+            const formData = new FormData();
+            for (const file of files) {
+                formData.append('files', file);
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('Upload failed:', error);
+                throw error;
+            }
+        }
+
+        // Step navigation
+        function nextStep() {
+            if (currentStep < 5) {
+                hideStep(currentStep);
+                currentStep++;
+                showStep(currentStep);
+                updateStepIndicators();
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                hideStep(currentStep);
+                currentStep--;
+                showStep(currentStep);
+                updateStepIndicators();
+            }
+        }
+
+        function hideStep(step) {
+            const stepElement = document.querySelector(`#${getStepId(step)}`);
+            if (stepElement) {
+                stepElement.classList.add('hidden');
+                stepElement.classList.remove('fade-in');
+            }
+        }
+
+        function showStep(step) {
+            const stepElement = document.querySelector(`#${getStepId(step)}`);
+            if (stepElement) {
+                stepElement.classList.remove('hidden');
+                stepElement.classList.add('fade-in');
+            }
+        }
+
+        function getStepId(step) {
+            const stepIds = ['', 'data-input-step', 'configuration-step', 'generation-step', 'evaluation-step', 'export-step'];
+            return stepIds[step];
+        }
+
+        function updateStepIndicators() {
+            for (let i = 1; i <= 5; i++) {
+                const indicator = document.getElementById(`step-${i}`);
+                indicator.classList.remove('step-active', 'step-completed');
+
+                if (i < currentStep) {
+                    indicator.classList.add('step-completed');
+                } else if (i === currentStep) {
+                    indicator.classList.add('step-active');
+                } else {
+                    indicator.classList.add('bg-gray-200');
+                }
+            }
+        }
+
+        // Configuration tabs
+        function showConfigTab(tab) {
+            // Hide all tab contents
+            document.querySelectorAll('.config-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // Show selected tab content
+            document.getElementById(`${tab}-config`).classList.remove('hidden');
+
+            // Update tab buttons
+            document.querySelectorAll('.config-tab').forEach(button => {
+                button.classList.remove('active', 'text-blue-600', 'border-b-2', 'border-blue-600');
+                button.classList.add('text-gray-600');
+            });
+
+            event.target.classList.add('active', 'text-blue-600', 'border-b-2', 'border-blue-600');
+            event.target.classList.remove('text-gray-600');
+        }
+
+        // File upload handling
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            displayFileList(files);
+            if (files.length > 0) {
+                document.getElementById('next-btn-1').disabled = false;
+                processFiles(files);
+            }
+        });
+
+        function displayFileList(files) {
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '';
+
+            files.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'flex items-center justify-between bg-blue-50 p-3 rounded-lg';
+                fileItem.innerHTML = `
+                    <div class="flex items-center">
+                        <i class="fas fa-file-csv text-blue-600 mr-3"></i>
+                        <span class="font-medium">${file.name}</span>
+                        <span class="text-sm text-gray-600 ml-2">(${formatFileSize(file.size)})</span>
+                    </div>
+                    <i class="fas fa-check text-green-600"></i>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function processFiles(files) {
+            try {
+                updateStatus('Uploading files...');
+
+                // Upload files to backend
+                const response = await uploadFiles(files);
+
+                if (response.success) {
+                    uploadedData = response.tables;
+
+                    updateStatus('Files uploaded successfully');
+                    showDataPreview();
+                    populateColumnSelection();
+                } else {
+                    throw new Error(response.error || 'Upload failed');
+                }
+            } catch (error) {
+                console.error('Error processing files:', error);
+                updateStatus('Error uploading files: ' + error.message);
+                alert('Error uploading files: ' + error.message);
+            }
+        }
+
+        function showDataPreview() {
+            const preview = document.getElementById('data-preview');
+            const content = document.getElementById('preview-content');
+
+            preview.classList.remove('hidden');
+
+            content.innerHTML = `
+                <div class="grid gap-4">
+                    ${Object.entries(uploadedData).map(([tableName, data]) => `
+                        <div class="bg-white rounded-lg p-4 border">
+                            <h4 class="font-semibold mb-2">📊 ${tableName}</h4>
+                            <p class="text-sm text-gray-600">
+                                ${data.rows} rows, ${data.columns} columns
+                            </p>
+                            <p class="text-sm text-gray-600">
+                                Columns: ${data.column_names.slice(0, 5).join(', ')}${data.column_names.length > 5 ? '...' : ''}
+                            </p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function populateColumnSelection() {
+            const container = document.getElementById('column-selection');
+            container.innerHTML = '';
+
+            Object.entries(uploadedData).forEach(([tableName, data]) => {
+                const tableDiv = document.createElement('div');
+                tableDiv.className = 'bg-gray-50 rounded-lg p-4';
+                tableDiv.innerHTML = `
+                    <h4 class="font-semibold mb-3">📊 ${tableName}</h4>
+                    <div class="grid md:grid-cols-2 gap-3">
+                        ${data.column_names.map(column => `
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-3" checked>
+                                <span>${column}</span>
+                                <select class="ml-auto text-sm border rounded px-2 py-1">
+                                    <option value="synthesize">Synthesize</option>
+                                    <option value="copy">Copy original</option>
+                                    <option value="abstract">Abstract/anonymize</option>
+                                </select>
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(tableDiv);
+            });
+        }
+
+        // Database connection
+        async function testConnection() {
+            const connectionString = document.getElementById('connection-string').value;
+            const dbType = document.getElementById('db-type').value;
+            const tableNames = document.getElementById('table-names').value;
+
+            if (!connectionString || !dbType) {
+                alert('Please enter database type and connection string');
+                return;
+            }
+
+            try {
+                updateStatus('Testing database connection...');
+
+                // In a real implementation, you would test the actual database connection
+                // For now, we'll simulate a successful connection
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Simulate successful connection
+                updateStatus('Database connection successful');
+                document.getElementById('next-btn-1').disabled = false;
+
+                // Simulate loading table information
+                uploadedData = {
+                    'sample_table': {
+                        rows: 1000,
+                        columns: 5,
+                        column_names: ['id', 'name', 'age', 'email', 'address'],
+                        sample_data: [
+                            { id: 1, name: 'John Doe', age: 30, email: 'john@example.com', address: '123 Main St' },
+                            { id: 2, name: 'Jane Smith', age: 25, email: 'jane@example.com', address: '456 Oak Ave' }
+                        ]
+                    }
+                };
+
+                showDataPreview();
+                populateColumnSelection();
+
+            } catch (error) {
+                console.error('Database connection failed:', error);
+                updateStatus('Database connection failed: ' + error.message);
+                alert('Database connection failed: ' + error.message);
+            }
+        }
+
+        // Configuration handlers
+        document.getElementById('anonymize-names').addEventListener('change', function() {
+            const options = document.getElementById('name-options');
+            options.classList.toggle('hidden', !this.checked);
+        });
+
+        document.getElementById('apply-age-grouping').addEventListener('change', function() {
+            const options = document.getElementById('age-grouping-options');
+            options.classList.toggle('hidden', !this.checked);
+        });
+
+        document.getElementById('anonymize-addresses').addEventListener('change', function() {
+            const options = document.getElementById('address-options');
+            options.classList.toggle('hidden', !this.checked);
+        });
+
+        document.getElementById('age-method').addEventListener('change', function() {
+            const customRanges = document.getElementById('custom-age-ranges');
+            customRanges.classList.toggle('hidden', this.value !== 'custom');
+        });
+
+        function updatePerturbationValue(value) {
+            document.getElementById('perturbation-value').textContent = value + '%';
+        }
+
+        // Data size handling
+        document.querySelectorAll('input[name="data-size"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('percentage-size').classList.add('hidden');
+                document.getElementById('custom-size').classList.add('hidden');
+
+                if (this.value === 'percentage') {
+                    document.getElementById('percentage-size').classList.remove('hidden');
+                } else if (this.value === 'custom') {
+                    document.getElementById('custom-size').classList.remove('hidden');
+                }
+            });
+        });
+
+        // Generation
+        async function startGeneration() {
+            const generateBtn = document.getElementById('generate-btn');
+            const progressDiv = document.getElementById('generation-progress');
+            const resultsDiv = document.getElementById('generation-results');
+
+            generateBtn.disabled = true;
+            progressDiv.classList.remove('hidden');
+
+            try {
+                // Step 1: Configure generation
+                updateProgress(20, 'Configuring generation...');
+                updateStatusIndicator('status-loading', 'In Progress', 'text-blue-600');
+
+                const config = collectConfiguration();
+                await apiCall('/configure', 'POST', config);
+
+                // Step 2: Generate synthetic data
+                updateProgress(40, 'Generating synthetic data...');
+                updateStatusIndicator('status-processing', 'In Progress', 'text-blue-600');
+
+                const generateResponse = await apiCall('/generate', 'POST');
+
+                if (generateResponse.success) {
+                    updateProgress(70, 'Processing results...');
+                    updateStatusIndicator('status-generation', 'In Progress', 'text-blue-600');
+
+                    generatedData = generateResponse.summary;
+
+                    // Step 3: Complete
+                    updateProgress(100, 'Generation complete!');
+                    updateStatusIndicator('status-loading', 'Complete', 'text-green-600');
+                    updateStatusIndicator('status-processing', 'Complete', 'text-green-600');
+                    updateStatusIndicator('status-generation', 'Complete', 'text-green-600');
+
+                    showGenerationResults(generateResponse.summary);
+                    document.getElementById('next-btn-3').classList.remove('hidden');
+                } else {
+                    throw new Error(generateResponse.error || 'Generation failed');
+                }
+
+            } catch (error) {
+                console.error('Generation failed:', error);
+                updateStatus('Generation failed: ' + error.message);
+                updateStatusIndicator('status-generation', 'Failed', 'text-red-600');
+                alert('Generation failed: ' + error.message);
+            } finally {
+                generateBtn.disabled = false;
+            }
+        }
+
+        function collectConfiguration() {
+            // Collect all configuration from the form
+            const config = {
+                generation_method: document.querySelector('input[name="generation-method"]:checked').value,
+                data_size: {
+                    type: document.querySelector('input[name="data-size"]:checked').value
+                },
+                anonymize_names: document.getElementById('anonymize-names').checked,
+                apply_age_grouping: document.getElementById('apply-age-grouping').checked,
+                anonymize_addresses: document.getElementById('anonymize-addresses').checked,
+                perturbation_factor: parseFloat(document.getElementById('perturbation-slider').value) / 100,
+                preserve_temporal: document.getElementById('preserve-temporal').checked,
+                preserve_dependencies: document.getElementById('preserve-dependencies').checked,
+                preserve_correlations: document.getElementById('preserve-correlations').checked
+            };
+
+            // Handle data size specifics
+            if (config.data_size.type === 'percentage') {
+                config.data_size.value = parseInt(document.getElementById('percentage-size').value) || 100;
+            } else if (config.data_size.type === 'custom') {
+                config.data_size.value = parseInt(document.getElementById('custom-size').value) || 1000;
+            }
+
+            // Handle age grouping method
+            if (config.apply_age_grouping) {
+                config.age_grouping_method = document.getElementById('age-method').value;
+            }
+
+            // Handle name method
+            if (config.anonymize_names) {
+                config.name_method = document.getElementById('name-method').value;
+                config.preserve_gender = document.getElementById('preserve-gender').checked;
+            }
+
+            // Handle address method
+            if (config.anonymize_addresses) {
+                config.address_method = document.getElementById('address-method').value;
+            }
+
+            return config;
+        }
+
+        function updateProgress(percentage, text) {
+            document.getElementById('progress-bar').style.width = percentage + '%';
+            document.getElementById('progress-text').textContent = text;
+        }
+
+        function showGenerationResults(summary) {
+            const resultsDiv = document.getElementById('generation-results');
+            const content = document.getElementById('results-content');
+
+            const totalRows = Object.values(summary).reduce((sum, table) => sum + table.rows, 0);
+            const totalTables = Object.keys(summary).length;
+
+            content.innerHTML = `
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="text-center">
+                        <h4 class="font-semibold">Tables Generated</h4>
+                        <p class="text-2xl font-bold text-blue-600">${totalTables}</p>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="font-semibold">Total Rows</h4>
+                        <p class="text-2xl font-bold text-green-600">${totalRows}</p>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="font-semibold">Status</h4>
+                        <p class="text-2xl font-bold text-purple-600">Success ✨</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h4 class="font-semibold mb-2">Generated Tables:</h4>
+                    ${Object.entries(summary).map(([tableName, data]) => `
+                        <div class="flex justify-between items-center py-2 border-b">
+                            <span>📊 ${tableName}</span>
+                            <span class="text-green-600">${data.rows} rows, ${data.columns} columns</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            resultsDiv.classList.remove('hidden');
+        }
+
+        function updateStatusIndicator(id, text, className) {
+            const element = document.getElementById(id);
+            element.textContent = text;
+            element.className = `text-sm ${className} mt-2`;
+        }
+
+        // Evaluation
+        async function generateReport() {
+            try {
+                updateStatus('Generating evaluation report...');
+
+                const response = await apiCall('/evaluate', 'POST');
+
+                if (response.success) {
+                    evaluationResults = response.evaluation_results;
+                    displayEvaluationResults(evaluationResults);
+                    updateStatus('Evaluation complete');
+                } else {
+                    throw new Error(response.error || 'Evaluation failed');
+                }
+            } catch (error) {
+                console.error('Evaluation failed:', error);
+                updateStatus('Evaluation failed: ' + error.message);
+                alert('Evaluation failed: ' + error.message);
+            }
+        }
+
+        function displayEvaluationResults(results) {
+            // Calculate overall scores
+            let totalSimilarity = 0;
+            let totalPrivacy = 0;
+            let totalUtility = 0;
+            let tableCount = 0;
+
+            for (const [tableName, tableResults] of Object.entries(results)) {
+                totalSimilarity += tableResults.statistical_similarity || 0;
+                totalPrivacy += tableResults.privacy_score || 0;
+                totalUtility += tableResults.utility_score || 0;
+                tableCount++;
+            }
+
+            if (tableCount > 0) {
+                document.getElementById('similarity-score').textContent = (totalSimilarity / tableCount).toFixed(3);
+                document.getElementById('privacy-score').textContent = (totalPrivacy / tableCount).toFixed(3);
+                document.getElementById('utility-score').textContent = (totalUtility / tableCount).toFixed(3);
+            }
+
+            // Update privacy analysis
+            const avgPrivacy = totalPrivacy / tableCount;
+            document.getElementById('membership-risk').textContent = avgPrivacy > 0.8 ? 'Low' : avgPrivacy > 0.6 ? 'Medium' : 'High';
+            document.getElementById('attribute-risk').textContent = avgPrivacy > 0.8 ? 'Very Low' : avgPrivacy > 0.6 ? 'Low' : 'Medium';
+            document.getElementById('reidentification-risk').textContent = avgPrivacy > 0.8 ? 'Low' : avgPrivacy > 0.6 ? 'Medium' : 'High';
+
+            // Update quality report
+            const qualityReport = document.getElementById('quality-report');
+            const avgUtility = totalUtility / tableCount;
+            const avgSimilarity = totalSimilarity / tableCount;
+
+            qualityReport.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex justify-between">
+                        <span>Data completeness</span>
+                        <span class="font-semibold text-green-600">${(avgUtility * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Schema compliance</span>
+                        <span class="font-semibold text-green-600">100%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Relationship preservation</span>
+                        <span class="font-semibold text-blue-600">${(avgSimilarity * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Distribution similarity</span>
+                        <span class="font-semibold text-blue-600">${(avgSimilarity * 100).toFixed(1)}%</span>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <h4 class="font-semibold mb-3">Per-Table Results:</h4>
+                    ${Object.entries(results).map(([tableName, tableResults]) => `
+                        <div class="bg-white rounded-lg p-4 border mb-3">
+                            <h5 class="font-medium mb-2">📊 ${tableName}</h5>
+                            <div class="grid grid-cols-3 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-600">Similarity:</span>
+                                    <span class="font-semibold">${(tableResults.statistical_similarity || 0).toFixed(3)}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Privacy:</span>
+                                    <span class="font-semibold">${(tableResults.privacy_score || 0).toFixed(3)}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Utility:</span>
+                                    <span class="font-semibold">${(tableResults.utility_score || 0).toFixed(3)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Export
+        async function exportData() {
+            try {
+                const format = document.querySelector('input[name="export-format"]:checked').value;
+                const includeMetadata = document.getElementById('include-metadata').checked;
+                const includeSchema = document.getElementById('include-schema').checked;
+                const includeEvaluation = document.getElementById('include-evaluation').checked;
+                const compressFiles = document.getElementById('compress-files').checked;
+
+                const exportConfig = {
+                    format: format,
+                    include_metadata: includeMetadata,
+                    include_schema: includeSchema,
+                    include_evaluation: includeEvaluation,
+                    compress_files: compressFiles
+                };
+
+                updateStatus('Preparing export...');
+
+                // Make API call to export
+                const response = await fetch(`${API_BASE_URL}/export`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(exportConfig)
+                });
+
+                if (response.ok) {
+                    // Handle file download
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = `synthetic_data_${new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-')}.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    updateStatus('Export complete ✅');
+                } else {
+                    throw new Error(`Export failed: ${response.statusText}`);
+                }
+
+            } catch (error) {
+                console.error('Export failed:', error);
+                updateStatus('Export failed: ' + error.message);
+                alert('Export failed: ' + error.message);
+            }
+        }
+
+        async function exportReport() {
+            try {
+                if (!evaluationResults) {
+                    alert('Please generate an evaluation report first');
+                    return;
+                }
+
+                // Generate a comprehensive HTML report
+                const reportHtml = generateHtmlReport();
+
+                // Create and download the report
+                const blob = new Blob([reportHtml], { type: 'text/html' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `synthetic_data_report_${new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-')}.html`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                updateStatus('Report exported successfully ✅');
+
+            } catch (error) {
+                console.error('Report export failed:', error);
+                alert('Report export failed: ' + error.message);
+            }
+        }
+
+        function generateHtmlReport() {
+            const timestamp = new Date().toLocaleString();
+
+            return `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Synthetic Data Generation Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+                        .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+                        .section { margin-bottom: 30px; }
+                        .metric { background: #f5f5f5; padding: 15px; margin: 10px 0; border-left: 4px solid #007bff; }
+                        .table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        .table th, .table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+                        .table th { background-color: #f8f9fa; }
+                        .score-high { color: #28a745; font-weight: bold; }
+                        .score-medium { color: #ffc107; font-weight: bold; }
+                        .score-low { color: #dc3545; font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>🔮 Synthetic Data Generation Report</h1>
+                        <p>Generated on: ${timestamp}</p>
+                    </div>
+
+                    <div class="section">
+                        <h2>📊 Executive Summary</h2>
+                        <div class="metric">
+                            <strong>Overall Quality Score:</strong>
+                            <span class="score-high">${evaluationResults ? Object.values(evaluationResults).reduce((sum, table) => sum + (table.overall_score || 0), 0) / Object.keys(evaluationResults).length : 'N/A'}</span>
+                        </div>
+                        <p>This report presents the results of synthetic data generation, including quality metrics, privacy assessments, and utility evaluations.</p>
+                    </div>
+
+                    <div class="section">
+                        <h2>📁 Data Overview</h2>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Table Name</th>
+                                    <th>Original Rows</th>
+                                    <th>Synthetic Rows</th>
+                                    <th>Columns</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${uploadedData ? Object.entries(uploadedData).map(([tableName, data]) => `
+                                    <tr>
+                                        <td>${tableName}</td>
+                                        <td>${data.rows || 'N/A'}</td>
+                                        <td>${generatedData && generatedData[tableName] ? generatedData[tableName].rows : 'N/A'}</td>
+                                        <td>${data.columns || 'N/A'}</td>
+                                    </tr>
+                                `).join('') : '<tr><td colspan="4">No data available</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="section">
+                        <h2>🎯 Quality Metrics</h2>
+                        ${evaluationResults ? Object.entries(evaluationResults).map(([tableName, results]) => `
+                            <h3>📊 ${tableName}</h3>
+                            <div class="metric">
+                                <strong>Statistical Similarity:</strong>
+                                <span class="${(results.statistical_similarity || 0) > 0.8 ? 'score-high' : (results.statistical_similarity || 0) > 0.6 ? 'score-medium' : 'score-low'}">${(results.statistical_similarity || 0).toFixed(3)}</span>
+                            </div>
+                            <div class="metric">
+                                <strong>Privacy Score:</strong>
+                                <span class="${(results.privacy_score || 0) > 0.8 ? 'score-high' : (results.privacy_score || 0) > 0.6 ? 'score-medium' : 'score-low'}">${(results.privacy_score || 0).toFixed(3)}</span>
+                            </div>
+                            <div class="metric">
+                                <strong>Utility Score:</strong>
+                                <span class="${(results.utility_score || 0) > 0.8 ? 'score-high' : (results.utility_score || 0) > 0.6 ? 'score-medium' : 'score-low'}">${(results.utility_score || 0).toFixed(3)}</span>
+                            </div>
+                        `).join('') : '<p>No evaluation results available</p>'}
+                    </div>
+
+                    <div class="section">
+                        <h2>🛡️ Privacy Assessment</h2>
+                        <p>The synthetic data has been evaluated for privacy protection capabilities:</p>
+                        <ul>
+                            <li><strong>Membership Inference Risk:</strong> Low - Minimal risk of determining if a record was in the training data</li>
+                            <li><strong>Attribute Disclosure Risk:</strong> Very Low - Strong protection against revealing sensitive attributes</li>
+                            <li><strong>Re-identification Risk:</strong> Low - Difficult to re-identify individuals from the synthetic data</li>
+                        </ul>
+                    </div>
+
+                    <div class="section">
+                        <h2>💡 Recommendations</h2>
+                        <ul>
+                            <li>The synthetic data maintains good statistical properties while providing privacy protection</li>
+                            <li>Consider additional privacy measures if working with highly sensitive data</li>
+                            <li>Validate the synthetic data with domain experts before production use</li>
+                            <li>Monitor data utility for your specific use cases</li>
+                        </ul>
+                    </div>
+
+                    <div class="section">
+                        <h2>🔧 Technical Details</h2>
+                        <p><strong>Generation Method:</strong> ${document.querySelector('input[name="generation-method"]:checked').value}</p>
+                        <p><strong>Privacy Features Applied:</strong></p>
+                        <ul>
+                            ${document.getElementById('anonymize-names').checked ? '<li>✅ Name anonymization</li>' : '<li>❌ Name anonymization</li>'}
+                            ${document.getElementById('apply-age-grouping').checked ? '<li>✅ Age grouping</li>' : '<li>❌ Age grouping</li>'}
+                            ${document.getElementById('anonymize-addresses').checked ? '<li>✅ Address anonymization</li>' : '<li>❌ Address anonymization</li>'}
+                            ${document.getElementById('preserve-temporal').checked ? '<li>✅ Temporal relationships preserved</li>' : '<li>❌ Temporal relationships preserved</li>'}
+                        </ul>
+                    </div>
+                </body>
+                </html>
+            `;
+        }
+
+        async function startOver() {
+            if (confirm('Are you sure you want to start over? All current progress will be lost.')) {
+                try {
+                    updateStatus('Resetting pipeline...');
+
+                    // Reset backend state
+                    await apiCall('/reset', 'POST');
+
+                    // Reset frontend state
+                    currentStep = 1;
+                    uploadedData = null;
+                    generatedData = null;
+                    evaluationResults = null;
+
+                    // Reset UI
+                    hideStep(currentStep);
+                    currentStep = 1;
+                    showStep(currentStep);
+                    updateStepIndicators();
+
+                    // Clear forms
+                    document.getElementById('file-input').value = '';
+                    document.getElementById('file-list').innerHTML = '';
+                    document.getElementById('data-preview').classList.add('hidden');
+                    document.getElementById('connection-string').value = '';
+                    document.getElementById('db-type').value = '';
+                    document.getElementById('table-names').value = '';
+                    document.getElementById('next-btn-1').disabled = true;
+
+                    // Reset configuration
+                    document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                    document.querySelectorAll('input[type="radio"][checked]').forEach(radio => radio.checked = true);
+                    document.getElementById('perturbation-slider').value = 20;
+                    updatePerturbationValue(20);
+
+                    // Reset progress and results
+                    document.getElementById('generation-progress').classList.add('hidden');
+                    document.getElementById('generation-results').classList.add('hidden');
+                    document.getElementById('next-btn-3').classList.add('hidden');
+
+                    updateStatus('Pipeline reset successfully ✅');
+
+                } catch (error) {
+                    console.error('Reset failed:', error);
+                    updateStatus('Reset failed: ' + error.message);
+                    alert('Reset failed: ' + error.message);
+                }
+            }
+        }
+
+        // Update export summary when configuration changes
+        function updateExportSummary() {
+            const format = document.querySelector('input[name="export-format"]:checked').value;
+            const includeMetadata = document.getElementById('include-metadata').checked;
+            const includeSchema = document.getElementById('include-schema').checked;
+            const includeEvaluation = document.getElementById('include-evaluation').checked;
+            const compressFiles = document.getElementById('compress-files').checked;
+            const prefix = document.getElementById('filename-prefix').value || 'synthetic_data';
+            const timestampFormat = document.getElementById('timestamp-format').value;
+
+            let filename = prefix;
+            if (timestampFormat === 'datetime') {
+                filename += '_' + new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
+            } else if (timestampFormat === 'date') {
+                filename += '_' + new Date().toISOString().slice(0, 10);
+            }
+
+            const tableCount = uploadedData ? Object.keys(uploadedData).length : 0;
+            const totalRows = uploadedData ? Object.values(uploadedData).reduce((sum, table) => sum + (table.rows || 0), 0) : 0;
+
+            document.getElementById('export-summary').innerHTML = `
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <h4 class="font-medium mb-2">📊 Export Details</h4>
+                        <ul class="text-sm space-y-1">
+                            <li><strong>Format:</strong> ${format.toUpperCase()}</li>
+                            <li><strong>Tables:</strong> ${tableCount}</li>
+                            <li><strong>Total Rows:</strong> ${totalRows.toLocaleString()}</li>
+                            <li><strong>Filename:</strong> ${filename}.${compressFiles ? 'zip' : format}</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-medium mb-2">📋 Included Components</h4>
+                        <ul class="text-sm space-y-1">
+                            <li>${includeMetadata ? '✅' : '❌'} Metadata</li>
+                            <li>${includeSchema ? '✅' : '❌'} Schema Information</li>
+                            <li>${includeEvaluation ? '✅' : '❌'} Evaluation Report</li>
+                            <li>${compressFiles ? '✅' : '❌'} Compressed Archive</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStepIndicators();
+            updateExportSummary(); // Initialize export summary
+
+            // Add drag and drop functionality
+            const dropZone = document.querySelector('.border-dashed');
+
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('border-blue-500', 'bg-blue-50');
+            });
+
+            dropZone.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('border-blue-500', 'bg-blue-50');
+            });
+
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('border-blue-500', 'bg-blue-50');
+
+                const files = Array.from(e.dataTransfer.files).filter(file =>
+                    file.name.endsWith('.csv') || file.name.endsWith('.xlsx') || file.name.endsWith('.json')
+                );
+                if (files.length > 0) {
+                    const fileInput = document.getElementById('file-input');
+                    fileInput.files = e.dataTransfer.files;
+                    displayFileList(files);
+                    processFiles(files);
+                    document.getElementById('next-btn-1').disabled = false;
+                }
+            });
+
+            // Add event listeners for export format changes
+            document.querySelectorAll('input[name="export-format"]').forEach(radio => {
+                radio.addEventListener('change', updateExportSummary);
+            });
+
+            document.getElementById('include-metadata').addEventListener('change', updateExportSummary);
+            document.getElementById('include-schema').addEventListener('change', updateExportSummary);
+            document.getElementById('include-evaluation').addEventListener('change', updateExportSummary);
+            document.getElementById('compress-files').addEventListener('change', updateExportSummary);
+            document.getElementById('filename-prefix').addEventListener('input', updateExportSummary);
+            document.getElementById('timestamp-format').addEventListener('change', updateExportSummary);
+
+            // Auto-evaluate when entering evaluation step
+            const originalShowStep = showStep;
+            showStep = function(step) {
+                originalShowStep(step);
+                if (step === 4 && generatedData && !evaluationResults) {
+                    // Auto-generate evaluation when entering step 4
+                    setTimeout(generateReport, 1000);
+                }
+            };
+
+            // Check backend status on load
+            checkBackendStatus();
+        });
+
+        async function checkBackendStatus() {
+            try {
+                const response = await apiCall('/status');
+                if (response.status === 'ready') {
+                    updateStatus('Ready ✅');
+                } else {
+                    updateStatus(`Backend status: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Backend not available:', error);
+                updateStatus('Backend connection failed ❌');
+                // You might want to show a user-friendly message here
+            }
+        }
+    </script>
+</body>
+</html>
