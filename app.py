@@ -17,6 +17,8 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 import signal
 import atexit
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 
 # Configuration class
@@ -811,6 +813,26 @@ def health_check():
         'advanced_features': True,
         'uptime': time.time() - app.start_time if hasattr(app, 'start_time') else 0
     })
+
+
+@app.route('/api/debug', methods=['GET'])
+def debug_pipeline():
+    """Debug endpoint to check pipeline state"""
+    pipeline = pipeline_state.get('pipeline')
+    if not pipeline:
+        return jsonify({'error': 'No pipeline'})
+
+    debug_info = {
+        'has_original_data': bool(pipeline.original_data),
+        'original_data_tables': list(pipeline.original_data.keys()) if pipeline.original_data else [],
+        'has_config': bool(pipeline.config),
+        'config': pipeline.config if hasattr(pipeline, 'config') else {},
+        'has_schema': bool(pipeline.schema),
+        'schema_tables': list(pipeline.schema.keys()) if pipeline.schema else [],
+        'pipeline_attributes': [attr for attr in dir(pipeline) if not attr.startswith('_')]
+    }
+
+    return jsonify(debug_info)
 
 
 # Cleanup function for graceful shutdown
