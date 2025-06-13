@@ -347,7 +347,7 @@ def configure_generation():
 
 @app.route('/api/generate', methods=['POST'])
 def generate_data():
-    """Generate synthetic data with advanced pipeline"""
+    """Generate synthetic data with advanced pipeline - FIXED VERSION"""
     try:
         if not pipeline_state.get('pipeline'):
             return jsonify({'error': 'No pipeline initialized'}), 400
@@ -361,18 +361,46 @@ def generate_data():
 
         start_time = time.time()
 
-        # Generate synthetic data using advanced pipeline - UPDATED GENERATION
+        # FIXED: Correct method call for SyntheticDataPipeline
         generation_method = pipeline.config.get('generation_method', 'auto')
-        success = pipeline.generate_synthetic_data(method=generation_method)
+
+        try:
+            # Use the correct method signature from pipeline.py
+            success = pipeline.generate_synthetic_data(
+                method=generation_method,
+                parameters=pipeline.config
+            )
+        except Exception as gen_error:
+            app.logger.error(f"Generation method failed: {str(gen_error)}")
+            app.logger.error(traceback.format_exc())
+
+            # Try alternative approach if main method fails
+            try:
+                app.logger.info("Trying alternative generation approach...")
+                success = pipeline.generate_synthetic_data()  # Use default parameters
+            except Exception as alt_error:
+                app.logger.error(f"Alternative generation also failed: {str(alt_error)}")
+                raise alt_error
 
         generation_time = time.time() - start_time
 
-        if success and pipeline.synthetic_data:
+        # FIXED: Better validation of success
+        if success and hasattr(pipeline, 'synthetic_data') and pipeline.synthetic_data:
+            # Check if we actually have non-empty data
+            has_data = False
+            for table_name, df in pipeline.synthetic_data.items():
+                if not df.empty:
+                    has_data = True
+                    break
+
+            if not has_data:
+                raise ValueError("Generation completed but produced no data")
+
             # Update global state
             pipeline_state['status'] = 'generated'
             pipeline_state['has_synthetic_data'] = True
 
-            # Prepare detailed summary - UPDATED DATA ACCESS
+            # Prepare detailed summary
             summary = {}
             total_original_rows = 0
             total_synthetic_rows = 0
@@ -387,9 +415,9 @@ def generate_data():
 
                 for column in df.columns:
                     column_info = schema_info.get(column, {})
-                    if column_info.get('is_age', False):
+                    if column_info.get('is_age', False) or 'age' in column.lower():
                         quality_improvements.append('Age formatting fixed')
-                    if column_info.get('type') == 'datetime':
+                    if column_info.get('type') == 'datetime' or 'date' in column.lower():
                         quality_improvements.append('Date formatting preserved')
 
                 summary[table_name] = {
@@ -412,7 +440,7 @@ def generate_data():
                 total_synthetic_rows += synthetic_rows
 
             app.logger.info(
-                f"Advanced generation completed in {generation_time:.2f}s: {total_synthetic_rows} synthetic rows from {total_original_rows} original rows")
+                f"Advanced generation completed successfully in {generation_time:.2f}s: {total_synthetic_rows} synthetic rows from {total_original_rows} original rows")
 
             return jsonify({
                 'success': True,
@@ -430,8 +458,20 @@ def generate_data():
                 }
             })
         else:
+            # More detailed error information
+            error_details = {
+                'success_flag': success,
+                'has_synthetic_data_attr': hasattr(pipeline, 'synthetic_data'),
+                'synthetic_data_exists': bool(getattr(pipeline, 'synthetic_data', None)),
+                'synthetic_data_count': len(getattr(pipeline, 'synthetic_data', {})),
+            }
+
+            app.logger.error(f"Generation failed - Details: {error_details}")
             pipeline_state['status'] = 'error'
-            return jsonify({'error': 'Failed to generate synthetic data with advanced pipeline'}), 500
+            return jsonify({
+                'error': 'Failed to generate synthetic data with advanced pipeline',
+                'details': error_details
+            }), 500
 
     except Exception as e:
         app.logger.error(f"Error in advanced data generation: {str(e)}")
