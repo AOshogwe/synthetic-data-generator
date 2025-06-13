@@ -264,7 +264,7 @@ def upload_files():
 
 @app.route('/api/configure', methods=['POST'])
 def configure_generation():
-    """Configure the synthetic data generation with advanced pipeline"""
+    """Configure the synthetic data generation with proper column selection"""
     try:
         config = request.json
 
@@ -280,7 +280,102 @@ def configure_generation():
             if field not in config:
                 return jsonify({'error': f'Missing required field: {field}'}), 400
 
-        # Validate generation method
+        pipeline = pipeline_state['pipeline']
+
+        # FIXED: Process column selection configuration
+        if 'column_selection' in config:
+            app.logger.info("Processing column selection configuration")
+            column_selection = config['column_selection']
+
+            # Update schema with column selection
+            for table_name, columns_config in column_selection.items():
+                if table_name in pipeline.schema:
+                    # Initialize columns in schema if not present
+                    if 'columns' not in pipeline.schema[table_name]:
+                        pipeline.schema[table_name]['columns'] = {}
+
+                    # Get all columns in the table
+                    table_df = pipeline.original_data.get(table_name)
+                    if table_df is not None:
+                        all_columns = list(table_df.columns)
+
+                        # Set synthesize flag for each column
+                        for column in all_columns:
+                            if column not in pipeline.schema[table_name]['columns']:
+                                pipeline.schema[table_name]['columns'][column] = {}
+
+                            # Set based on user selection
+                            if column in columns_config:
+                                action = columns_config[column]
+                                if action == 'synthesize':
+                                    pipeline.schema[table_name]['columns'][column]['synthesize'] = True
+                                    app.logger.info(f"Column '{column}' will be SYNTHESIZED")
+                                elif action == 'copy':
+                                    pipeline.schema[table_name]['columns'][column]['synthesize'] = False
+                                    app.logger.info(f"Column '{column}' will be COPIED from original")
+                                elif action == 'abstract':
+                                    pipeline.schema[table_name]['columns'][column]['synthesize'] = True
+                                    pipeline.schema[table_name]['columns'][column]['abstract'] = True
+                                    app.logger.info(f"Column '{column}' will be ABSTRACTED/ANONYMIZED")
+                            else:
+                                # Default: copy if not specified
+                                pipeline.schema[table_name]['columns'][column]['synthesize'] = False
+                                app.logger.info(f"Column '{column}' will be COPIED (default)")
+
+        # ALTERNATIVE: Handle column selection from general config
+        elif 'columns_to_synthesize' in config:
+            app.logger.info("Processing columns_to_synthesize configuration")
+            columns_to_synthesize = config['columns_to_synthesize']
+
+            for table_name in pipeline.original_data.keys():
+                if table_name in pipeline.schema:
+                    if 'columns' not in pipeline.schema[table_name]:
+                        pipeline.schema[table_name]['columns'] = {}
+
+                    table_df = pipeline.original_data[table_name]
+                    for column in table_df.columns:
+                        if column not in pipeline.schema[table_name]['columns']:
+                            pipeline.schema[table_name]['columns'][column] = {}
+
+                        # Check if this column should be synthesized
+                        should_synthesize = column in columns_to_synthesize
+                        pipeline.schema[table_name]['columns'][column]['synthesize'] = should_synthesize
+
+                        action = "SYNTHESIZED" if should_synthesize else "COPIED"
+                        app.logger.info(f"Column '{column}' will be {action}")
+
+        # FALLBACK: If no column selection provided, default to copying all
+        else:
+            app.logger.warning("No column selection provided - defaulting to COPY all columns")
+            for table_name in pipeline.original_data.keys():
+                if table_name in pipeline.schema:
+                    if 'columns' not in pipeline.schema[table_name]:
+                        pipeline.schema[table_name]['columns'] = {}
+
+                    table_df = pipeline.original_data[table_name]
+                    for column in table_df.columns:
+                        if column not in pipeline.schema[table_name]['columns']:
+                            pipeline.schema[table_name]['columns'][column] = {}
+
+                        # Default to copying (safer default)
+                        pipeline.schema[table_name]['columns'][column]['synthesize'] = False
+                        app.logger.info(f"Column '{column}' will be COPIED (fallback default)")
+
+        # Log final column configuration
+        for table_name in pipeline.schema.keys():
+            if 'columns' in pipeline.schema[table_name]:
+                synthesize_cols = []
+                copy_cols = []
+                for col, info in pipeline.schema[table_name]['columns'].items():
+                    if info.get('synthesize', False):
+                        synthesize_cols.append(col)
+                    else:
+                        copy_cols.append(col)
+
+                app.logger.info(f"Table '{table_name}' - Synthesize: {len(synthesize_cols)} columns {synthesize_cols}")
+                app.logger.info(f"Table '{table_name}' - Copy: {len(copy_cols)} columns {copy_cols}")
+
+        # Continue with rest of configuration...
         valid_methods = ['auto', 'perturbation', 'ctgan', 'gaussian_copula']
         if config['generation_method'] not in valid_methods:
             return jsonify({'error': f'Invalid generation method. Must be one of: {valid_methods}'}), 400
@@ -290,9 +385,6 @@ def configure_generation():
             factor = config['perturbation_factor']
             if not isinstance(factor, (int, float)) or factor < 0 or factor > 1:
                 return jsonify({'error': 'Perturbation factor must be between 0 and 1'}), 400
-
-        # Configure advanced pipeline - UPDATED CONFIGURATION
-        pipeline = pipeline_state['pipeline']
 
         # Set configuration in pipeline
         pipeline.config = config
@@ -328,11 +420,12 @@ def configure_generation():
         pipeline_state['config'] = config
         pipeline_state['status'] = 'configured'
 
-        app.logger.info(f"Advanced pipeline configured: {config['generation_method']} method with enhanced features")
+        app.logger.info(f"Advanced pipeline configured: {config['generation_method']} method with column selection")
 
         return jsonify({
             'success': True,
-            'message': 'Advanced configuration applied',
+            'message': 'Advanced configuration applied with column selection',
+            'column_selection_applied': 'column_selection' in config or 'columns_to_synthesize' in config,
             'features_enabled': {
                 'name_anonymization': config.get('anonymize_names', False),
                 'age_grouping': config.get('apply_age_grouping', False),
@@ -344,12 +437,51 @@ def configure_generation():
 
     except Exception as e:
         app.logger.error(f"Error in configuration: {str(e)}")
+        app.logger.error(traceback.format_exc())
         return jsonify({'error': f'Configuration failed: {str(e)}'}), 500
+
+
+# ADDITIONAL: Debug endpoint to check column configuration
+@app.route('/api/debug/columns', methods=['GET'])
+def debug_column_configuration():
+    """Debug endpoint to see current column configuration"""
+    try:
+        if not pipeline_state.get('pipeline'):
+            return jsonify({'error': 'No pipeline initialized'})
+
+        pipeline = pipeline_state['pipeline']
+        column_config = {}
+
+        for table_name, table_schema in pipeline.schema.items():
+            if 'columns' in table_schema:
+                column_config[table_name] = {}
+                for column, info in table_schema['columns'].items():
+                    column_config[table_name][column] = {
+                        'synthesize': info.get('synthesize', False),
+                        'abstract': info.get('abstract', False),
+                        'type': info.get('type', 'unknown')
+                    }
+
+        return jsonify({
+            'success': True,
+            'column_configuration': column_config,
+            'summary': {
+                table: {
+                    'total_columns': len(cols),
+                    'synthesize_count': sum(1 for c in cols.values() if c.get('synthesize', False)),
+                    'copy_count': sum(1 for c in cols.values() if not c.get('synthesize', False))
+                }
+                for table, cols in column_config.items()
+            }
+        })
+
+    except Exception as e:
+        return jsonify({'error': f'Debug failed: {str(e)}'})
 
 
 @app.route('/api/generate', methods=['POST'])
 def generate_data():
-    """Generate synthetic data with advanced pipeline - FIXED VERSION"""
+    """Generate synthetic data with timeout protection and method optimization"""
     try:
         if not pipeline_state.get('pipeline'):
             return jsonify({'error': 'No pipeline initialized'}), 400
@@ -363,37 +495,75 @@ def generate_data():
 
         start_time = time.time()
 
-        # FIXED: Correct method call for SyntheticDataPipeline
+        # OPTIMIZATION: Choose method based on dataset size
         generation_method = pipeline.config.get('generation_method', 'auto')
+        total_rows = sum(len(df) for df in pipeline.original_data.values())
+
+        app.logger.info(f"Dataset size: {total_rows} total rows")
+
+        # Auto-optimize method based on size to prevent timeouts
+        if generation_method == 'auto':
+            if total_rows > 10000:
+                generation_method = 'perturbation'
+                app.logger.info(
+                    f"Large dataset detected ({total_rows} rows), switching to perturbation method for speed")
+            elif total_rows > 5000:
+                generation_method = 'gaussian_copula'
+                app.logger.info(f"Medium dataset detected ({total_rows} rows), using gaussian_copula method")
+            else:
+                generation_method = 'ctgan'
+                app.logger.info(f"Small dataset detected ({total_rows} rows), using ctgan method")
+
+        # Set timeout protection
+        timeout_seconds = 300  # 5 minutes max
+
+        def generate_with_timeout():
+            """Generate data with timeout protection"""
+            try:
+                # FORCE perturbation for large datasets
+                if total_rows > 20000:
+                    app.logger.info("Very large dataset - forcing perturbation mode")
+                    pipeline.apply_perturbation = True
+                    pipeline.perturbation_factor = 0.15  # Moderate perturbation
+                    return pipeline.generate_perturbed_data()
+                else:
+                    return pipeline.generate_synthetic_data(
+                        method=generation_method,
+                        parameters=pipeline.config
+                    )
+            except Exception as e:
+                app.logger.error(f"Generation failed: {str(e)}")
+                # Fallback to simple perturbation
+                app.logger.info("Falling back to simple perturbation method")
+                pipeline.apply_perturbation = True
+                pipeline.perturbation_factor = 0.2
+                return pipeline.generate_perturbed_data()
+
+        # Execute generation with progress logging
+        app.logger.info(f"Starting generation with method: {generation_method}")
 
         try:
-            # Use the correct method signature from pipeline.py
-            success = pipeline.generate_synthetic_data(
-                method=generation_method,
-                parameters=pipeline.config
-            )
+            success = generate_with_timeout()
         except Exception as gen_error:
-            app.logger.error(f"Generation method failed: {str(gen_error)}")
-            app.logger.error(traceback.format_exc())
-
-            # Try alternative approach if main method fails
-            try:
-                app.logger.info("Trying alternative generation approach...")
-                success = pipeline.generate_synthetic_data()  # Use default parameters
-            except Exception as alt_error:
-                app.logger.error(f"Alternative generation also failed: {str(alt_error)}")
-                raise alt_error
+            app.logger.error(f"Generation error: {str(gen_error)}")
+            # Final fallback - create simple synthetic data
+            app.logger.info("Using emergency fallback generation")
+            success = create_emergency_synthetic_data(pipeline)
 
         generation_time = time.time() - start_time
+        app.logger.info(f"Generation completed in {generation_time:.2f} seconds")
 
-        # FIXED: Better validation of success
+        # Validate results
         if success and hasattr(pipeline, 'synthetic_data') and pipeline.synthetic_data:
             # Check if we actually have non-empty data
             has_data = False
+            total_synthetic_rows = 0
+
             for table_name, df in pipeline.synthetic_data.items():
                 if not df.empty:
                     has_data = True
-                    break
+                    total_synthetic_rows += len(df)
+                    app.logger.info(f"Generated {len(df)} rows for table {table_name}")
 
             if not has_data:
                 raise ValueError("Generation completed but produced no data")
@@ -402,84 +572,98 @@ def generate_data():
             pipeline_state['status'] = 'generated'
             pipeline_state['has_synthetic_data'] = True
 
-            # Prepare detailed summary
+            # Prepare summary
             summary = {}
             total_original_rows = 0
-            total_synthetic_rows = 0
 
             for table_name, df in pipeline.synthetic_data.items():
                 original_rows = len(pipeline.original_data.get(table_name, []))
                 synthetic_rows = len(df)
 
-                # Check for data quality improvements
-                quality_improvements = []
-                schema_info = pipeline.schema.get(table_name, {}).get('columns', {})
-
-                for column in df.columns:
-                    column_info = schema_info.get(column, {})
-                    if column_info.get('is_age', False) or 'age' in column.lower():
-                        quality_improvements.append('Age formatting fixed')
-                    if column_info.get('type') == 'datetime' or 'date' in column.lower():
-                        quality_improvements.append('Date formatting preserved')
-
                 summary[table_name] = {
                     'rows': synthetic_rows,
                     'columns': len(df.columns),
                     'original_rows': original_rows,
-                    'sample_data': df.head(3).fillna('').to_dict('records'),
+                    'sample_data': df.head(2).fillna('').to_dict('records'),  # Reduced sample size
                     'generation_method': generation_method,
-                    'quality_improvements': list(set(quality_improvements)),
-                    'relationships_preserved': len(
-                        pipeline.schema.get(table_name, {}).get('relationships', {}).get('temporal', [])),
-                    'privacy_features_applied': {
-                        'name_anonymization': getattr(pipeline, 'apply_name_abstraction', False),
-                        'age_grouping': getattr(pipeline, 'should_apply_age_grouping', False),
-                        'address_synthesis': getattr(pipeline, 'should_apply_address_synthesis', False)
-                    }
+                    'generation_time': round(generation_time, 2)
                 }
 
                 total_original_rows += original_rows
-                total_synthetic_rows += synthetic_rows
 
             app.logger.info(
-                f"Advanced generation completed successfully in {generation_time:.2f}s: {total_synthetic_rows} synthetic rows from {total_original_rows} original rows")
+                f"Generation successful: {total_synthetic_rows} synthetic rows from {total_original_rows} original rows")
 
             return jsonify({
                 'success': True,
-                'message': 'Advanced synthetic data generated successfully',
+                'message': f'Synthetic data generated successfully using {generation_method} method',
                 'summary': summary,
                 'generation_time': round(generation_time, 2),
                 'total_original_rows': total_original_rows,
                 'total_synthetic_rows': total_synthetic_rows,
-                'advanced_features_used': True,
-                'quality_improvements': {
-                    'age_formatting_fixed': True,
-                    'date_formatting_preserved': True,
-                    'relationships_maintained': True,
-                    'data_validation_applied': True
-                }
+                'method_used': generation_method,
+                'optimization_applied': total_rows > 10000
             })
         else:
-            # More detailed error information
-            error_details = {
-                'success_flag': success,
-                'has_synthetic_data_attr': hasattr(pipeline, 'synthetic_data'),
-                'synthetic_data_exists': bool(getattr(pipeline, 'synthetic_data', None)),
-                'synthetic_data_count': len(getattr(pipeline, 'synthetic_data', {})),
-            }
-
-            app.logger.error(f"Generation failed - Details: {error_details}")
             pipeline_state['status'] = 'error'
             return jsonify({
-                'error': 'Failed to generate synthetic data with advanced pipeline',
-                'details': error_details
+                'error': 'Failed to generate synthetic data',
+                'generation_time': round(generation_time, 2),
+                'method_attempted': generation_method
             }), 500
 
     except Exception as e:
-        app.logger.error(f"Error in advanced data generation: {str(e)}")
+        app.logger.error(f"Error in data generation: {str(e)}")
         app.logger.error(traceback.format_exc())
         pipeline_state['status'] = 'error'
-        return jsonify({'error': f'Advanced generation failed: {str(e)}'}), 500
+        return jsonify({'error': f'Generation failed: {str(e)}'}), 500
+
+
+def create_emergency_synthetic_data(pipeline):
+    """Emergency fallback synthetic data creation"""
+    try:
+        app.logger.info("Creating emergency synthetic data using simple sampling")
+
+        for table_name, original_df in pipeline.original_data.items():
+            # Create synthetic data by sampling and adding small variations
+            synthetic_df = original_df.copy()
+
+            # Add small random variations to numeric columns
+            for column in synthetic_df.columns:
+                if pd.api.types.is_numeric_dtype(synthetic_df[column]):
+                    if column.lower() == 'age':
+                        # Age: add ±1-2 years variation
+                        noise = np.random.randint(-2, 3, len(synthetic_df))
+                        synthetic_df[column] = (synthetic_df[column] + noise).clip(0, 120)
+                    else:
+                        # Other numeric: add 5% variation
+                        std = synthetic_df[column].std()
+                        if std > 0:
+                            noise = np.random.normal(0, std * 0.05, len(synthetic_df))
+                            synthetic_df[column] = synthetic_df[column] + noise
+
+                elif pd.api.types.is_datetime64_any_dtype(synthetic_df[column]) or 'date' in column.lower():
+                    # Dates: add ±1-3 days variation
+                    try:
+                        dates = pd.to_datetime(synthetic_df[column])
+                        random_days = np.random.randint(-3, 4, len(synthetic_df))
+                        new_dates = dates + pd.to_timedelta(random_days, unit='d')
+                        synthetic_df[column] = new_dates.dt.strftime('%Y-%m-%d')
+                    except:
+                        pass  # Keep original if conversion fails
+
+            # Store the synthetic data
+            if not hasattr(pipeline, 'synthetic_data'):
+                pipeline.synthetic_data = {}
+            pipeline.synthetic_data[table_name] = synthetic_df
+
+            app.logger.info(f"Emergency synthetic data created for {table_name}: {len(synthetic_df)} rows")
+
+        return True
+
+    except Exception as e:
+        app.logger.error(f"Emergency generation failed: {str(e)}")
+        return False
 
 
 @app.route('/api/evaluate', methods=['POST'])

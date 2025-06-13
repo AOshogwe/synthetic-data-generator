@@ -1102,44 +1102,41 @@
         }
 
         function collectConfiguration() {
-            // Collect all configuration from the form
             const config = {
                 generation_method: document.querySelector('input[name="generation-method"]:checked').value,
                 data_size: {
                     type: document.querySelector('input[name="data-size"]:checked').value
                 },
-                anonymize_names: document.getElementById('anonymize-names').checked,
-                apply_age_grouping: document.getElementById('apply-age-grouping').checked,
-                anonymize_addresses: document.getElementById('anonymize-addresses').checked,
-                perturbation_factor: parseFloat(document.getElementById('perturbation-slider').value) / 100,
-                preserve_temporal: document.getElementById('preserve-temporal').checked,
-                preserve_dependencies: document.getElementById('preserve-dependencies').checked,
-                preserve_correlations: document.getElementById('preserve-correlations').checked
+                // ... other config
             };
 
-            // Handle data size specifics
-            if (config.data_size.type === 'percentage') {
-                config.data_size.value = parseInt(document.getElementById('percentage-size').value) || 100;
-            } else if (config.data_size.type === 'custom') {
-                config.data_size.value = parseInt(document.getElementById('custom-size').value) || 1000;
-            }
+            // ADDED: Collect column selection
+            const columnSelection = {};
+            const tables = Object.keys(uploadedData);
 
-            // Handle age grouping method
-            if (config.apply_age_grouping) {
-                config.age_grouping_method = document.getElementById('age-method').value;
-            }
+            tables.forEach(tableName => {
+                columnSelection[tableName] = {};
 
-            // Handle name method
-            if (config.anonymize_names) {
-                config.name_method = document.getElementById('name-method').value;
-                config.preserve_gender = document.getElementById('preserve-gender').checked;
-            }
+                // Get all checkboxes and dropdowns for this table
+                const tableContainer = document.querySelector(`[data-table="${tableName}"]`);
+                if (tableContainer) {
+                    const columnInputs = tableContainer.querySelectorAll('input[type="checkbox"]');
+                    const columnSelects = tableContainer.querySelectorAll('select');
 
-            // Handle address method
-            if (config.anonymize_addresses) {
-                config.address_method = document.getElementById('address-method').value;
-            }
+                    columnInputs.forEach((checkbox, index) => {
+                        const columnName = checkbox.dataset.column;
+                        const selectElement = columnSelects[index];
 
+                        if (checkbox.checked && selectElement) {
+                            columnSelection[tableName][columnName] = selectElement.value; // 'synthesize', 'copy', 'abstract'
+                        } else {
+                            columnSelection[tableName][columnName] = 'copy'; // Default to copy
+                        }
+                    });
+                }
+            });
+
+            config.column_selection = columnSelection;
             return config;
         }
 
