@@ -481,7 +481,7 @@ def debug_column_configuration():
 
 @app.route('/api/generate', methods=['POST'])
 def generate_data():
-    """Generate synthetic data with timeout protection and method optimization"""
+    """Generate synthetic data with support for copy-only scenarios"""
     try:
         if not pipeline_state.get('pipeline'):
             return jsonify({'error': 'No pipeline initialized'}), 400
@@ -495,67 +495,74 @@ def generate_data():
 
         start_time = time.time()
 
-        # OPTIMIZATION: Choose method based on dataset size
-        generation_method = pipeline.config.get('generation_method', 'auto')
-        total_rows = sum(len(df) for df in pipeline.original_data.values())
+        # Check if any columns are selected for synthesis
+        synthesis_required = False
+        total_synthesize_columns = 0
+        total_copy_columns = 0
 
-        app.logger.info(f"Dataset size: {total_rows} total rows")
+        for table_name in pipeline.original_data.keys():
+            if table_name in pipeline.schema and 'columns' in pipeline.schema[table_name]:
+                for column, info in pipeline.schema[table_name]['columns'].items():
+                    if info.get('synthesize', False):
+                        synthesis_required = True
+                        total_synthesize_columns += 1
+                    else:
+                        total_copy_columns += 1
 
-        # Auto-optimize method based on size to prevent timeouts
-        if generation_method == 'auto':
-            if total_rows > 10000:
-                generation_method = 'perturbation'
-                app.logger.info(
-                    f"Large dataset detected ({total_rows} rows), switching to perturbation method for speed")
-            elif total_rows > 5000:
-                generation_method = 'gaussian_copula'
-                app.logger.info(f"Medium dataset detected ({total_rows} rows), using gaussian_copula method")
-            else:
-                generation_method = 'ctgan'
-                app.logger.info(f"Small dataset detected ({total_rows} rows), using ctgan method")
+        app.logger.info(
+            f"Synthesis required: {synthesis_required}, Synthesize: {total_synthesize_columns}, Copy: {total_copy_columns}")
 
-        # Set timeout protection
-        timeout_seconds = 300  # 5 minutes max
+        # FIXED: Handle copy-only scenario
+        if not synthesis_required:
+            app.logger.info("No columns selected for synthesis - creating copy with privacy features")
+            success = create_copy_with_privacy_features(pipeline)
+        else:
+            # Regular synthesis process
+            generation_method = pipeline.config.get('generation_method', 'auto')
+            total_rows = sum(len(df) for df in pipeline.original_data.values())
 
-        def generate_with_timeout():
-            """Generate data with timeout protection"""
+            app.logger.info(f"Dataset size: {total_rows} total rows")
+
+            # Auto-optimize method based on size
+            if generation_method == 'auto':
+                if total_rows > 10000:
+                    generation_method = 'perturbation'
+                    app.logger.info(
+                        f"Large dataset detected ({total_rows} rows), switching to perturbation method for speed")
+                elif total_rows > 5000:
+                    generation_method = 'gaussian_copula'
+                    app.logger.info(f"Medium dataset detected ({total_rows} rows), using gaussian_copula method")
+                else:
+                    generation_method = 'ctgan'
+                    app.logger.info(f"Small dataset detected ({total_rows} rows), using ctgan method")
+
+            app.logger.info(f"Starting generation with method: {generation_method}")
+
             try:
                 # FORCE perturbation for large datasets
                 if total_rows > 20000:
                     app.logger.info("Very large dataset - forcing perturbation mode")
                     pipeline.apply_perturbation = True
-                    pipeline.perturbation_factor = 0.15  # Moderate perturbation
-                    return pipeline.generate_perturbed_data()
+                    pipeline.perturbation_factor = 0.15
+                    success = pipeline.generate_perturbed_data()
                 else:
-                    return pipeline.generate_synthetic_data(
+                    success = pipeline.generate_synthetic_data(
                         method=generation_method,
                         parameters=pipeline.config
                     )
-            except Exception as e:
-                app.logger.error(f"Generation failed: {str(e)}")
+            except Exception as gen_error:
+                app.logger.error(f"Generation failed: {str(gen_error)}")
                 # Fallback to simple perturbation
                 app.logger.info("Falling back to simple perturbation method")
                 pipeline.apply_perturbation = True
                 pipeline.perturbation_factor = 0.2
-                return pipeline.generate_perturbed_data()
-
-        # Execute generation with progress logging
-        app.logger.info(f"Starting generation with method: {generation_method}")
-
-        try:
-            success = generate_with_timeout()
-        except Exception as gen_error:
-            app.logger.error(f"Generation error: {str(gen_error)}")
-            # Final fallback - create simple synthetic data
-            app.logger.info("Using emergency fallback generation")
-            success = create_emergency_synthetic_data(pipeline)
+                success = pipeline.generate_perturbed_data()
 
         generation_time = time.time() - start_time
         app.logger.info(f"Generation completed in {generation_time:.2f} seconds")
 
         # Validate results
         if success and hasattr(pipeline, 'synthetic_data') and pipeline.synthetic_data:
-            # Check if we actually have non-empty data
             has_data = False
             total_synthetic_rows = 0
 
@@ -580,36 +587,49 @@ def generate_data():
                 original_rows = len(pipeline.original_data.get(table_name, []))
                 synthetic_rows = len(df)
 
+                # Count synthesis vs copy columns for this table
+                table_schema = pipeline.schema.get(table_name, {}).get('columns', {})
+                synthesized_cols = [col for col, info in table_schema.items() if info.get('synthesize', False)]
+                copied_cols = [col for col, info in table_schema.items() if not info.get('synthesize', False)]
+
                 summary[table_name] = {
                     'rows': synthetic_rows,
                     'columns': len(df.columns),
                     'original_rows': original_rows,
-                    'sample_data': df.head(2).fillna('').to_dict('records'),  # Reduced sample size
-                    'generation_method': generation_method,
-                    'generation_time': round(generation_time, 2)
+                    'sample_data': df.head(2).fillna('').to_dict('records'),
+                    'generation_method': generation_method if synthesis_required else 'copy_with_privacy',
+                    'generation_time': round(generation_time, 2),
+                    'columns_synthesized': len(synthesized_cols),
+                    'columns_copied': len(copied_cols),
+                    'synthesized_column_names': synthesized_cols,
+                    'copied_column_names': copied_cols[:10]  # Limit for response size
                 }
 
                 total_original_rows += original_rows
+
+            method_used = generation_method if synthesis_required else 'copy_with_privacy_features'
 
             app.logger.info(
                 f"Generation successful: {total_synthetic_rows} synthetic rows from {total_original_rows} original rows")
 
             return jsonify({
                 'success': True,
-                'message': f'Synthetic data generated successfully using {generation_method} method',
+                'message': f'Data processed successfully using {method_used}',
                 'summary': summary,
                 'generation_time': round(generation_time, 2),
                 'total_original_rows': total_original_rows,
                 'total_synthetic_rows': total_synthetic_rows,
-                'method_used': generation_method,
-                'optimization_applied': total_rows > 10000
+                'method_used': method_used,
+                'synthesis_required': synthesis_required,
+                'total_synthesize_columns': total_synthesize_columns,
+                'total_copy_columns': total_copy_columns
             })
         else:
             pipeline_state['status'] = 'error'
             return jsonify({
                 'error': 'Failed to generate synthetic data',
                 'generation_time': round(generation_time, 2),
-                'method_attempted': generation_method
+                'synthesis_required': synthesis_required
             }), 500
 
     except Exception as e:
@@ -618,6 +638,136 @@ def generate_data():
         pipeline_state['status'] = 'error'
         return jsonify({'error': f'Generation failed: {str(e)}'}), 500
 
+
+def create_copy_with_privacy_features(pipeline):
+    """Create synthetic data when no columns need synthesis - just copy with privacy features"""
+    try:
+        app.logger.info("Creating copy with privacy features (no synthesis required)")
+
+        if not hasattr(pipeline, 'synthetic_data'):
+            pipeline.synthetic_data = {}
+
+        for table_name, original_df in pipeline.original_data.items():
+            # Start with a copy of original data
+            synthetic_df = original_df.copy()
+
+            # Apply any configured privacy features
+            schema_info = pipeline.schema.get(table_name, {}).get('columns', {})
+
+            # Apply privacy abstractions to columns marked for abstraction
+            for column, info in schema_info.items():
+                if column not in synthetic_df.columns:
+                    continue
+
+                # Apply abstractions if configured
+                if info.get('abstract', False):
+                    abstract_method = info.get('abstract_method', 'random_categorical')
+                    synthetic_df = apply_column_abstraction(synthetic_df, column, abstract_method)
+                    app.logger.info(f"Applied abstraction '{abstract_method}' to column '{column}'")
+
+            # Apply name anonymization if enabled
+            if getattr(pipeline, 'apply_name_abstraction', False):
+                synthetic_df = apply_name_anonymization(synthetic_df, table_name, schema_info)
+
+            # Apply age grouping if enabled
+            if getattr(pipeline, 'should_apply_age_grouping', False):
+                synthetic_df = apply_age_grouping_to_copy(synthetic_df, table_name, schema_info)
+
+            # Apply address synthesis if enabled
+            if getattr(pipeline, 'should_apply_address_synthesis', False):
+                synthetic_df = apply_address_anonymization(synthetic_df, table_name, schema_info)
+
+            # Store the result
+            pipeline.synthetic_data[table_name] = synthetic_df
+            app.logger.info(f"Created privacy-enhanced copy for {table_name}: {len(synthetic_df)} rows")
+
+        return True
+
+    except Exception as e:
+        app.logger.error(f"Error creating copy with privacy features: {str(e)}")
+        return False
+
+
+def apply_column_abstraction(df, column, method):
+    """Apply abstraction to a specific column"""
+    import random
+    import string
+
+    if method == 'random_categorical':
+        unique_values = df[column].dropna().unique()
+        if len(unique_values) > 0:
+            df[column] = [random.choice(unique_values) for _ in range(len(df))]
+
+    elif method == 'random_text':
+        df[column] = [f"Text_{random.randint(1000, 9999)}" for _ in range(len(df))]
+
+    elif method == 'format_preserve':
+        # Keep format but randomize values
+        sample_val = str(df[column].dropna().iloc[0]) if not df[column].dropna().empty else "ABC123"
+        pattern = ''.join(['A' if c.isalpha() else '9' if c.isdigit() else c for c in sample_val])
+
+        def generate_from_pattern(pattern):
+            result = ""
+            for char in pattern:
+                if char == 'A':
+                    result += random.choice(string.ascii_uppercase)
+                elif char == '9':
+                    result += str(random.randint(0, 9))
+                else:
+                    result += char
+            return result
+
+        df[column] = [generate_from_pattern(pattern) for _ in range(len(df))]
+
+    return df
+
+
+def apply_name_anonymization(df, table_name, schema_info):
+    """Apply name anonymization to identified name columns"""
+    import random
+
+    first_names = ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Emily', 'James', 'Jessica']
+    last_names = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis']
+
+    for column, info in schema_info.items():
+        if column in df.columns and ('name' in column.lower() or info.get('is_name', False)):
+            df[column] = [f"{random.choice(first_names)} {random.choice(last_names)}" for _ in range(len(df))]
+            app.logger.info(f"Anonymized name column: {column}")
+
+    return df
+
+
+def apply_age_grouping_to_copy(df, table_name, schema_info):
+    """Apply age grouping to age columns"""
+    for column, info in schema_info.items():
+        if column in df.columns and ('age' in column.lower() or info.get('is_age', False)):
+            if pd.api.types.is_numeric_dtype(df[column]):
+                # Apply 10-year grouping
+                df[column] = pd.cut(df[column], bins=range(0, 101, 10), right=False,
+                                    labels=[f"{i}-{i + 9}" for i in range(0, 100, 10)])
+                app.logger.info(f"Applied age grouping to column: {column}")
+
+    return df
+
+
+def apply_address_anonymization(df, table_name, schema_info):
+    """Apply address anonymization to address columns"""
+    import random
+
+    cities = ['Springfield', 'Franklin', 'Georgetown', 'Madison', 'Washington']
+    states = ['CA', 'NY', 'TX', 'FL', 'IL']
+
+    for column, info in schema_info.items():
+        if column in df.columns and ('address' in column.lower() or 'postal' in column.lower()):
+            if 'postal' in column.lower():
+                # Generate random postal codes
+                df[column] = [f"{random.randint(10000, 99999)}" for _ in range(len(df))]
+            else:
+                # Generate random addresses
+                df[column] = [f"{random.choice(cities)}, {random.choice(states)}" for _ in range(len(df))]
+            app.logger.info(f"Anonymized address column: {column}")
+
+    return df
 
 def create_emergency_synthetic_data(pipeline):
     """Emergency fallback synthetic data creation"""

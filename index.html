@@ -939,6 +939,8 @@
             `;
         }
 
+        // Fix for frontend column selection - UPDATE YOUR HTML/JS
+
         function populateColumnSelection() {
             const container = document.getElementById('column-selection');
             container.innerHTML = '';
@@ -946,24 +948,200 @@
             Object.entries(uploadedData).forEach(([tableName, data]) => {
                 const tableDiv = document.createElement('div');
                 tableDiv.className = 'bg-gray-50 rounded-lg p-4';
+                tableDiv.dataset.table = tableName; // Add table identifier
+
+                // FIXED: Show ALL columns, not just first 10
+                const allColumns = data.column_names; // Don't slice to 5
+
                 tableDiv.innerHTML = `
                     <h4 class="font-semibold mb-3">📊 ${tableName}</h4>
-                    <div class="grid md:grid-cols-2 gap-3">
-                        ${data.column_names.map(column => `
-                            <label class="flex items-center">
-                                <input type="checkbox" class="mr-3" checked>
-                                <span>${column}</span>
-                                <select class="ml-auto text-sm border rounded px-2 py-1">
+                    <p class="text-sm text-gray-600 mb-3">Total columns: ${allColumns.length}</p>
+                    <div class="grid md:grid-cols-1 gap-3 max-h-96 overflow-y-auto">
+                        ${allColumns.map((column, index) => `
+                            <label class="flex items-center justify-between p-2 border rounded">
+                                <div class="flex items-center">
+                                    <input type="checkbox"
+                                           class="mr-3 column-checkbox"
+                                           data-table="${tableName}"
+                                           data-column="${column}"
+                                           data-index="${index}">
+                                    <span class="font-medium">${column}</span>
+                                </div>
+                                <select class="ml-auto text-sm border rounded px-2 py-1 column-action"
+                                        data-table="${tableName}"
+                                        data-column="${column}">
+                                    <option value="copy" selected>Copy original</option>
                                     <option value="synthesize">Synthesize</option>
-                                    <option value="copy">Copy original</option>
                                     <option value="abstract">Abstract/anonymize</option>
                                 </select>
                             </label>
                         `).join('')}
                     </div>
+                    <div class="mt-3 flex gap-2">
+                        <button type="button" onclick="selectAllColumns('${tableName}')"
+                                class="px-3 py-1 bg-blue-500 text-white rounded text-sm">
+                            Select All for Synthesis
+                        </button>
+                        <button type="button" onclick="selectNoneColumns('${tableName}')"
+                                class="px-3 py-1 bg-gray-500 text-white rounded text-sm">
+                            Copy All (No Synthesis)
+                        </button>
+                        <button type="button" onclick="selectSensitiveColumns('${tableName}')"
+                                class="px-3 py-1 bg-orange-500 text-white rounded text-sm">
+                            Select Sensitive Only
+                        </button>
+                    </div>
+                    <div class="mt-2 text-sm text-gray-600">
+                        <span>Selected for synthesis: <span id="synthesis-count-${tableName}">0</span></span>
+                    </div>
                 `;
                 container.appendChild(tableDiv);
+
+                // Add event listeners for real-time updates
+                addColumnEventListeners(tableName);
             });
+        }
+
+        function addColumnEventListeners(tableName) {
+            const checkboxes = document.querySelectorAll(`input[data-table="${tableName}"]`);
+            const selects = document.querySelectorAll(`select[data-table="${tableName}"]`);
+
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => updateColumnSelection(tableName));
+            });
+
+            selects.forEach(select => {
+                select.addEventListener('change', () => updateColumnSelection(tableName));
+            });
+
+            updateColumnSelection(tableName);
+        }
+
+        function updateColumnSelection(tableName) {
+            const checkboxes = document.querySelectorAll(`input[data-table="${tableName}"]`);
+            const selects = document.querySelectorAll(`select[data-table="${tableName}"]`);
+
+            let synthesisCount = 0;
+
+            checkboxes.forEach((checkbox, index) => {
+                const select = selects[index];
+                if (checkbox.checked && select.value === 'synthesize') {
+                    synthesisCount++;
+                }
+            });
+
+            document.getElementById(`synthesis-count-${tableName}`).textContent = synthesisCount;
+        }
+
+        function selectAllColumns(tableName) {
+            const checkboxes = document.querySelectorAll(`input[data-table="${tableName}"]`);
+            const selects = document.querySelectorAll(`select[data-table="${tableName}"]`);
+
+            checkboxes.forEach((checkbox, index) => {
+                checkbox.checked = true;
+                selects[index].value = 'synthesize';
+            });
+
+            updateColumnSelection(tableName);
+        }
+
+        function selectNoneColumns(tableName) {
+            const checkboxes = document.querySelectorAll(`input[data-table="${tableName}"]`);
+            const selects = document.querySelectorAll(`select[data-table="${tableName}"]`);
+
+            checkboxes.forEach((checkbox, index) => {
+                checkbox.checked = false;
+                selects[index].value = 'copy';
+            });
+
+            updateColumnSelection(tableName);
+        }
+
+        function selectSensitiveColumns(tableName) {
+            const checkboxes = document.querySelectorAll(`input[data-table="${tableName}"]`);
+            const selects = document.querySelectorAll(`select[data-table="${tableName}"]`);
+
+            const sensitiveKeywords = ['name', 'phone', 'address', 'email', 'birth', 'age',
+                                      'income', 'postal', 'identifier', 'id', 'ssn'];
+
+            checkboxes.forEach((checkbox, index) => {
+                const columnName = checkbox.dataset.column.toLowerCase();
+                const isSensitive = sensitiveKeywords.some(keyword => columnName.includes(keyword));
+
+                checkbox.checked = isSensitive;
+                selects[index].value = isSensitive ? 'synthesize' : 'copy';
+            });
+
+            updateColumnSelection(tableName);
+        }
+
+        // FIXED: Updated collectConfiguration to properly send column selection
+        function collectConfiguration() {
+            const config = {
+                generation_method: document.querySelector('input[name="generation-method"]:checked').value,
+                data_size: {
+                    type: document.querySelector('input[name="data-size"]:checked').value
+                },
+                anonymize_names: document.getElementById('anonymize-names').checked,
+                apply_age_grouping: document.getElementById('apply-age-grouping').checked,
+                anonymize_addresses: document.getElementById('anonymize-addresses').checked,
+                perturbation_factor: parseFloat(document.getElementById('perturbation-slider').value) / 100,
+                preserve_temporal: document.getElementById('preserve-temporal').checked,
+                preserve_dependencies: document.getElementById('preserve-dependencies').checked,
+                preserve_correlations: document.getElementById('preserve-correlations').checked
+            };
+
+            // Handle data size specifics
+            if (config.data_size.type === 'percentage') {
+                config.data_size.value = parseInt(document.getElementById('percentage-size').value) || 100;
+            } else if (config.data_size.type === 'custom') {
+                config.data_size.value = parseInt(document.getElementById('custom-size').value) || 1000;
+            }
+
+            // FIXED: Collect proper column selection
+            const columnSelection = {};
+
+            Object.keys(uploadedData).forEach(tableName => {
+                columnSelection[tableName] = {};
+
+                const checkboxes = document.querySelectorAll(`input[data-table="${tableName}"]`);
+                const selects = document.querySelectorAll(`select[data-table="${tableName}"]`);
+
+                checkboxes.forEach((checkbox, index) => {
+                    const columnName = checkbox.dataset.column;
+                    const select = selects[index];
+
+                    if (checkbox.checked) {
+                        columnSelection[tableName][columnName] = select.value; // 'synthesize', 'copy', 'abstract'
+                    } else {
+                        columnSelection[tableName][columnName] = 'copy'; // Default to copy if not checked
+                    }
+                });
+            });
+
+            config.column_selection = columnSelection;
+
+            // Add summary for debugging
+            const summary = {};
+            Object.entries(columnSelection).forEach(([tableName, columns]) => {
+                const synthesizeCount = Object.values(columns).filter(action => action === 'synthesize').length;
+                const copyCount = Object.values(columns).filter(action => action === 'copy').length;
+                const abstractCount = Object.values(columns).filter(action => action === 'abstract').length;
+
+                summary[tableName] = {
+                    total: Object.keys(columns).length,
+                    synthesize: synthesizeCount,
+                    copy: copyCount,
+                    abstract: abstractCount
+                };
+            });
+
+            config.selection_summary = summary;
+
+            console.log('Column selection config:', config.column_selection);
+            console.log('Selection summary:', summary);
+
+            return config;
         }
 
         // Database connection
@@ -1101,44 +1279,6 @@
             }
         }
 
-        function collectConfiguration() {
-            const config = {
-                generation_method: document.querySelector('input[name="generation-method"]:checked').value,
-                data_size: {
-                    type: document.querySelector('input[name="data-size"]:checked').value
-                },
-                // ... other config
-            };
-
-            // ADDED: Collect column selection
-            const columnSelection = {};
-            const tables = Object.keys(uploadedData);
-
-            tables.forEach(tableName => {
-                columnSelection[tableName] = {};
-
-                // Get all checkboxes and dropdowns for this table
-                const tableContainer = document.querySelector(`[data-table="${tableName}"]`);
-                if (tableContainer) {
-                    const columnInputs = tableContainer.querySelectorAll('input[type="checkbox"]');
-                    const columnSelects = tableContainer.querySelectorAll('select');
-
-                    columnInputs.forEach((checkbox, index) => {
-                        const columnName = checkbox.dataset.column;
-                        const selectElement = columnSelects[index];
-
-                        if (checkbox.checked && selectElement) {
-                            columnSelection[tableName][columnName] = selectElement.value; // 'synthesize', 'copy', 'abstract'
-                        } else {
-                            columnSelection[tableName][columnName] = 'copy'; // Default to copy
-                        }
-                    });
-                }
-            });
-
-            config.column_selection = columnSelection;
-            return config;
-        }
 
         function updateProgress(percentage, text) {
             document.getElementById('progress-bar').style.width = percentage + '%';

@@ -2912,3 +2912,192 @@ NameError: name 'GIS_AVAILABLE' is not defined
 2025-06-12 15:21:27,167 - root - INFO - Exporting 1 non-empty tables
 2025-06-12 15:21:27,299 - root - INFO - Exported 8010 rows to C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking\healthcare_dataset.csv
 2025-06-12 15:21:27,300 - root - INFO - Pipeline completed successfully in 429.16 seconds
+2025-06-17 10:45:13,663 - root - INFO - Starting synthetic data generation pipeline
+2025-06-17 10:45:13,666 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\mock_participant_data.xlsx
+2025-06-17 10:45:14,790 - root - INFO - Connecting to database: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\mock_participant_data.xlsx
+2025-06-17 10:45:14,791 - root - ERROR - Error connecting to database: Could not parse SQLAlchemy URL from string 'C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\mock_participant_data.xlsx'
+2025-06-17 10:45:14,793 - root - ERROR - Failed to load data. Aborting pipeline.
+2025-06-17 10:48:58,083 - root - INFO - Starting synthetic data generation pipeline
+2025-06-17 10:48:58,088 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\mock_participant_data.csv
+2025-06-17 10:48:58,100 - root - ERROR - Pipeline failed: 'utf-8' codec can't decode byte 0x92 in position 7519: invalid start byte
+2025-06-17 10:48:58,283 - root - ERROR - Traceback (most recent call last):
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\pipeline.py", line 3175, in run_pipeline
+    self.original_data[table_name] = pd.read_csv(input_path)
+                                     ~~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+                   ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\Lib\site-packages\pandas\io\parsers\readers.py", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\PycharmProjects\synthetic-data-generator\.venv\Lib\site-packages\pandas\io\parsers\c_parser_wrapper.py", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+                   ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "parsers.pyx", line 574, in pandas._libs.parsers.TextReader.__cinit__
+  File "parsers.pyx", line 663, in pandas._libs.parsers.TextReader._get_header
+  File "parsers.pyx", line 874, in pandas._libs.parsers.TextReader._tokenize_rows
+  File "parsers.pyx", line 891, in pandas._libs.parsers.TextReader._check_tokenize_status
+  File "parsers.pyx", line 2053, in pandas._libs.parsers.raise_parser_error
+  File "<frozen codecs>", line 325, in decode
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0x92 in position 7519: invalid start byte
+
+2025-06-17 10:53:09,786 - root - INFO - Starting synthetic data generation pipeline
+2025-06-17 10:53:09,789 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\mock_participant_data.csv
+2025-06-17 10:53:09,824 - root - INFO - Inferring schema from data
+2025-06-17 10:53:09,825 - root - INFO - Inferring schema from data
+2025-06-17 10:53:09,837 - root - INFO - Identifying name columns
+2025-06-17 10:57:36,053 - root - INFO - Identifying columns for abstraction/dummy data
+2025-06-17 10:57:56,809 - root - INFO - Identifying columns for synthesis
+2025-06-17 10:58:23,682 - root - INFO - Detecting data relationships and dependencies
+2025-06-17 10:58:23,689 - root - INFO - Detecting temporal relationships between columns
+2025-06-17 10:58:23,690 - root - INFO - Detecting temporal relationships for table: mock_participant_data
+2025-06-17 10:58:23,754 - root - INFO - Found 0 date columns: []
+2025-06-17 10:58:23,757 - root - INFO - Detecting conditional dependencies between columns
+2025-06-17 10:58:23,758 - root - INFO - Detecting conditional dependencies for table: mock_participant_data
+2025-06-17 10:58:23,760 - root - INFO - Found 0 date columns for conditional dependencies
+2025-06-17 10:58:23,963 - root - INFO - Found 0 potential categorical columns: []
+2025-06-17 10:58:23,964 - root - INFO - Preprocessing data
+2025-06-17 10:58:23,966 - root - INFO - Preprocessing data
+2025-06-17 10:58:23,974 - root - INFO - Preprocessing table: mock_participant_data
+2025-06-17 10:58:24,381 - root - INFO - Analyzing data relationships
+2025-06-17 10:58:24,382 - root - INFO - Analyzing data
+2025-06-17 10:58:24,389 - root - INFO - Analyzing table: mock_participant_data
+2025-06-17 10:58:27,023 - root - INFO - Generating synthetic data using method: auto
+2025-06-17 10:58:27,024 - root - INFO - Generating synthetic data using method: auto
+2025-06-17 10:58:27,027 - root - INFO - Generating synthetic data for table: mock_participant_data with shape (101, 38)
+2025-06-17 10:58:27,027 - root - INFO - Columns to synthesize: 38, Columns to copy: 0
+2025-06-17 10:58:27,028 - root - INFO - Training models with auto method on all columns
+2025-06-17 11:01:02,693 - root - INFO - Applying name abstraction for table: mock_participant_data
+2025-06-17 11:01:02,702 - root - INFO - Generating synthetic names for column: Unnamed: 1
+2025-06-17 11:01:02,703 - root - INFO - Generating synthetic names for column: Unnamed: 2
+2025-06-17 11:01:02,704 - root - INFO - Generating synthetic names for column: Unnamed: 3
+2025-06-17 11:01:02,705 - root - INFO - Generating synthetic names for column: Unnamed: 4
+2025-06-17 11:01:02,705 - root - INFO - Generating synthetic names for column: Unnamed: 5
+2025-06-17 11:01:02,706 - root - INFO - Generating synthetic names for column: Unnamed: 6
+2025-06-17 11:01:02,706 - root - INFO - Generating synthetic names for column: Unnamed: 7
+2025-06-17 11:01:02,707 - root - INFO - Generating synthetic names for column: Unnamed: 8
+2025-06-17 11:01:02,708 - root - INFO - Generating synthetic names for column: Unnamed: 9
+2025-06-17 11:01:02,709 - root - INFO - Generating synthetic names for column: Unnamed: 10
+2025-06-17 11:01:02,710 - root - INFO - Generating synthetic names for column: Unnamed: 11
+2025-06-17 11:01:02,710 - root - INFO - Generating synthetic names for column: Unnamed: 12
+2025-06-17 11:01:02,711 - root - INFO - Generating synthetic names for column: Unnamed: 13
+2025-06-17 11:01:02,711 - root - INFO - Generating synthetic names for column: Unnamed: 14
+2025-06-17 11:01:02,712 - root - INFO - Generating synthetic names for column: Unnamed: 15
+2025-06-17 11:01:02,712 - root - INFO - Generating synthetic names for column: Unnamed: 16
+2025-06-17 11:01:02,713 - root - INFO - Generating synthetic names for column: Unnamed: 18
+2025-06-17 11:01:02,714 - root - INFO - Generating synthetic names for column: Unnamed: 19
+2025-06-17 11:01:02,714 - root - INFO - Generating synthetic names for column: Unnamed: 20
+2025-06-17 11:01:02,715 - root - INFO - Generating synthetic names for column: Unnamed: 21
+2025-06-17 11:01:02,716 - root - INFO - Generating synthetic names for column: Unnamed: 22
+2025-06-17 11:01:02,716 - root - INFO - Generating synthetic names for column: Unnamed: 24
+2025-06-17 11:01:02,717 - root - INFO - Generating synthetic names for column: Unnamed: 26
+2025-06-17 11:01:02,718 - root - INFO - Generating synthetic names for column: Unnamed: 27
+2025-06-17 11:01:02,718 - root - INFO - Generating synthetic names for column: Unnamed: 28
+2025-06-17 11:01:02,719 - root - INFO - Generating synthetic names for column: Unnamed: 30
+2025-06-17 11:01:02,719 - root - INFO - Generating synthetic names for column: Unnamed: 31
+2025-06-17 11:01:02,721 - root - INFO - Generating synthetic names for column: Unnamed: 32
+2025-06-17 11:01:02,721 - root - INFO - Generating synthetic names for column: Unnamed: 33
+2025-06-17 11:01:02,722 - root - INFO - Generating synthetic names for column: Unnamed: 34
+2025-06-17 11:01:02,722 - root - INFO - Generating synthetic names for column: Unnamed: 35
+2025-06-17 11:01:02,723 - root - INFO - Generating synthetic names for column: Unnamed: 36
+2025-06-17 11:01:02,724 - root - INFO - Generating synthetic names for column: Unnamed: 37
+2025-06-17 11:01:02,725 - root - INFO - Applying general column abstractions for table: mock_participant_data
+2025-06-17 11:01:02,726 - root - INFO - Generated synthetic data for mock_participant_data: 101 rows, 38 columns
+2025-06-17 11:01:02,727 - root - INFO - Table mock_participant_data synthetic data: 101 rows, 38 columns
+2025-06-17 11:01:02,728 - root - INFO - Table mock_participant_data has 101 rows of synthetic data
+2025-06-17 11:01:02,728 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-06-17 11:01:02,728 - root - INFO - Post-processing table: mock_participant_data
+2025-06-17 11:01:02,729 - root - INFO - Post-processing 101 rows for table mock_participant_data
+2025-06-17 11:01:02,729 - root - INFO - Original DataFrame columns: ['Demographics', 'Unnamed: 1', 'Unnamed: 2', 'Unnamed: 3', 'Unnamed: 4', 'Unnamed: 5', 'Unnamed: 6', 'Unnamed: 7', 'Unnamed: 8', 'Unnamed: 9', 'Unnamed: 10', 'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16', 'EQ5DY', 'Unnamed: 18', 'Unnamed: 19', 'Unnamed: 20', 'Unnamed: 21', 'Unnamed: 22', 'COPM', 'Unnamed: 24', 'Quantiative Data', 'Unnamed: 26', 'Unnamed: 27', 'Unnamed: 28', 'Training Details', 'Unnamed: 30', 'Unnamed: 31', 'Unnamed: 32', 'Unnamed: 33', 'Unnamed: 34', 'Unnamed: 35', 'Unnamed: 36', 'Unnamed: 37']
+2025-06-17 11:01:02,733 - root - INFO - Post-processing complete: 101 rows remaining
+2025-06-17 11:01:02,734 - root - INFO - Table mock_participant_data ready for export: 101 rows, 38 columns
+2025-06-17 11:01:02,734 - root - INFO - Evaluating synthetic data
+2025-06-17 11:01:02,735 - root - INFO - Evaluating synthetic data
+2025-06-17 11:01:02,735 - root - INFO - Evaluating synthetic data for table: mock_participant_data
+2025-06-17 11:01:02,907 - root - INFO - Validating synthetic data
+2025-06-17 11:01:02,907 - root - INFO - Validating synthetic data
+2025-06-17 11:01:02,908 - root - INFO - Validating table: mock_participant_data
+2025-06-17 11:01:02,908 - root - WARNING - Table mock_participant_data has 1 validation errors
+2025-06-17 11:01:02,909 - root - WARNING -   - Missing column: mock_participant_data
+2025-06-17 11:01:02,909 - root - INFO - Generating evaluation report
+2025-06-17 11:01:02,911 - root - INFO - Evaluating original data
+2025-06-17 11:01:02,911 - root - INFO - Evaluating original data for table: mock_participant_data
+2025-06-17 11:01:03,160 - root - INFO - Evaluating synthetic data
+2025-06-17 11:01:03,161 - root - INFO - Evaluating synthetic data for table: mock_participant_data
+2025-06-17 11:01:03,419 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-06-17 11:01:03,424 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-06-17 11:01:03,425 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-06-17 11:01:03,426 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-06-17 11:01:03,426 - root - INFO - Exporting 1 non-empty tables
+2025-06-17 11:01:03,491 - root - INFO - Exported 101 rows to C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking\mock_participant_data.csv
+2025-06-17 11:01:03,501 - root - INFO - Pipeline completed successfully in 473.72 seconds
+2025-06-17 11:14:19,921 - root - INFO - Starting synthetic data generation pipeline
+2025-06-17 11:14:19,923 - root - INFO - Loading data from: C:\Users\PC\PycharmProjects\synthetic-data-generator\Data\mock_participant_data.csv
+2025-06-17 11:14:19,952 - root - INFO - Inferring schema from data
+2025-06-17 11:14:19,953 - root - INFO - Inferring schema from data
+2025-06-17 11:14:19,963 - root - INFO - Identifying name columns
+2025-06-17 11:15:05,629 - root - INFO - Identifying columns for abstraction/dummy data
+2025-06-17 11:18:15,517 - root - INFO - Identifying columns for synthesis
+2025-06-17 11:19:28,406 - root - INFO - Detecting data relationships and dependencies
+2025-06-17 11:19:28,406 - root - INFO - Detecting temporal relationships between columns
+2025-06-17 11:19:28,407 - root - INFO - Detecting temporal relationships for table: mock_participant_data
+2025-06-17 11:19:28,444 - root - INFO - Found 3 date columns: ['date of collection', 'Birthdate (yyyy-mm-dd)', 'Average time']
+2025-06-17 11:19:28,445 - root - INFO - Detecting conditional dependencies between columns
+2025-06-17 11:19:28,446 - root - INFO - Detecting conditional dependencies for table: mock_participant_data
+2025-06-17 11:19:28,459 - root - INFO - Found 3 date columns for conditional dependencies
+2025-06-17 11:19:28,481 - root - INFO - Found 0 potential categorical columns: []
+2025-06-17 11:19:28,482 - root - INFO - Preprocessing data
+2025-06-17 11:19:28,483 - root - INFO - Preprocessing data
+2025-06-17 11:19:28,484 - root - INFO - Preprocessing table: mock_participant_data
+2025-06-17 11:19:28,659 - root - INFO - Analyzing data relationships
+2025-06-17 11:19:28,660 - root - INFO - Analyzing data
+2025-06-17 11:19:28,662 - root - INFO - Analyzing table: mock_participant_data
+2025-06-17 11:19:32,139 - root - INFO - Generating synthetic data using method: auto
+2025-06-17 11:19:32,140 - root - INFO - Generating synthetic data using method: auto
+2025-06-17 11:19:32,140 - root - INFO - Generating synthetic data for table: mock_participant_data with shape (100, 38)
+2025-06-17 11:19:32,141 - root - INFO - Columns to synthesize: 6, Columns to copy: 32
+2025-06-17 11:19:32,141 - root - INFO - Training models with auto method on all columns
+2025-06-17 11:21:59,760 - root - INFO - Applying name abstraction for table: mock_participant_data
+2025-06-17 11:21:59,761 - root - INFO - Generating synthetic names for column: Last name
+2025-06-17 11:21:59,761 - root - INFO - Generating synthetic names for column: First Name
+2025-06-17 11:21:59,762 - root - INFO - Applying general column abstractions for table: mock_participant_data
+2025-06-17 11:21:59,763 - root - INFO - Applying abstraction 'random_categorical' to column 'Identifier'
+2025-06-17 11:21:59,764 - root - INFO - Applying abstraction 'random_categorical' to column 'Location'
+2025-06-17 11:21:59,765 - root - INFO - Generated synthetic data for mock_participant_data: 100 rows, 38 columns
+2025-06-17 11:21:59,766 - root - INFO - Applying age grouping to all synthetic data tables
+2025-06-17 11:21:59,766 - root - INFO - Applying age grouping to synthetic data for table: mock_participant_data
+2025-06-17 11:21:59,767 - root - INFO - Applying age grouping to column Age (yrs)
+2025-06-17 11:21:59,769 - root - INFO - Age grouping successfully applied to Age (yrs)
+2025-06-17 11:21:59,769 - root - INFO - Age grouping completed for table mock_participant_data
+2025-06-17 11:21:59,770 - root - INFO - Table mock_participant_data synthetic data: 100 rows, 38 columns
+2025-06-17 11:21:59,770 - root - INFO - Table mock_participant_data has 100 rows of synthetic data
+2025-06-17 11:21:59,770 - root - INFO - Post-processing synthetic data to maintain relationships
+2025-06-17 11:21:59,771 - root - INFO - Post-processing table: mock_participant_data
+2025-06-17 11:21:59,773 - root - INFO - Post-processing 100 rows for table mock_participant_data
+2025-06-17 11:21:59,774 - root - INFO - Original DataFrame columns: ['Birthdate (yyyy-mm-dd)', 'Age (yrs)', 'Postal Code', 'Phone Number', 'Picture', 'Description', 'date of collection', 'Identifier', 'Last name', 'First Name', 'Height (cm)', 'Weight (kg)', 'Sex', 'Gender', 'Race', 'Diagnosis', 'Secondary Diagnosis', 'GMFCS', 'Family Income (CAD)', 'Mobility', 'Looking after myself', 'Doing usual activities', 'Having pain or discomfort', 'Feeling worried, sad, or unhappy', 'Health', 'Performance', 'Satisfaction', 'hours slept', 'resting heart rate', 'MEP (mV)', 'position matching errors (mm)', 'Session 1 (min)', 'Session 2 (min)', 'Session 3 (min)', 'Average time', 'Location', 'Device', 'Adverse events']
+2025-06-17 11:21:59,774 - root - INFO - Post-processing complete: 100 rows remaining
+2025-06-17 11:21:59,775 - root - INFO - Table mock_participant_data ready for export: 100 rows, 38 columns
+2025-06-17 11:21:59,775 - root - INFO - Evaluating synthetic data
+2025-06-17 11:21:59,775 - root - INFO - Evaluating synthetic data
+2025-06-17 11:21:59,775 - root - INFO - Evaluating synthetic data for table: mock_participant_data
+2025-06-17 11:22:00,104 - root - INFO - Validating synthetic data
+2025-06-17 11:22:00,105 - root - INFO - Validating synthetic data
+2025-06-17 11:22:00,106 - root - INFO - Validating table: mock_participant_data
+2025-06-17 11:22:00,107 - root - WARNING - Table mock_participant_data has 1 validation errors
+2025-06-17 11:22:00,108 - root - WARNING -   - Missing column: mock_participant_data
+2025-06-17 11:22:00,109 - root - INFO - Generating evaluation report
+2025-06-17 11:22:00,112 - root - INFO - Evaluating original data
+2025-06-17 11:22:00,113 - root - INFO - Evaluating original data for table: mock_participant_data
+2025-06-17 11:22:00,434 - root - INFO - Evaluating synthetic data
+2025-06-17 11:22:00,434 - root - INFO - Evaluating synthetic data for table: mock_participant_data
+2025-06-17 11:22:00,784 - root - INFO - Using absolute output path: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-06-17 11:22:00,786 - root - INFO - Created output directory: C:\Users\PC\PycharmProjects\synthetic-data-generator
+2025-06-17 11:22:00,786 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-06-17 11:22:00,786 - root - INFO - Exporting synthetic data to csv format: C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking
+2025-06-17 11:22:00,787 - root - INFO - Exporting 1 non-empty tables
+2025-06-17 11:22:00,797 - root - INFO - Exported 100 rows to C:\Users\PC\PycharmProjects\synthetic-data-generator\synthetic_banking\mock_participant_data.csv
+2025-06-17 11:22:00,798 - root - INFO - Pipeline completed successfully in 460.88 seconds
