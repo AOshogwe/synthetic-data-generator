@@ -228,13 +228,13 @@ def upload_files():
                     pass
             raise e
 
-        # Prepare response with data preview - UPDATED DATA ACCESS
+        # Prepare response with data preview - FIXED TO SHOW ALL COLUMNS
         preview_data = {}
         for table_name, df in pipeline.original_data.items():
             preview_data[table_name] = {
                 'rows': len(df),
                 'columns': len(df.columns),
-                'column_names': list(df.columns[:10]),  # Limit to first 10 columns for preview
+                'column_names': list(df.columns),  # FIXED: Send ALL columns, not just first 10
                 'sample_data': df.head(3).fillna('').to_dict('records'),
                 'data_types': df.dtypes.astype(str).to_dict()
             }
