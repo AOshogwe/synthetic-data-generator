@@ -1350,6 +1350,59 @@ class SyntheticDataPipeline:
             else:
                 print(f"No problematic rows found in table {table_name}")
 
+    def fix_age_columns(self, df, table_name):
+        """Fix age columns to be proper integers"""
+        logging.info(f"Fixing age column formatting for table: {table_name}")
+
+        result_df = df.copy()
+
+        # Identify age columns
+        age_columns = []
+        for column in df.columns:
+            # Check by name
+            if 'age' in column.lower():
+                age_columns.append(column)
+                logging.info(f"Found age column by name: {column}")
+            # Check by data characteristics (numeric, reasonable range)
+            elif (pd.api.types.is_numeric_dtype(df[column]) and
+                  df[column].min() >= 0 and df[column].max() <= 120 and
+                  df[column].nunique() > 5):  # More than 5 unique values
+                # Additional check: if most values are whole numbers in original data
+                if table_name in self.original_data:
+                    original_col = self.original_data[table_name].get(column)
+                    if original_col is not None:
+                        # Check if original data has mostly integer ages
+                        non_null_vals = original_col.dropna()
+                        if len(non_null_vals) > 0:
+                            integer_ratio = (non_null_vals == non_null_vals.round()).mean()
+                            if integer_ratio > 0.8:  # 80% are integers
+                                age_columns.append(column)
+                                logging.info(f"Found age column by characteristics: {column}")
+
+        # Fix each age column
+        for column in age_columns:
+            try:
+                logging.info(f"Fixing age formatting for column: {column}")
+
+                # Convert to numeric if not already
+                result_df[column] = pd.to_numeric(result_df[column], errors='coerce')
+
+                # Round to integers
+                result_df[column] = result_df[column].round()
+
+                # Ensure reasonable age range
+                result_df[column] = result_df[column].clip(0, 120)
+
+                # Convert to integer type (nullable to handle NaN)
+                result_df[column] = result_df[column].astype('Int64')
+
+                logging.info(f"Successfully fixed age column: {column}")
+
+            except Exception as e:
+                logging.error(f"Error fixing age column {column}: {str(e)}")
+
+        return result_df
+
     def generate_synthetic_data(self, method='auto', parameters=None):
         """Generate synthetic data with guaranteed output"""
         logging.info(f"Generating synthetic data using method: {method}")
@@ -1515,6 +1568,13 @@ class SyntheticDataPipeline:
                 self.synthetic_data[table_name] = self.apply_address_synthesis(
                     self.synthetic_data[table_name], table_name
                 )
+
+        # After generating synthetic data, apply age fixes
+        for table_name in self.synthetic_data.keys():
+            logging.info(f"Applying age fixes to table: {table_name}")
+            self.synthetic_data[table_name] = self.fix_age_columns(
+                self.synthetic_data[table_name], table_name
+            )
 
         # Check overall success
         if not success:
