@@ -73,36 +73,71 @@ class SyntheticDataPipeline:
 
     def _setup_logging(self):
         """Set up logging configuration"""
-        log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        logging.basicConfig(
-            level=logging.INFO,
-            format=log_format,
-            handlers=[
-                logging.StreamHandler(),
-                logging.FileHandler('synthetic_data.log')
-            ]
-        )
+        if not logging.getLogger().hasHandlers():
+            log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            logging.basicConfig(
+                level=logging.INFO,
+                format=log_format,
+                handlers=[
+                    logging.StreamHandler(),
+                    logging.FileHandler('synthetic_data.log')
+                ]
+            )
 
-    def connect_database(self, connection_string: str, tables: List[str] = None) -> bool:
-        """Connect to database and load data"""
+    def connect_database(self, connection_string: str, tables: List[str] = None, chunk_size: int = 10000) -> bool:
+        """Connect to database and load data with proper resource management"""
         try:
-            from sqlalchemy import create_engine
+            from sqlalchemy import create_engine, text
+            from urllib.parse import urlparse
+            
+            # Parse connection string to hide sensitive info in logs
+            parsed_url = urlparse(connection_string)
+            safe_connection_info = f"{parsed_url.scheme}://{parsed_url.hostname}:{parsed_url.port}/{parsed_url.path.lstrip('/')}"
+            logging.info(f"Connecting to database: {safe_connection_info}")
 
-            logging.info(f"Connecting to database: {connection_string.split('@')[-1]}")
+            # Create database connector with connection pooling
+            engine = create_engine(
+                connection_string,
+                pool_size=5,
+                max_overflow=10,
+                pool_pre_ping=True,
+                pool_recycle=3600
+            )
 
-            # Create database connector
-            engine = create_engine(connection_string)
+            # Use context manager for connection
+            with engine.connect() as connection:
+                # Get table list if not provided
+                if not tables:
+                    from sqlalchemy import inspect
+                    inspector = inspect(engine)
+                    tables = inspector.get_table_names()
+                    
+                    # Limit number of tables to prevent memory issues
+                    if len(tables) > 50:
+                        logging.warning(f"Large number of tables ({len(tables)}). Consider specifying specific tables.")
+                        tables = tables[:50]
 
-            # Get table list if not provided
-            if not tables:
-                from sqlalchemy import inspect
-                inspector = inspect(engine)
-                tables = inspector.get_table_names()
-
-            # Load each table
-            for table in tables:
-                logging.info(f"Loading table: {table}")
-                self.original_data[table] = pd.read_sql_table(table, engine)
+                # Load each table with chunking for large datasets
+                for table in tables:
+                    logging.info(f"Loading table: {table}")
+                    
+                    # First, check table size
+                    count_query = text(f"SELECT COUNT(*) FROM {table}")
+                    row_count = connection.execute(count_query).scalar()
+                    
+                    if row_count > 100000:
+                        logging.warning(f"Table {table} has {row_count} rows. Loading in chunks.")
+                        # Load in chunks for large tables
+                        chunks = []
+                        for chunk in pd.read_sql_table(table, connection, chunksize=chunk_size):
+                            chunks.append(chunk)
+                            if len(chunks) * chunk_size > 1000000:  # Limit to 1M rows max
+                                logging.warning(f"Table {table} truncated to 1M rows for memory safety")
+                                break
+                        self.original_data[table] = pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame()
+                    else:
+                        # Load entire table for smaller datasets
+                        self.original_data[table] = pd.read_sql_table(table, connection)
 
             # Infer schema if not loaded
             if not self.schema:

@@ -17,14 +17,20 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 import signal
 import atexit
-import logging
-logging.basicConfig(level=logging.DEBUG)
 
 
 # Configuration class
 class Config:
     # Flask settings
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    
+    # Validate SECRET_KEY
+    if not SECRET_KEY or SECRET_KEY == 'dev-secret-key-change-in-production':
+        if os.environ.get('FLASK_ENV') == 'production':
+            raise ValueError("SECRET_KEY must be set for production environment. Please set the SECRET_KEY environment variable.")
+        else:
+            # Development fallback
+            SECRET_KEY = 'dev-secret-key-ONLY-FOR-DEVELOPMENT-' + os.urandom(16).hex()
 
     # File upload settings
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', 'uploads')
@@ -85,8 +91,11 @@ def setup_logging(app):
 # Create Flask app
 app = create_app()
 
-# Import the advanced pipeline - UPDATED IMPORT
-from pipeline import SyntheticDataPipeline
+# Import the refactored pipeline - UPDATED IMPORT
+from pipeline.core_pipeline import SyntheticDataPipeline
+from utils.file_security import FileSecurityValidator
+from utils.security_middleware import SecurityMiddleware, InputSanitizer
+from utils.error_handlers import ErrorHandler, BusinessLogicError, ValidationError, DataProcessingError, SafeOperation
 
 # Global state for the pipeline - UPDATED TO USE ADVANCED PIPELINE
 pipeline_state = {
@@ -101,7 +110,14 @@ pipeline_state = {
 
 
 def allowed_file(filename):
+    """Legacy function - kept for backward compatibility. Use FileSecurityValidator instead."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+# Initialize security and error handling components
+file_validator = FileSecurityValidator()
+security_middleware = SecurityMiddleware(app)
+input_sanitizer = InputSanitizer()
+error_handler = ErrorHandler(app)
 
 
 def initialize_pipeline():
@@ -128,14 +144,14 @@ def index():
 
 @app.route('/api/upload', methods=['POST'])
 def upload_files():
-    """Handle file uploads with advanced pipeline"""
-    try:
+    """Handle file uploads with advanced pipeline and comprehensive error handling"""
+    with SafeOperation("file_upload", error_handler) as op:
         if 'files' not in request.files:
-            return jsonify({'error': 'No files provided'}), 400
+            raise ValidationError('No files provided in request', 'files')
 
         files = request.files.getlist('files')
         if not files or all(file.filename == '' for file in files):
-            return jsonify({'error': 'No files selected'}), 400
+            raise ValidationError('No files selected for upload', 'files')
 
         # Initialize new pipeline for this session
         pipeline = initialize_pipeline()
@@ -145,30 +161,36 @@ def upload_files():
         total_size = 0
 
         for file in files:
-            if file and file.filename and allowed_file(file.filename):
-                # Check file size before saving
-                file.seek(0, 2)  # Seek to end
-                file_size = file.tell()
-                file.seek(0)  # Reset to beginning
+            if file and file.filename:
+                try:
+                    # Use enhanced file validation
+                    upload_dir = Path(app.config['UPLOAD_FOLDER'])
+                    is_safe, file_path, validation_info = file_validator.validate_upload(file, upload_dir)
+                    
+                    if not is_safe:
+                        return jsonify({'error': f'File {file.filename} failed security validation'}), 400
+                    
+                    # Check total size
+                    total_size += validation_info['file_size']
+                    if total_size > app.config['MAX_CONTENT_LENGTH']:
+                        return jsonify({'error': 'Total upload size exceeds limit'}), 413
 
-                if file_size > app.config['MAX_CONTENT_LENGTH']:
-                    return jsonify({'error': f'File {file.filename} is too large'}), 413
-
-                total_size += file_size
-                if total_size > app.config['MAX_CONTENT_LENGTH']:
-                    return jsonify({'error': 'Total upload size exceeds limit'}), 413
-
-                filename = secure_filename(file.filename)
-                timestamped_filename = f"{timestamp}_{filename}"
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], timestamped_filename)
-
-                file.save(file_path)
-
-                uploaded_files.append({
-                    'name': file.filename,
-                    'path': file_path,
-                    'size': file_size
-                })
+                    uploaded_files.append({
+                        'name': file.filename,
+                        'path': str(file_path),
+                        'size': validation_info['file_size'],
+                        'mime_type': validation_info['mime_type'],
+                        'hash': validation_info['hash_md5']
+                    })
+                    
+                    app.logger.info(f"File uploaded and validated: {file.filename} -> {file_path.name}")
+                    
+                except ValueError as e:
+                    app.logger.error(f"File validation failed for {file.filename}: {e}")
+                    return jsonify({'error': str(e)}), 400
+                except Exception as e:
+                    app.logger.error(f"Unexpected error processing file {file.filename}: {e}")
+                    return jsonify({'error': f'Error processing file {file.filename}'}), 500
 
         if not uploaded_files:
             return jsonify({'error': 'No valid files uploaded'}), 400
@@ -224,8 +246,8 @@ def upload_files():
             for file_info in uploaded_files:
                 try:
                     os.remove(file_info['path'])
-                except:
-                    pass
+                except (OSError, FileNotFoundError) as e:
+                    app.logger.warning(f"Could not remove uploaded file {file_info['path']}: {e}")
             raise e
 
         # Prepare response with data preview - FIXED TO SHOW ALL COLUMNS
@@ -835,7 +857,8 @@ def create_emergency_synthetic_data(pipeline):
                         random_days = np.random.randint(-3, 4, len(synthetic_df))
                         new_dates = dates + pd.to_timedelta(random_days, unit='d')
                         synthetic_df[column] = new_dates.dt.strftime('%Y-%m-%d')
-                    except:
+                    except (ValueError, TypeError, pd.errors.ParserError) as e:
+                        app.logger.debug(f"Could not process date column {column}: {e}")
                         pass  # Keep original if conversion fails
 
             # Store the synthetic data
@@ -1214,10 +1237,10 @@ def cleanup():
                 for filename in os.listdir(folder):
                     try:
                         os.remove(os.path.join(folder, filename))
-                    except:
-                        pass
-    except:
-        pass
+                    except (OSError, FileNotFoundError) as e:
+                        print(f"Could not remove file {filename}: {e}")  # Use print since logger may not be available during cleanup
+    except (OSError, FileNotFoundError, AttributeError) as e:
+        print(f"Error during cleanup: {e}")
 
 
 # Register cleanup function
