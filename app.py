@@ -146,6 +146,31 @@ def index():
     return send_from_directory('.', 'index.html')
 
 
+@app.route('/api/health')
+def health_check():
+    """Health check endpoint for monitoring"""
+    try:
+        # Basic health checks
+        status = {
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'version': '1.0.0',
+            'features': {
+                'file_validation': True,
+                'enhanced_security': MAGIC_AVAILABLE if 'MAGIC_AVAILABLE' in globals() else False,
+                'rate_limiting': True,
+                'error_handling': True
+            }
+        }
+        return jsonify(status), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'timestamp': datetime.now().isoformat(),
+            'error': str(e)
+        }), 500
+
+
 @app.route('/api/upload', methods=['POST'])
 def upload_files():
     """Handle file uploads with advanced pipeline and comprehensive error handling"""

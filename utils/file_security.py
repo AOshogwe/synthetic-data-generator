@@ -1,9 +1,18 @@
 # utils/file_security.py - Enhanced File Security and Validation
 import os
-import magic
 import hashlib
 import mimetypes
 from pathlib import Path
+
+# Optional magic import with fallback
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
+    import warnings
+    warnings.warn("python-magic not available. File type detection will use basic mimetypes only.")
+    magic = None
 from typing import Dict, List, Tuple, Optional
 from werkzeug.utils import secure_filename
 import logging
@@ -117,13 +126,18 @@ class FileSecurityValidator:
                     logger.error(f"Dangerous file signature detected in {file_path.name}: {dangerous_sig.hex()}")
                     return False, validation_info
             
-            # Use python-magic for MIME type detection
-            try:
-                validation_info['mime_type'] = magic.from_file(str(file_path), mime=True)
-            except Exception as e:
-                # Fallback to mimetypes module
+            # Use python-magic for MIME type detection if available
+            if MAGIC_AVAILABLE and magic:
+                try:
+                    validation_info['mime_type'] = magic.from_file(str(file_path), mime=True)
+                except Exception as e:
+                    # Fallback to mimetypes module
+                    validation_info['mime_type'], _ = mimetypes.guess_type(str(file_path))
+                    logger.debug(f"python-magic failed, using mimetypes: {e}")
+            else:
+                # Use mimetypes module as fallback
                 validation_info['mime_type'], _ = mimetypes.guess_type(str(file_path))
-                logger.debug(f"python-magic failed, using mimetypes: {e}")
+                logger.debug("Using mimetypes for MIME type detection (python-magic not available)")
             
             # Validate MIME type matches extension
             expected_mimes = self.SAFE_MIME_TYPES.get(validation_info['extension'], [])
