@@ -97,7 +97,7 @@ app = create_app()
 
 # Import the refactored pipeline - UPDATED IMPORT
 from pipeline.core_pipeline import SyntheticDataPipeline
-from utils.file_security import FileSecurityValidator
+from utils.file_security import FileSecurityValidator, MAGIC_AVAILABLE
 from utils.security_middleware import SecurityMiddleware, InputSanitizer
 from utils.error_handlers import ErrorHandler, BusinessLogicError, ValidationError, DataProcessingError, SafeOperation
 
@@ -157,7 +157,7 @@ def health_check():
             'version': '1.0.0',
             'features': {
                 'file_validation': True,
-                'enhanced_security': MAGIC_AVAILABLE if 'MAGIC_AVAILABLE' in globals() else False,
+                'enhanced_security': MAGIC_AVAILABLE,
                 'rate_limiting': True,
                 'error_handling': True
             }
@@ -1228,19 +1228,6 @@ def reset_pipeline():
         app.logger.error(f"Error in reset: {str(e)}")
         return jsonify({'error': f'Reset failed: {str(e)}'}), 500
 
-
-@app.route('/health', methods=['GET'])
-def health_check():
-    """Health check endpoint for monitoring"""
-    return jsonify({
-        'status': 'healthy',
-        'timestamp': datetime.now().isoformat(),
-        'version': '2.0.0',  # Updated version for advanced pipeline
-        'pipeline_status': pipeline_state['status'],
-        'pipeline_type': 'SyntheticDataPipeline',
-        'advanced_features': True,
-        'uptime': time.time() - app.start_time if hasattr(app, 'start_time') else 0
-    })
 
 
 @app.route('/api/debug', methods=['GET'])

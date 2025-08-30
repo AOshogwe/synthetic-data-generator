@@ -19,6 +19,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Export MAGIC_AVAILABLE for other modules
+__all__ = ['FileSecurityValidator', 'MAGIC_AVAILABLE']
+
 class FileSecurityValidator:
     """Enhanced file security validation"""
     
