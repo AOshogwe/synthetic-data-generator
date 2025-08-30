@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  synthetic-data-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "5000:5000"
+    environment:
+      - SECRET_KEY=your-super-secure-random-key-at-least-32-characters-long-change-this
+      - FLASK_ENV=production
+      - UPLOAD_FOLDER=/app/uploads
+      - OUTPUT_FOLDER=/app/outputs
+      - MAX_CONTENT_LENGTH=100
+      - CORS_ORIGINS=*
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
