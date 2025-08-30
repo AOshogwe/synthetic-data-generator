@@ -145,7 +145,7 @@ def index():
 @app.route('/api/upload', methods=['POST'])
 def upload_files():
     """Handle file uploads with advanced pipeline and comprehensive error handling"""
-    with SafeOperation("file_upload", error_handler) as op:
+    try:
         if 'files' not in request.files:
             raise ValidationError('No files provided in request', 'files')
 
@@ -278,6 +278,12 @@ def upload_files():
             'advanced_features_enabled': True
         })
 
+    except ValidationError as e:
+        app.logger.warning(f"Validation error in upload: {e.message}")
+        return jsonify({'error': e.message}), 400
+    except DataProcessingError as e:
+        app.logger.error(f"Data processing error in upload: {e.message}")
+        return jsonify({'error': e.message}), 500
     except Exception as e:
         app.logger.error(f"Error in file upload: {str(e)}")
         app.logger.error(traceback.format_exc())
