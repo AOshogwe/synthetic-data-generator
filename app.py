@@ -716,14 +716,6 @@ def generate_data():
         generation_time = time.time() - start_time
         app.logger.info(f"Generation completed in {generation_time:.2f} seconds")
 
-        if success and hasattr(pipeline, 'synthetic_data') and pipeline.synthetic_data:
-            # APPLY FINAL AGE FIXES HERE
-            app.logger.info("Applying final age formatting fixes")
-            pipeline.synthetic_data = fix_age_columns_final(pipeline.synthetic_data)
-
-            has_data = False
-            total_synthetic_rows = 0
-
         # Validate results
         if success and hasattr(pipeline, 'synthetic_data') and pipeline.synthetic_data:
             has_data = False
@@ -800,34 +792,6 @@ def generate_data():
         app.logger.error(traceback.format_exc())
         pipeline_state['status'] = 'error'
         return jsonify({'error': f'Generation failed: {str(e)}'}), 500
-
-
-def fix_age_columns_final(synthetic_data):
-    """Final age column fix at the Flask level"""
-    logging.info("Applying final age column fixes at Flask level")
-
-    for table_name, df in synthetic_data.items():
-        if df.empty:
-            continue
-
-        for column in df.columns:
-            if 'age' in column.lower() and pd.api.types.is_numeric_dtype(df[column]):
-                try:
-                    app.logger.info(f"Final age fix for {table_name}.{column}")
-
-                    # Force conversion to integers
-                    df[column] = pd.to_numeric(df[column], errors='coerce')
-                    df[column] = df[column].round().astype('Int64')
-                    df[column] = df[column].clip(0, 120)
-
-                    # Verify the fix worked
-                    sample_vals = df[column].dropna().head(3).tolist()
-                    app.logger.info(f"Age column {column} fixed - samples: {sample_vals}")
-
-                except Exception as e:
-                    app.logger.error(f"Error in final age fix for {column}: {str(e)}")
-
-    return synthetic_data
 
 
 def create_copy_with_privacy_features(pipeline):
