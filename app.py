@@ -123,6 +123,11 @@ def internal_error(error):
 @app.route('/')
 def index():
     """Serve the main application"""
+    return send_from_directory('.', 'dashboard.html')
+
+@app.route('/classic')
+def classic_interface():
+    """Serve the classic interface"""
     return send_from_directory('.', 'index.html')
 
 

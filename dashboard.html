@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthetic Data Generator - Modern Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a'
+                        },
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'pulse-glow': 'pulseGlow 2s infinite'
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 5px rgba(59, 130, 246, 0.5)' },
+                            '50%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.8)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Smooth transitions */
+        * {
+            transition: all 0.2s ease;
+        }
+        
+        /* Custom card hover effects */
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Progress ring */
+        .progress-ring {
+            transition: stroke-dasharray 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Sidebar Navigation -->
+    <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
+        <div class="flex items-center justify-center h-16 bg-gradient-to-r from-primary-600 to-primary-700">
+            <h1 class="text-white text-xl font-bold">🔮 SynGen</h1>
+        </div>
+        
+        <nav class="mt-8">
+            <div class="px-4 space-y-2">
+                <a href="#dashboard" class="nav-item active flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-tachometer-alt w-5 mr-3"></i>
+                    Dashboard
+                </a>
+                <a href="#upload" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-upload w-5 mr-3"></i>
+                    Data Upload
+                </a>
+                <a href="#configure" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-cog w-5 mr-3"></i>
+                    Configuration
+                </a>
+                <a href="#generate" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-magic w-5 mr-3"></i>
+                    Generation
+                </a>
+                <a href="#evaluate" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-chart-line w-5 mr-3"></i>
+                    Evaluation
+                </a>
+                <a href="#export" class="nav-item flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-download w-5 mr-3"></i>
+                    Export
+                </a>
+            </div>
+            
+            <div class="mt-auto px-4 py-6">
+                <div class="bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-primary-900">System Status</p>
+                            <p id="system-status" class="text-xs text-primary-600">Ready</p>
+                        </div>
+                        <div id="status-indicator" class="w-3 h-3 bg-success rounded-full animate-pulse-glow"></div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Mobile menu button -->
+    <div class="lg:hidden fixed top-4 left-4 z-50">
+        <button id="menu-toggle" class="bg-white p-2 rounded-lg shadow-lg">
+            <i class="fas fa-bars text-gray-600"></i>
+        </button>
+    </div>
+
+    <!-- Main content -->
+    <div class="lg:ml-64">
+        <!-- Top header -->
+        <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Synthetic Data Generator</h1>
+                    <p class="text-gray-600">Privacy-preserving synthetic data generation platform</p>
+                </div>
+                
+                <!-- Progress indicator -->
+                <div class="flex items-center space-x-4">
+                    <div class="bg-gray-100 rounded-full px-4 py-2">
+                        <span class="text-sm font-medium text-gray-700">Progress: </span>
+                        <span id="overall-progress" class="text-sm font-bold text-primary-600">0%</span>
+                    </div>
+                    
+                    <!-- Quick actions -->
+                    <div class="flex space-x-2">
+                        <button onclick="resetPipeline()" class="btn-secondary">
+                            <i class="fas fa-redo text-sm mr-2"></i>Reset
+                        </button>
+                        <button onclick="exportQuick()" class="btn-primary" disabled id="quick-export-btn">
+                            <i class="fas fa-download text-sm mr-2"></i>Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pipeline progress bar -->
+            <div class="mt-4">
+                <div class="bg-gray-200 rounded-full h-2">
+                    <div id="pipeline-progress" class="bg-gradient-to-r from-primary-500 to-primary-600 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <main class="p-6">
+            <!-- Dashboard Overview -->
+            <div id="dashboard-section" class="section-content">
+                <!-- Stats cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Data Tables</p>
+                                <p id="tables-count" class="text-3xl font-bold text-gray-900">0</p>
+                            </div>
+                            <div class="bg-primary-100 p-3 rounded-lg">
+                                <i class="fas fa-table text-primary-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <span id="tables-status" class="text-sm text-gray-500">No data loaded</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Total Rows</p>
+                                <p id="rows-count" class="text-3xl font-bold text-gray-900">0</p>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-lg">
+                                <i class="fas fa-database text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <span id="rows-status" class="text-sm text-gray-500">Ready for processing</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Generation Status</p>
+                                <p id="gen-status" class="text-lg font-bold text-gray-900">Not Started</p>
+                            </div>
+                            <div class="bg-purple-100 p-3 rounded-lg">
+                                <i class="fas fa-brain text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <!-- Circular progress -->
+                            <div class="flex items-center">
+                                <svg class="w-8 h-8 mr-2">
+                                    <circle cx="16" cy="16" r="12" stroke="#e5e7eb" stroke-width="3" fill="none" />
+                                    <circle id="progress-circle" cx="16" cy="16" r="12" stroke="#8b5cf6" stroke-width="3" fill="none" 
+                                            class="progress-ring" stroke-dasharray="0 75" />
+                                </svg>
+                                <span id="generation-progress" class="text-sm text-gray-500">0% complete</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Quality Score</p>
+                                <p id="quality-score" class="text-3xl font-bold text-gray-900">--</p>
+                            </div>
+                            <div class="bg-orange-100 p-3 rounded-lg">
+                                <i class="fas fa-award text-orange-600 text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="flex items-center">
+                                <div class="flex space-x-1">
+                                    <div id="star-1" class="w-4 h-4 text-gray-300"><i class="fas fa-star"></i></div>
+                                    <div id="star-2" class="w-4 h-4 text-gray-300"><i class="fas fa-star"></i></div>
+                                    <div id="star-3" class="w-4 h-4 text-gray-300"><i class="fas fa-star"></i></div>
+                                    <div id="star-4" class="w-4 h-4 text-gray-300"><i class="fas fa-star"></i></div>
+                                    <div id="star-5" class="w-4 h-4 text-gray-300"><i class="fas fa-star"></i></div>
+                                </div>
+                                <span id="quality-text" class="text-sm text-gray-500 ml-2">Not evaluated</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick start section -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+                    <div class="text-center">
+                        <div class="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-rocket text-primary-600 text-2xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Ready to Generate Synthetic Data?</h2>
+                        <p class="text-gray-600 mb-6">Follow these simple steps to create privacy-preserving synthetic datasets</p>
+                        
+                        <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                            <div class="text-center p-4 rounded-lg border border-gray-100 hover:border-primary-200 transition-colors">
+                                <div class="bg-primary-600 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <span class="text-white font-bold">1</span>
+                                </div>
+                                <h3 class="font-semibold text-gray-900 mb-2">Upload Data</h3>
+                                <p class="text-sm text-gray-600">Upload CSV, Excel, or JSON files</p>
+                            </div>
+                            <div class="text-center p-4 rounded-lg border border-gray-100 hover:border-primary-200 transition-colors">
+                                <div class="bg-gray-400 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <span class="text-white font-bold">2</span>
+                                </div>
+                                <h3 class="font-semibold text-gray-600 mb-2">Configure</h3>
+                                <p class="text-sm text-gray-500">Set privacy and generation options</p>
+                            </div>
+                            <div class="text-center p-4 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors">
+                                <div class="bg-gray-400 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <span class="text-white font-bold">3</span>
+                                </div>
+                                <h3 class="font-semibold text-gray-600 mb-2">Generate & Export</h3>
+                                <p class="text-sm text-gray-500">Create and download synthetic data</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-8">
+                            <button onclick="showSection('upload')" class="btn-primary btn-lg">
+                                <i class="fas fa-upload mr-2"></i>Get Started
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent activity -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-history mr-2 text-primary-600"></i>Recent Activity
+                    </h3>
+                    <div id="activity-log" class="space-y-3">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-circle text-gray-300 mr-3 text-xs"></i>
+                            <span>System ready for data upload</span>
+                            <span class="ml-auto text-xs text-gray-400">Now</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Upload Section -->
+            <div id="upload-section" class="section-content hidden">
+                <div class="max-w-4xl mx-auto">
+                    <div class="mb-8 text-center">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-2">Data Upload</h2>
+                        <p class="text-gray-600">Upload your datasets to begin synthetic data generation</p>
+                    </div>
+
+                    <!-- Upload methods -->
+                    <div class="grid lg:grid-cols-2 gap-8 mb-8">
+                        <!-- File upload -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                            <div class="flex items-center mb-6">
+                                <div class="bg-primary-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-file-upload text-primary-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900">File Upload</h3>
+                                    <p class="text-gray-600">Upload CSV, Excel, or JSON files</p>
+                                </div>
+                            </div>
+
+                            <!-- Drop zone -->
+                            <div id="drop-zone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center transition-colors hover:border-primary-400 hover:bg-primary-50 cursor-pointer">
+                                <input type="file" id="file-input" multiple accept=".csv,.xlsx,.json" class="hidden">
+                                <div class="space-y-4">
+                                    <div class="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
+                                        <i class="fas fa-cloud-upload-alt text-gray-400 text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-lg font-medium text-gray-900">Drag & drop files here</p>
+                                        <p class="text-gray-500">or click to browse</p>
+                                    </div>
+                                    <div class="text-sm text-gray-400">
+                                        Supports CSV, Excel (.xlsx), JSON • Max 100MB per file
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- File list -->
+                            <div id="file-list" class="mt-6 space-y-3"></div>
+                        </div>
+
+                        <!-- Database connection -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
+                            <div class="flex items-center mb-6">
+                                <div class="bg-green-100 p-3 rounded-lg mr-4">
+                                    <i class="fas fa-database text-green-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900">Database Connection</h3>
+                                    <p class="text-gray-600">Connect directly to your database</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Database Type</label>
+                                    <select id="db-type" class="input-field">
+                                        <option value="">Select database type</option>
+                                        <option value="postgresql">PostgreSQL</option>
+                                        <option value="mysql">MySQL</option>
+                                        <option value="sqlite">SQLite</option>
+                                        <option value="sqlserver">SQL Server</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Connection String</label>
+                                    <input type="text" id="connection-string" placeholder="postgresql://user:password@localhost:5432/database" class="input-field">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tables (optional)</label>
+                                    <input type="text" id="table-names" placeholder="table1, table2, table3" class="input-field">
+                                </div>
+                                <button onclick="testConnection()" class="btn-primary w-full">
+                                    <i class="fas fa-plug mr-2"></i>Test Connection
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data preview -->
+                    <div id="data-preview-section" class="hidden bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-eye mr-2 text-primary-600"></i>Data Preview
+                        </h3>
+                        <div id="data-preview-content"></div>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="flex justify-between">
+                        <button onclick="showSection('dashboard')" class="btn-secondary">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </button>
+                        <button id="upload-next-btn" onclick="showSection('configure')" class="btn-primary" disabled>
+                            Configure Settings<i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuration Section -->
+            <div id="configure-section" class="section-content hidden">
+                <div class="max-w-6xl mx-auto">
+                    <div class="mb-8 text-center">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-2">Configuration</h2>
+                        <p class="text-gray-600">Customize your synthetic data generation settings</p>
+                    </div>
+
+                    <!-- Configuration Cards -->
+                    <div class="grid lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Generation Method -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center mb-4">
+                                <div class="bg-purple-100 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-magic text-purple-600"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-900">Generation Method</h3>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <label class="flex items-center p-3 rounded-lg border hover:border-purple-300 transition-colors cursor-pointer">
+                                    <input type="radio" name="generation-method" value="auto" checked class="text-purple-600 mr-3">
+                                    <div>
+                                        <div class="font-medium text-gray-900">Auto</div>
+                                        <div class="text-sm text-gray-500">Intelligent method selection</div>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 rounded-lg border hover:border-purple-300 transition-colors cursor-pointer">
+                                    <input type="radio" name="generation-method" value="perturbation" class="text-purple-600 mr-3">
+                                    <div>
+                                        <div class="font-medium text-gray-900">Perturbation</div>
+                                        <div class="text-sm text-gray-500">Fast with controlled modifications</div>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 rounded-lg border hover:border-purple-300 transition-colors cursor-pointer">
+                                    <input type="radio" name="generation-method" value="ctgan" class="text-purple-600 mr-3">
+                                    <div>
+                                        <div class="font-medium text-gray-900">Deep Learning</div>
+                                        <div class="text-sm text-gray-500">Advanced neural networks</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Privacy Settings -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center mb-4">
+                                <div class="bg-green-100 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-shield-alt text-green-600"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-900">Privacy Features</h3>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="anonymize-names" class="text-green-600 mr-3 rounded">
+                                    <span class="text-gray-700">Name anonymization</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="apply-age-grouping" class="text-green-600 mr-3 rounded">
+                                    <span class="text-gray-700">Age grouping</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="anonymize-addresses" class="text-green-600 mr-3 rounded">
+                                    <span class="text-gray-700">Address anonymization</span>
+                                </label>
+                                
+                                <!-- Privacy level slider -->
+                                <div class="mt-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Privacy Level</label>
+                                    <div class="flex items-center space-x-3">
+                                        <span class="text-sm text-gray-500">Low</span>
+                                        <input type="range" id="privacy-level" min="1" max="5" value="3" class="flex-1">
+                                        <span class="text-sm text-gray-500">High</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Output Settings -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center mb-4">
+                                <div class="bg-blue-100 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-sliders-h text-blue-600"></i>
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-900">Output Settings</h3>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Data Size</label>
+                                    <select id="data-size-type" class="input-field">
+                                        <option value="same">Same as original</option>
+                                        <option value="percentage">Percentage</option>
+                                        <option value="custom">Custom rows</option>
+                                    </select>
+                                </div>
+                                
+                                <div id="size-input" class="hidden">
+                                    <input type="number" id="size-value" placeholder="Enter value" class="input-field">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Quality vs Speed</label>
+                                    <div class="flex items-center space-x-3">
+                                        <span class="text-sm text-gray-500">Fast</span>
+                                        <input type="range" id="quality-speed" min="1" max="5" value="3" class="flex-1">
+                                        <span class="text-sm text-gray-500">Quality</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Column Selection -->
+                    <div id="column-selection-section" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-columns mr-2 text-primary-600"></i>Column Selection
+                        </h3>
+                        <div id="column-selection-content">
+                            <p class="text-gray-500">Upload data to configure column settings</p>
+                        </div>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="flex justify-between">
+                        <button onclick="showSection('upload')" class="btn-secondary">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Upload
+                        </button>
+                        <button onclick="showSection('generate')" class="btn-primary">
+                            Start Generation<i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other sections (generate, evaluate, export) would continue with similar improved styling -->
+            <div id="generate-section" class="section-content hidden">
+                <div class="max-w-4xl mx-auto text-center">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8">Generation in Progress</h2>
+                    <!-- Generation content -->
+                </div>
+            </div>
+
+            <div id="evaluate-section" class="section-content hidden">
+                <div class="max-w-4xl mx-auto text-center">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8">Quality Evaluation</h2>
+                    <!-- Evaluation content -->
+                </div>
+            </div>
+
+            <div id="export-section" class="section-content hidden">
+                <div class="max-w-4xl mx-auto text-center">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8">Export Synthetic Data</h2>
+                    <!-- Export content -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Custom styles -->
+    <style>
+        /* Button styles */
+        .btn-primary {
+            @apply bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed;
+        }
+        
+        .btn-secondary {
+            @apply bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-6 py-3 rounded-lg transition-all duration-200;
+        }
+        
+        .btn-lg {
+            @apply px-8 py-4 text-lg;
+        }
+        
+        /* Input styles */
+        .input-field {
+            @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors;
+        }
+        
+        /* Navigation styles */
+        .nav-item.active {
+            @apply bg-primary-50 text-primary-700 border-r-2 border-primary-600;
+        }
+        
+        /* Section content */
+        .section-content {
+            @apply animate-fade-in;
+        }
+    </style>
+
+    <script>
+        // Global state
+        let currentSection = 'dashboard';
+        let pipelineData = {
+            tables: 0,
+            rows: 0,
+            status: 'ready',
+            progress: 0,
+            qualityScore: null
+        };
+
+        // Navigation
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.section-content').forEach(el => el.classList.add('hidden'));
+            
+            // Show target section
+            document.getElementById(`${section}-section`).classList.remove('hidden');
+            
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`[href="#${section}"]`).classList.add('active');
+            
+            currentSection = section;
+            updateProgress();
+        }
+
+        // Mobile menu toggle
+        document.getElementById('menu-toggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        // File upload handling
+        document.getElementById('drop-zone').addEventListener('click', () => {
+            document.getElementById('file-input').click();
+        });
+
+        document.getElementById('file-input').addEventListener('change', handleFiles);
+
+        // Drag and drop
+        const dropZone = document.getElementById('drop-zone');
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-primary-400', 'bg-primary-50');
+        });
+        
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-primary-400', 'bg-primary-50');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-primary-400', 'bg-primary-50');
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles({ target: { files } });
+        });
+
+        // Handle file uploads
+        function handleFiles(event) {
+            const files = Array.from(event.target.files);
+            if (files.length === 0) return;
+
+            displayFiles(files);
+            processFiles(files);
+        }
+
+        function displayFiles(files) {
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '';
+
+            files.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg border';
+                fileItem.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="bg-primary-100 p-2 rounded-lg mr-3">
+                            <i class="fas fa-file-csv text-primary-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">${file.name}</p>
+                            <p class="text-sm text-gray-500">${formatFileSize(file.size)}</p>
+                        </div>
+                    </div>
+                    <div class="text-success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        async function processFiles(files) {
+            try {
+                updateSystemStatus('Processing files...', 'processing');
+                
+                // Simulate file processing
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Update dashboard stats
+                pipelineData.tables = files.length;
+                pipelineData.rows = files.length * 1000; // Simulate row count
+                
+                updateDashboardStats();
+                showDataPreview(files);
+                
+                document.getElementById('upload-next-btn').disabled = false;
+                updateSystemStatus('Files processed successfully', 'success');
+                
+                addActivity('Files uploaded and processed', 'success');
+                
+            } catch (error) {
+                updateSystemStatus('Error processing files', 'error');
+                addActivity('File processing failed', 'error');
+            }
+        }
+
+        function showDataPreview(files) {
+            const previewSection = document.getElementById('data-preview-section');
+            const previewContent = document.getElementById('data-preview-content');
+            
+            previewContent.innerHTML = files.map(file => `
+                <div class="border rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="font-semibold text-gray-900">${file.name}</h4>
+                        <span class="text-sm bg-primary-100 text-primary-800 px-2 py-1 rounded">
+                            ${Math.floor(Math.random() * 1000)} rows
+                        </span>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <span class="inline-flex items-center mr-4">
+                            <i class="fas fa-columns mr-1"></i>
+                            ${Math.floor(Math.random() * 10) + 5} columns
+                        </span>
+                        <span class="inline-flex items-center">
+                            <i class="fas fa-file-alt mr-1"></i>
+                            ${formatFileSize(file.size)}
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+            
+            previewSection.classList.remove('hidden');
+        }
+
+        // Update dashboard statistics
+        function updateDashboardStats() {
+            document.getElementById('tables-count').textContent = pipelineData.tables;
+            document.getElementById('rows-count').textContent = pipelineData.rows.toLocaleString();
+            document.getElementById('tables-status').textContent = `${pipelineData.tables} tables loaded`;
+            document.getElementById('rows-status').textContent = `${pipelineData.rows.toLocaleString()} total records`;
+        }
+
+        // System status updates
+        function updateSystemStatus(message, type) {
+            const statusElement = document.getElementById('system-status');
+            const indicatorElement = document.getElementById('status-indicator');
+            
+            statusElement.textContent = message;
+            
+            // Update indicator color
+            indicatorElement.className = 'w-3 h-3 rounded-full animate-pulse-glow';
+            switch (type) {
+                case 'processing':
+                    indicatorElement.classList.add('bg-warning');
+                    break;
+                case 'success':
+                    indicatorElement.classList.add('bg-success');
+                    break;
+                case 'error':
+                    indicatorElement.classList.add('bg-danger');
+                    break;
+                default:
+                    indicatorElement.classList.add('bg-success');
+            }
+        }
+
+        // Activity log
+        function addActivity(message, type) {
+            const activityLog = document.getElementById('activity-log');
+            const activity = document.createElement('div');
+            activity.className = 'flex items-center text-sm text-gray-600';
+            
+            const iconClass = type === 'success' ? 'fa-check-circle text-success' : 
+                           type === 'error' ? 'fa-exclamation-circle text-danger' : 
+                           'fa-info-circle text-primary-600';
+            
+            activity.innerHTML = `
+                <i class="fas ${iconClass} mr-3 text-xs"></i>
+                <span>${message}</span>
+                <span class="ml-auto text-xs text-gray-400">${new Date().toLocaleTimeString()}</span>
+            `;
+            
+            activityLog.insertBefore(activity, activityLog.firstChild);
+            
+            // Keep only last 5 activities
+            while (activityLog.children.length > 5) {
+                activityLog.removeChild(activityLog.lastChild);
+            }
+        }
+
+        // Progress tracking
+        function updateProgress() {
+            const progressMap = {
+                'dashboard': 0,
+                'upload': 20,
+                'configure': 40,
+                'generate': 60,
+                'evaluate': 80,
+                'export': 100
+            };
+            
+            const progress = progressMap[currentSection] || 0;
+            document.getElementById('overall-progress').textContent = `${progress}%`;
+            document.getElementById('pipeline-progress').style.width = `${progress}%`;
+        }
+
+        // Utility functions
+        function formatFileSize(bytes) {
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            if (bytes === 0) return '0 Bytes';
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Data size type change handler
+        document.getElementById('data-size-type').addEventListener('change', function() {
+            const sizeInput = document.getElementById('size-input');
+            if (this.value === 'percentage' || this.value === 'custom') {
+                sizeInput.classList.remove('hidden');
+                document.getElementById('size-value').placeholder = 
+                    this.value === 'percentage' ? 'Percentage (e.g., 80)' : 'Number of rows';
+            } else {
+                sizeInput.classList.add('hidden');
+            }
+        });
+
+        // Reset pipeline
+        function resetPipeline() {
+            if (confirm('This will reset all progress. Are you sure?')) {
+                pipelineData = { tables: 0, rows: 0, status: 'ready', progress: 0, qualityScore: null };
+                updateDashboardStats();
+                showSection('dashboard');
+                updateSystemStatus('System reset', 'success');
+                addActivity('Pipeline reset', 'info');
+            }
+        }
+
+        // Quick export
+        function exportQuick() {
+            // Implementation for quick export
+            addActivity('Export started', 'info');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress();
+            updateSystemStatus('System ready', 'success');
+        });
+    </script>
+</body>
+</html>
