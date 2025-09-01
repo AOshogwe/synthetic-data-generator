@@ -1,0 +1,12 @@
+# Full requirements including optional dependencies for enhanced security
+# This file requires system libraries: libmagic1, libmagic-dev, file
+
+# Include all basic requirements
+-r requirements.txt
+
+# Enhanced file security (requires libmagic system libraries)
+python-magic==0.4.27
+
+# Additional optional dependencies for production
+gunicorn==21.2.0
+redis==5.0.0
