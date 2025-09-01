@@ -1,0 +1,50 @@
+# Core web framework - Railway compatible versions
+Flask==2.3.3
+Flask-CORS==4.0.0
+
+# Data processing and analysis - stable versions
+pandas==1.5.3
+numpy==1.24.3
+scipy==1.10.1
+
+# Machine learning and synthetic data generation - compatible versions  
+scikit-learn==1.2.2
+# SDV with specific version for stability
+sdv==1.2.0
+
+# Statistical analysis
+statsmodels==0.14.0
+
+# File handling
+openpyxl==3.1.2
+xlrd==2.0.1
+
+# Database connectivity (optional)
+sqlalchemy==2.0.20
+psycopg2-binary==2.9.7
+pymysql==1.1.0
+
+# Utilities
+python-dateutil==2.8.2
+pytz==2023.3
+requests==2.31.0
+
+# Security
+werkzeug==2.3.7
+
+# Pipeline features - simplified
+geopy==2.3.0
+
+# Environment management
+python-dotenv==1.0.0
+
+# Enhanced logging
+structlog==23.1.0
+
+# Additional dependencies
+tqdm==4.66.1
+joblib==1.3.2
+chardet==5.2.0
+
+# Development and testing
+pytest==7.4.0

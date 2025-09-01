@@ -71,6 +71,29 @@ CORS_ORIGINS=*
     
     print("✅ Created .env file for Railway deployment")
 
+def validate_deployment_files():
+    """Validate all deployment files are ready"""
+    deployment_files = [
+        'app.py',
+        'app-simple.py',
+        'requirements-railway.txt', 
+        'Dockerfile.backend',
+        'railway.toml',
+        'start.sh'
+    ]
+    
+    missing = []
+    for file in deployment_files:
+        if not os.path.exists(file):
+            missing.append(file)
+    
+    if missing:
+        print(f"❌ Missing deployment files: {', '.join(missing)}")
+        return False
+    
+    print("✅ All deployment files present")
+    return True
+
 def test_local_build():
     """Test Docker build locally if Docker is available"""
     if not check_docker():
@@ -133,6 +156,10 @@ def main():
     
     # Validate environment
     if not validate_files():
+        return False
+    
+    # Validate deployment-specific files
+    if not validate_deployment_files():
         return False
     
     # Create environment file
