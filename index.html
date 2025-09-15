@@ -380,16 +380,22 @@
                     </div>
                     
                     <!-- Status indicator -->
-                    <div class="glass rounded-2xl px-6 py-3 border border-white/20">
-                        <div class="flex items-center space-x-3">
-                            <div class="flex items-center space-x-2">
-                                <div id="status-indicator" class="w-3 h-3 bg-success rounded-full animate-pulse"></div>
-                                <span id="system-status" class="text-white font-medium text-sm">System Ready</span>
-                            </div>
-                            <div class="h-6 w-px bg-white/20"></div>
-                            <div class="text-white text-sm">
-                                <span class="text-slate-300">Progress:</span>
-                                <span id="overall-progress" class="font-semibold ml-1">0%</span>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="toggleLogConsole()" class="glass rounded-xl px-4 py-2 border border-white/20 text-white hover:bg-white/10 transition-all duration-200 flex items-center space-x-2">
+                            <i class="fas fa-terminal"></i>
+                            <span class="text-sm font-medium">Logs</span>
+                        </button>
+                        <div class="glass rounded-2xl px-6 py-3 border border-white/20">
+                            <div class="flex items-center space-x-3">
+                                <div class="flex items-center space-x-2">
+                                    <div id="status-indicator" class="w-3 h-3 bg-success rounded-full animate-pulse"></div>
+                                    <span id="system-status" class="text-white font-medium text-sm">System Ready</span>
+                                </div>
+                                <div class="h-6 w-px bg-white/20"></div>
+                                <div class="text-white text-sm">
+                                    <span class="text-slate-300">Progress:</span>
+                                    <span id="overall-progress" class="font-semibold ml-1">0%</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -446,6 +452,70 @@
         <div class="container mx-auto px-6">
             <!-- Notifications area -->
             <div id="notifications-area" class="mb-8"></div>
+
+            <!-- Real-time Logging Console -->
+            <div id="logging-console" class="card mb-8 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white shadow-glow">
+                            <i class="fas fa-terminal text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-slate-800">Real-time Logs</h3>
+                            <p class="text-slate-600">Monitor the generation process in real-time</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="clearLogs()" class="px-4 py-2 bg-slate-500 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition-all duration-200">
+                            <i class="fas fa-trash mr-2"></i>Clear
+                        </button>
+                        <button onclick="toggleLogConsole()" class="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg text-sm font-medium transition-all duration-200">
+                            <i class="fas fa-eye-slash mr-2"></i>Hide
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Log Level Filter -->
+                <div class="flex items-center space-x-4 mb-4">
+                    <span class="text-sm font-medium text-slate-700">Filter:</span>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="show-info" checked class="w-4 h-4 text-blue-600 rounded">
+                        <span class="text-sm text-blue-600">INFO</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="show-warning" checked class="w-4 h-4 text-yellow-600 rounded">
+                        <span class="text-sm text-yellow-600">WARNING</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="show-error" checked class="w-4 h-4 text-red-600 rounded">
+                        <span class="text-sm text-red-600">ERROR</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="show-debug" class="w-4 h-4 text-gray-600 rounded">
+                        <span class="text-sm text-gray-600">DEBUG</span>
+                    </label>
+                </div>
+
+                <!-- Log Output -->
+                <div id="log-output" class="bg-gray-900 text-green-400 font-mono text-sm rounded-xl p-4 h-80 overflow-y-auto border-2 border-gray-700">
+                    <div class="flex items-center space-x-2 text-gray-500 mb-2">
+                        <i class="fas fa-circle text-green-400 animate-pulse"></i>
+                        <span>System ready - waiting for operations...</span>
+                    </div>
+                </div>
+
+                <!-- Connection Status -->
+                <div class="mt-4 flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <div id="connection-status" class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-sm font-medium text-slate-700">Backend Connection</span>
+                    </div>
+                    <div class="text-right">
+                        <div id="last-update" class="text-xs text-slate-500">Never</div>
+                        <button onclick="testBackendConnection()" class="text-xs text-primary-600 hover:text-primary-700">Test Connection</button>
+                    </div>
+                </div>
+            </div>
 
             <!-- Step 1: Data Upload -->
             <div id="data-input-step" class="step-content animate-fade-in">
@@ -1525,6 +1595,367 @@
             updateColumnSelection(tableName);
             showNotification(`Sensitive columns selected for synthesis in ${tableName}`, 'info');
         }
+
+        // Logging System Functions
+        let logContainer = null;
+        let logPollingInterval = null;
+        let lastLogTimestamp = null;
+
+        function toggleLogConsole() {
+            const console = document.getElementById('logging-console');
+            const button = document.querySelector('button[onclick="toggleLogConsole()"]');
+            const icon = button.querySelector('i');
+            
+            if (console.classList.contains('hidden')) {
+                console.classList.remove('hidden');
+                console.classList.add('animate-slide-down');
+                icon.className = 'fas fa-eye-slash';
+                button.querySelector('span').textContent = 'Hide Logs';
+                
+                // Start polling for logs
+                startLogPolling();
+                addLog('System', 'Log console opened', 'INFO');
+            } else {
+                console.classList.add('hidden');
+                icon.className = 'fas fa-terminal';
+                button.querySelector('span').textContent = 'Logs';
+                
+                // Stop polling for logs
+                stopLogPolling();
+            }
+        }
+
+        function startLogPolling() {
+            // Poll for progress updates during generation
+            if (logPollingInterval) clearInterval(logPollingInterval);
+            
+            logPollingInterval = setInterval(async () => {
+                try {
+                    // Check generation progress
+                    const response = await fetch(`${API_BASE_URL}/progress`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        updateConnectionStatus(true);
+                        
+                        if (data.status === 'generating') {
+                            addLog('Generator', 'Generation in progress...', 'INFO');
+                        }
+                    }
+                } catch (error) {
+                    updateConnectionStatus(false);
+                    addLog('System', `Connection error: ${error.message}`, 'ERROR');
+                }
+            }, 2000); // Poll every 2 seconds
+        }
+
+        function stopLogPolling() {
+            if (logPollingInterval) {
+                clearInterval(logPollingInterval);
+                logPollingInterval = null;
+            }
+        }
+
+        function addLog(source, message, level = 'INFO', details = null) {
+            const logOutput = document.getElementById('log-output');
+            if (!logOutput) return;
+
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            
+            // Color coding for different log levels
+            const colors = {
+                'INFO': 'text-blue-400',
+                'WARNING': 'text-yellow-400',
+                'ERROR': 'text-red-400',
+                'SUCCESS': 'text-green-400',
+                'DEBUG': 'text-gray-400'
+            };
+
+            const icons = {
+                'INFO': 'fa-info-circle',
+                'WARNING': 'fa-exclamation-triangle',
+                'ERROR': 'fa-exclamation-circle',
+                'SUCCESS': 'fa-check-circle',
+                'DEBUG': 'fa-bug'
+            };
+
+            logEntry.className = `log-entry flex items-start space-x-2 mb-1 ${colors[level] || 'text-green-400'}`;
+            logEntry.dataset.level = level.toLowerCase();
+            
+            logEntry.innerHTML = `
+                <span class="text-gray-500 text-xs w-20 flex-shrink-0">[${timestamp}]</span>
+                <i class="fas ${icons[level] || 'fa-circle'} text-xs mt-1 flex-shrink-0"></i>
+                <div class="flex-1 min-w-0">
+                    <span class="font-medium">[${source}]</span>
+                    <span class="ml-2">${message}</span>
+                    ${details ? `<div class="text-xs text-gray-400 mt-1 ml-4">${details}</div>` : ''}
+                </div>
+            `;
+
+            logOutput.appendChild(logEntry);
+            
+            // Auto-scroll to bottom
+            logOutput.scrollTop = logOutput.scrollHeight;
+            
+            // Update last update time
+            document.getElementById('last-update').textContent = timestamp;
+            
+            // Apply log level filter
+            applyLogFilter();
+            
+            // Keep only last 100 log entries for performance
+            const entries = logOutput.querySelectorAll('.log-entry');
+            if (entries.length > 100) {
+                entries[0].remove();
+            }
+        }
+
+        function clearLogs() {
+            const logOutput = document.getElementById('log-output');
+            logOutput.innerHTML = `
+                <div class="flex items-center space-x-2 text-gray-500 mb-2">
+                    <i class="fas fa-circle text-green-400 animate-pulse"></i>
+                    <span>Logs cleared - monitoring active...</span>
+                </div>
+            `;
+            addLog('System', 'Log console cleared', 'INFO');
+        }
+
+        function applyLogFilter() {
+            const entries = document.querySelectorAll('.log-entry');
+            const showInfo = document.getElementById('show-info').checked;
+            const showWarning = document.getElementById('show-warning').checked;
+            const showError = document.getElementById('show-error').checked;
+            const showDebug = document.getElementById('show-debug').checked;
+
+            entries.forEach(entry => {
+                const level = entry.dataset.level;
+                const shouldShow = (
+                    (level === 'info' && showInfo) ||
+                    (level === 'warning' && showWarning) ||
+                    (level === 'error' && showError) ||
+                    (level === 'debug' && showDebug) ||
+                    (level === 'success' && showInfo) // Success logs shown with INFO
+                );
+                
+                entry.style.display = shouldShow ? 'flex' : 'none';
+            });
+        }
+
+        function updateConnectionStatus(isConnected) {
+            const statusIndicator = document.getElementById('connection-status');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            if (isConnected) {
+                statusIndicator.className = 'w-3 h-3 bg-green-500 rounded-full animate-pulse';
+            } else {
+                statusIndicator.className = 'w-3 h-3 bg-red-500 rounded-full';
+            }
+            
+            document.getElementById('last-update').textContent = timestamp;
+        }
+
+        async function testBackendConnection() {
+            addLog('System', 'Testing backend connection...', 'INFO');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/status`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateConnectionStatus(true);
+                    addLog('System', 'Backend connection successful', 'SUCCESS', `Status: ${data.status}`);
+                    showNotification('Backend connection test successful!', 'success');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                updateConnectionStatus(false);
+                addLog('System', 'Backend connection failed', 'ERROR', error.message);
+                showNotification('Backend connection test failed!', 'error');
+            }
+        }
+
+        // Enhanced processFiles function with logging
+        async function processFiles(files) {
+            try {
+                addLog('Upload', `Starting to process ${files.length} files`, 'INFO');
+                updateSystemStatus('Processing files...', 'processing');
+                showNotification('Processing uploaded files...', 'info');
+                
+                files.forEach(file => {
+                    addLog('Upload', `Processing: ${file.name} (${formatFileSize(file.size)})`, 'INFO');
+                });
+                
+                const formData = new FormData();
+                files.forEach(file => formData.append('files', file));
+
+                addLog('Upload', 'Sending files to server...', 'INFO');
+                const response = await fetch(`${API_BASE_URL}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                addLog('Upload', `Server response received`, 'INFO', JSON.stringify(result, null, 2));
+
+                if (result.success) {
+                    uploadedData = result.tables;
+                    updateSystemStatus('Files processed successfully', 'success');
+                    addLog('Upload', 'Files processed successfully', 'SUCCESS');
+                    addLog('Upload', `Loaded ${Object.keys(result.tables).length} tables`, 'INFO');
+                    
+                    Object.entries(result.tables).forEach(([tableName, tableData]) => {
+                        addLog('Upload', `Table: ${tableName} - ${tableData.rows} rows, ${tableData.columns} columns`, 'INFO');
+                    });
+                    
+                    showNotification('Files uploaded and processed successfully!', 'success');
+                    
+                    showDataPreview();
+                    populateColumnSelection();
+                    document.getElementById('next-btn-1').disabled = false;
+                } else {
+                    throw new Error(result.error || 'Upload failed');
+                }
+            } catch (error) {
+                console.error('Error processing files:', error);
+                addLog('Upload', 'File processing failed', 'ERROR', error.message);
+                updateSystemStatus('Error processing files', 'error');
+                showNotification(`Error processing files: ${error.message}`, 'error');
+            }
+        }
+
+        // Enhanced generation function with detailed logging
+        async function startDataGeneration() {
+            try {
+                addLog('Generator', 'Starting data generation process', 'INFO');
+                
+                // Show log console automatically during generation
+                const console = document.getElementById('logging-console');
+                if (console.classList.contains('hidden')) {
+                    toggleLogConsole();
+                }
+                
+                updateSystemStatus('Generating synthetic data...', 'processing');
+                startLogPolling();
+                
+                // Collect configuration
+                const config = collectConfiguration();
+                addLog('Generator', 'Configuration collected', 'INFO', JSON.stringify(config, null, 2));
+                
+                // Send configuration
+                addLog('Generator', 'Sending configuration to server...', 'INFO');
+                const configResponse = await fetch(`${API_BASE_URL}/configure`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                if (!configResponse.ok) {
+                    throw new Error(`Configuration failed: ${configResponse.status}`);
+                }
+                
+                const configResult = await configResponse.json();
+                addLog('Generator', 'Configuration accepted by server', 'SUCCESS');
+                
+                // Start generation
+                addLog('Generator', 'Initiating data generation...', 'INFO');
+                const genResponse = await fetch(`${API_BASE_URL}/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (!genResponse.ok) {
+                    if (genResponse.status === 408) {
+                        throw new Error('Generation timed out - dataset may be too large for Railway limits');
+                    }
+                    throw new Error(`Generation failed: ${genResponse.status}`);
+                }
+                
+                const genResult = await genResponse.json();
+                addLog('Generator', 'Data generation completed', 'SUCCESS');
+                addLog('Generator', `Generated ${genResult.total_synthetic_rows} rows in ${genResult.generation_time}s`, 'INFO');
+                addLog('Generator', `Method used: ${genResult.method_used}`, 'INFO');
+                
+                generatedData = genResult;
+                updateSystemStatus('Data generation completed', 'success');
+                showNotification('Synthetic data generated successfully!', 'success');
+                
+                stopLogPolling();
+                nextStep(); // Move to next step
+                
+            } catch (error) {
+                console.error('Generation error:', error);
+                addLog('Generator', 'Data generation failed', 'ERROR', error.message);
+                updateSystemStatus('Generation failed', 'error');
+                showNotification(`Generation failed: ${error.message}`, 'error');
+                stopLogPolling();
+            }
+        }
+
+        function collectConfiguration() {
+            // This function would collect all the configuration settings
+            // For now, returning a basic configuration
+            return {
+                generation_method: document.querySelector('input[name="generation-method"]:checked')?.value || 'auto',
+                data_size: document.querySelector('input[name="data-size"]:checked')?.value || 'same',
+                anonymize_names: document.getElementById('anonymize-names')?.checked || false,
+                apply_age_grouping: document.getElementById('apply-age-grouping')?.checked || false,
+                anonymize_addresses: document.getElementById('anonymize-addresses')?.checked || false,
+                perturbation_factor: parseInt(document.getElementById('perturbation-slider')?.value || '20') / 100,
+                preserve_temporal: document.getElementById('preserve-temporal')?.checked || true,
+                preserve_dependencies: document.getElementById('preserve-dependencies')?.checked || true,
+                preserve_correlations: document.getElementById('preserve-correlations')?.checked || true
+            };
+        }
+
+        // Initialize log filter event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Previous initialization code...
+            updateStepIndicators();
+            updateProgress();
+            updateSystemStatus('System ready', 'success');
+            
+            // Add log filter event listeners
+            document.getElementById('show-info').addEventListener('change', applyLogFilter);
+            document.getElementById('show-warning').addEventListener('change', applyLogFilter);
+            document.getElementById('show-error').addEventListener('change', applyLogFilter);
+            document.getElementById('show-debug').addEventListener('change', applyLogFilter);
+            
+            // Show welcome log
+            setTimeout(() => {
+                addLog('System', 'Synthetic Data Generator initialized', 'SUCCESS');
+                addLog('System', 'Ready to process your data', 'INFO');
+            }, 1000);
+            
+            // Previous event listeners...
+            document.getElementById('perturbation-slider').addEventListener('input', (e) => updatePerturbationValue(e.target.value));
+            document.getElementById('privacy-level').addEventListener('input', (e) => updatePrivacyLevelText(e.target.value));
+            
+            // Enhanced form interactions
+            document.querySelectorAll('input[name="data-size"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    document.getElementById('percentage-size').classList.toggle('hidden', this.value !== 'percentage');
+                    document.getElementById('custom-size').classList.toggle('hidden', this.value !== 'custom');
+                });
+            });
+
+            // Privacy toggle interactions
+            document.getElementById('anonymize-names').addEventListener('change', function() {
+                document.getElementById('name-options').classList.toggle('hidden', !this.checked);
+            });
+
+            document.getElementById('apply-age-grouping').addEventListener('change', function() {
+                document.getElementById('age-grouping-options').classList.toggle('hidden', !this.checked);
+            });
+
+            document.getElementById('anonymize-addresses').addEventListener('change', function() {
+                document.getElementById('address-options').classList.toggle('hidden', !this.checked);
+            });
+        });
 
         // Additional enhanced functions would continue following this pattern...
     </script>
