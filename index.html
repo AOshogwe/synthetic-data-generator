@@ -385,6 +385,10 @@
                             <i class="fas fa-terminal"></i>
                             <span class="text-sm font-medium">Logs</span>
                         </button>
+                        <button id="quick-generate-btn" onclick="quickGenerate()" style="display: none;" class="glass rounded-xl px-4 py-2 border border-green-500/50 text-green-400 hover:bg-green-500/10 transition-all duration-200 flex items-center space-x-2">
+                            <i class="fas fa-play"></i>
+                            <span class="text-sm font-medium">Generate</span>
+                        </button>
                         <div class="glass rounded-2xl px-6 py-3 border border-white/20">
                             <div class="flex items-center space-x-3">
                                 <div class="flex items-center space-x-2">
@@ -1014,9 +1018,9 @@
                         <i class="fas fa-arrow-left"></i>
                         <span>Back to Upload</span>
                     </button>
-                    <button onclick="nextStep()" class="btn-primary px-8 py-4 text-white font-semibold rounded-xl shadow-medium hover:shadow-strong transition-all duration-300 flex items-center space-x-3">
+                    <button onclick="startDataGeneration()" class="btn-primary px-8 py-4 text-white font-semibold rounded-xl shadow-medium hover:shadow-strong transition-all duration-300 flex items-center space-x-3">
                         <span>Start Generation</span>
-                        <i class="fas fa-arrow-right"></i>
+                        <i class="fas fa-play"></i>
                     </button>
                 </div>
             </div>
@@ -1817,6 +1821,10 @@
                     showDataPreview();
                     populateColumnSelection();
                     document.getElementById('next-btn-1').disabled = false;
+                    
+                    // Show quick generate button
+                    document.getElementById('quick-generate-btn').style.display = 'flex';
+                    addLog('System', 'Quick Generate button now available in header', 'INFO');
                 } else {
                     throw new Error(result.error || 'Upload failed');
                 }
@@ -1897,9 +1905,10 @@
         }
 
         function collectConfiguration() {
-            // This function would collect all the configuration settings
-            // For now, returning a basic configuration
-            return {
+            addLog('Config', 'Collecting configuration settings...', 'INFO');
+            
+            // Collect basic settings
+            const config = {
                 generation_method: document.querySelector('input[name="generation-method"]:checked')?.value || 'auto',
                 data_size: document.querySelector('input[name="data-size"]:checked')?.value || 'same',
                 anonymize_names: document.getElementById('anonymize-names')?.checked || false,
@@ -1910,6 +1919,47 @@
                 preserve_dependencies: document.getElementById('preserve-dependencies')?.checked || true,
                 preserve_correlations: document.getElementById('preserve-correlations')?.checked || true
             };
+
+            // Collect column selection data
+            const columnSelection = {};
+            const checkboxes = document.querySelectorAll('.column-checkbox');
+            const selects = document.querySelectorAll('.column-action');
+
+            addLog('Config', `Found ${checkboxes.length} column configurations`, 'INFO');
+
+            checkboxes.forEach((checkbox, index) => {
+                const tableName = checkbox.dataset.table;
+                const columnName = checkbox.dataset.column;
+                const select = selects[index];
+                
+                if (!columnSelection[tableName]) {
+                    columnSelection[tableName] = {};
+                }
+                
+                // Only include columns that are checked
+                if (checkbox.checked && select) {
+                    columnSelection[tableName][columnName] = select.value;
+                    addLog('Config', `${tableName}.${columnName}: ${select.value}`, 'DEBUG');
+                }
+            });
+
+            // If no columns selected, default to copying all columns
+            if (Object.keys(columnSelection).length === 0) {
+                addLog('Config', 'No columns selected - defaulting to copy all', 'WARNING');
+                if (uploadedData) {
+                    Object.keys(uploadedData).forEach(tableName => {
+                        columnSelection[tableName] = {};
+                        uploadedData[tableName].column_names.forEach(columnName => {
+                            columnSelection[tableName][columnName] = 'copy';
+                        });
+                    });
+                }
+            }
+
+            config.column_selection = columnSelection;
+            addLog('Config', `Configuration collected for ${Object.keys(columnSelection).length} tables`, 'SUCCESS');
+            
+            return config;
         }
 
         // Initialize log filter event listeners
@@ -1956,6 +2006,117 @@
                 document.getElementById('address-options').classList.toggle('hidden', !this.checked);
             });
         });
+
+        // Quick generate function for immediate testing
+        async function quickGenerate() {
+            try {
+                addLog('QuickGen', 'Starting quick generation with default settings', 'INFO');
+                
+                if (!uploadedData) {
+                    showNotification('Please upload data first!', 'error');
+                    return;
+                }
+                
+                // Show log console
+                const console = document.getElementById('logging-console');
+                if (console.classList.contains('hidden')) {
+                    toggleLogConsole();
+                }
+                
+                // Disable button during generation
+                const button = document.getElementById('quick-generate-btn');
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span class="text-sm font-medium">Generating...</span>';
+                
+                updateSystemStatus('Quick generating...', 'processing');
+                startLogPolling();
+                
+                // Use basic configuration for speed
+                const config = {
+                    generation_method: 'perturbation', // Force fast method
+                    data_size: 'same',
+                    perturbation_factor: 0.1, // Low for speed
+                    preserve_temporal: false,
+                    preserve_dependencies: false,
+                    preserve_correlations: false,
+                    column_selection: {}
+                };
+                
+                // Default all columns to copy (fastest)
+                Object.keys(uploadedData).forEach(tableName => {
+                    config.column_selection[tableName] = {};
+                    uploadedData[tableName].column_names.forEach(columnName => {
+                        config.column_selection[tableName][columnName] = 'copy';
+                    });
+                });
+                
+                addLog('QuickGen', 'Using copy-only mode for maximum speed', 'INFO');
+                
+                // Send configuration
+                addLog('QuickGen', 'Configuring backend...', 'INFO');
+                const configResponse = await fetch(`${API_BASE_URL}/configure`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                if (!configResponse.ok) {
+                    throw new Error(`Configuration failed: ${configResponse.status}`);
+                }
+                
+                addLog('QuickGen', 'Starting generation process...', 'INFO');
+                
+                // Start generation with timeout handling
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minute timeout
+                
+                const genResponse = await fetch(`${API_BASE_URL}/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!genResponse.ok) {
+                    if (genResponse.status === 408) {
+                        throw new Error('Generation timed out - Railway limit reached');
+                    }
+                    throw new Error(`Generation failed: ${genResponse.status}`);
+                }
+                
+                const result = await genResponse.json();
+                addLog('QuickGen', 'Quick generation completed successfully!', 'SUCCESS');
+                addLog('QuickGen', `Generated ${result.total_synthetic_rows} rows in ${result.generation_time}s`, 'INFO');
+                addLog('QuickGen', `Method: ${result.method_used}`, 'INFO');
+                
+                generatedData = result;
+                updateSystemStatus('Quick generation completed', 'success');
+                showNotification('Quick generation successful!', 'success');
+                
+                // Enable export or next steps
+                showNotification('Data ready for download!', 'info');
+                
+            } catch (error) {
+                console.error('Quick generation error:', error);
+                
+                if (error.name === 'AbortError') {
+                    addLog('QuickGen', 'Generation aborted due to timeout', 'ERROR');
+                    showNotification('Generation timed out after 3 minutes', 'error');
+                } else {
+                    addLog('QuickGen', `Quick generation failed: ${error.message}`, 'ERROR');
+                    showNotification(`Quick generation failed: ${error.message}`, 'error');
+                }
+                
+                updateSystemStatus('Quick generation failed', 'error');
+            } finally {
+                // Re-enable button
+                const button = document.getElementById('quick-generate-btn');
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-play"></i><span class="text-sm font-medium">Generate</span>';
+                stopLogPolling();
+            }
+        }
 
         // Additional enhanced functions would continue following this pattern...
     </script>
