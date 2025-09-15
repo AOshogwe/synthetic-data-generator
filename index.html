@@ -393,6 +393,10 @@
                             <i class="fas fa-download"></i>
                             <span class="text-sm font-medium">Download</span>
                         </button>
+                        <button id="ml-test-btn" onclick="testMLGeneration()" style="display: none;" class="glass rounded-xl px-4 py-2 border border-purple-500/50 text-purple-400 hover:bg-purple-500/10 transition-all duration-200 flex items-center space-x-2">
+                            <i class="fas fa-brain"></i>
+                            <span class="text-sm font-medium">Test ML</span>
+                        </button>
                         <div class="glass rounded-2xl px-6 py-3 border border-white/20">
                             <div class="flex items-center space-x-3">
                                 <div class="flex items-center space-x-2">
@@ -1826,9 +1830,10 @@
                     populateColumnSelection();
                     document.getElementById('next-btn-1').disabled = false;
                     
-                    // Show quick generate button
+                    // Show quick generate button and ML test button
                     document.getElementById('quick-generate-btn').style.display = 'flex';
-                    addLog('System', 'Quick Generate button now available in header', 'INFO');
+                    document.getElementById('ml-test-btn').style.display = 'flex';
+                    addLog('System', 'Quick Generate and ML Test buttons now available in header', 'INFO');
                 } else {
                     throw new Error(result.error || 'Upload failed');
                 }
@@ -2035,26 +2040,55 @@
                 updateSystemStatus('Quick generating...', 'processing');
                 startLogPolling();
                 
-                // Use basic configuration for speed
+                // Check if user wants to force ML method
+                const forceMl = confirm('Use Machine Learning method (CTGAN)? Click OK for ML, Cancel for fast copy mode.');
+                
                 const config = {
-                    generation_method: 'perturbation', // Force fast method
-                    data_size: 'same',
-                    perturbation_factor: 0.1, // Low for speed
-                    preserve_temporal: false,
-                    preserve_dependencies: false,
-                    preserve_correlations: false,
+                    generation_method: forceMl ? 'ctgan' : 'perturbation',
+                    data_size: forceMl ? 'custom' : 'same',
+                    custom_rows: forceMl ? 1000 : undefined, // Limit to 1000 rows for ML testing
+                    perturbation_factor: 0.1,
+                    preserve_temporal: !forceMl, // Disable for ML speed
+                    preserve_dependencies: !forceMl,
+                    preserve_correlations: !forceMl,
                     column_selection: {}
                 };
                 
-                // Default all columns to copy (fastest)
+                if (forceMl) {
+                    addLog('QuickGen', 'User selected CTGAN ML method with 1000 row limit', 'INFO');
+                } else {
+                    addLog('QuickGen', 'User selected fast copy mode', 'INFO');
+                }
+                
+                // Configure columns based on method
                 Object.keys(uploadedData).forEach(tableName => {
                     config.column_selection[tableName] = {};
                     uploadedData[tableName].column_names.forEach(columnName => {
-                        config.column_selection[tableName][columnName] = 'copy';
+                        if (forceMl) {
+                            // For ML methods, synthesize numeric and some categorical columns
+                            const isNumeric = ['age', 'amount', 'number', 'count', 'size', 'quantity'].some(keyword => 
+                                columnName.toLowerCase().includes(keyword));
+                            const isSensitive = ['name', 'phone', 'address', 'email', 'id'].some(keyword => 
+                                columnName.toLowerCase().includes(keyword));
+                            
+                            if (isNumeric || isSensitive) {
+                                config.column_selection[tableName][columnName] = 'synthesize';
+                                addLog('QuickGen', `Synthesizing column: ${columnName}`, 'DEBUG');
+                            } else {
+                                config.column_selection[tableName][columnName] = 'copy';
+                            }
+                        } else {
+                            // For fast mode, copy all columns
+                            config.column_selection[tableName][columnName] = 'copy';
+                        }
                     });
                 });
                 
-                addLog('QuickGen', 'Using copy-only mode for maximum speed', 'INFO');
+                if (forceMl) {
+                    addLog('QuickGen', 'Using ML synthesis mode with selected columns', 'INFO');
+                } else {
+                    addLog('QuickGen', 'Using copy-only mode for maximum speed', 'INFO');
+                }
                 
                 // Send configuration
                 addLog('QuickGen', 'Configuring backend...', 'INFO');
@@ -2321,6 +2355,132 @@
                 addLog('Generator', 'Data generation failed', 'ERROR', error.message);
                 updateSystemStatus('Generation failed', 'error');
                 showNotification(`Generation failed: ${error.message}`, 'error');
+                stopLogPolling();
+            }
+        }
+
+        // Dedicated ML generation test function
+        async function testMLGeneration() {
+            try {
+                addLog('MLTest', 'Starting CTGAN Machine Learning test', 'INFO');
+                
+                if (!uploadedData) {
+                    showNotification('Please upload data first!', 'error');
+                    return;
+                }
+                
+                // Show log console
+                const console = document.getElementById('logging-console');
+                if (console.classList.contains('hidden')) {
+                    toggleLogConsole();
+                }
+                
+                // Disable button during generation
+                const button = document.getElementById('ml-test-btn');
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner animate-spin"></i><span class="text-sm font-medium">Training...</span>';
+                
+                updateSystemStatus('Training ML model...', 'processing');
+                startLogPolling();
+                
+                // Force CTGAN configuration with smaller dataset
+                const config = {
+                    generation_method: 'ctgan', // Force CTGAN
+                    data_size: 'custom',
+                    custom_rows: 500, // Small dataset for fast training
+                    perturbation_factor: 0.1,
+                    preserve_temporal: false, // Disable for speed
+                    preserve_dependencies: false,
+                    preserve_correlations: false,
+                    column_selection: {}
+                };
+                
+                // Select interesting columns for synthesis
+                Object.keys(uploadedData).forEach(tableName => {
+                    config.column_selection[tableName] = {};
+                    uploadedData[tableName].column_names.forEach(columnName => {
+                        const colLower = columnName.toLowerCase();
+                        
+                        // Synthesize key healthcare columns
+                        if (colLower.includes('age') || 
+                            colLower.includes('billing') || 
+                            colLower.includes('amount') || 
+                            colLower.includes('name') ||
+                            colLower.includes('room')) {
+                            config.column_selection[tableName][columnName] = 'synthesize';
+                            addLog('MLTest', `Will synthesize: ${columnName}`, 'INFO');
+                        } else {
+                            config.column_selection[tableName][columnName] = 'copy';
+                        }
+                    });
+                });
+                
+                addLog('MLTest', 'Using CTGAN with 500 rows for fast training', 'INFO');
+                
+                // Send configuration
+                addLog('MLTest', 'Configuring CTGAN model...', 'INFO');
+                const configResponse = await fetch(`${API_BASE_URL}/configure`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                if (!configResponse.ok) {
+                    throw new Error(`Configuration failed: ${configResponse.status}`);
+                }
+                
+                addLog('MLTest', 'Starting CTGAN training and generation...', 'INFO');
+                addLog('MLTest', 'This may take 30-60 seconds for model training', 'WARNING');
+                
+                // Start generation with longer timeout for ML
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minute timeout for ML
+                
+                const genResponse = await fetch(`${API_BASE_URL}/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!genResponse.ok) {
+                    if (genResponse.status === 408) {
+                        throw new Error('ML training timed out - try with smaller dataset');
+                    }
+                    throw new Error(`ML generation failed: ${genResponse.status}`);
+                }
+                
+                const result = await genResponse.json();
+                addLog('MLTest', 'CTGAN generation completed successfully!', 'SUCCESS');
+                addLog('MLTest', `Generated ${result.total_synthetic_rows} ML-synthesized rows`, 'INFO');
+                addLog('MLTest', `Method: ${result.method_used}`, 'INFO');
+                addLog('MLTest', `Training time: ${result.generation_time}s`, 'INFO');
+                
+                generatedData = result;
+                updateSystemStatus('ML generation completed', 'success');
+                showNotification('CTGAN ML generation successful!', 'success');
+                
+                // Show download button
+                showDownloadButton();
+                
+            } catch (error) {
+                console.error('ML generation error:', error);
+                
+                if (error.name === 'AbortError') {
+                    addLog('MLTest', 'ML training aborted due to timeout', 'ERROR');
+                    showNotification('ML training timed out after 5 minutes', 'error');
+                } else {
+                    addLog('MLTest', `ML generation failed: ${error.message}`, 'ERROR');
+                    showNotification(`ML generation failed: ${error.message}`, 'error');
+                }
+                
+                updateSystemStatus('ML generation failed', 'error');
+            } finally {
+                // Re-enable button
+                const button = document.getElementById('ml-test-btn');
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-brain"></i><span class="text-sm font-medium">Test ML</span>';
                 stopLogPolling();
             }
         }

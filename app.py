@@ -474,6 +474,15 @@ def configure_generation():
         # Configure data size
         if 'data_size' in config:
             pipeline.config['data_size'] = config['data_size']
+            
+        # Configure custom row count for ML methods
+        if 'custom_rows' in config:
+            pipeline.config['custom_rows'] = config['custom_rows']
+            app.logger.info(f"Custom row count set to: {config['custom_rows']}")
+            
+        # Configure percentage size
+        if 'percentage_size' in config:
+            pipeline.config['percentage_size'] = config['percentage_size']
 
         # Configure relationship preservation
         pipeline.config['preserve_temporal'] = config.get('preserve_temporal', True)
@@ -595,21 +604,24 @@ def generate_data():
 
             app.logger.info(f"Dataset size: {total_rows} total rows")
 
-            # Railway-specific optimizations: Force fast methods for cloud deployment
+            # Smart Railway optimization: Allow ML methods for smaller datasets
             if generation_method == 'auto':
-                if total_rows > 5000:  # Lowered threshold for Railway
+                if total_rows > 10000:  # Large datasets - use perturbation for speed
                     generation_method = 'perturbation'
-                    app.logger.info(f"Railway optimization: Using perturbation for {total_rows} rows")
-                elif total_rows > 1000:
-                    generation_method = 'perturbation'  # Changed from gaussian_copula
-                    app.logger.info(f"Railway optimization: Using perturbation for {total_rows} rows")
-                else:
-                    generation_method = 'perturbation'  # Changed from ctgan
-                    app.logger.info(f"Railway optimization: Using perturbation for {total_rows} rows")
+                    app.logger.info(f"Railway optimization: Large dataset ({total_rows} rows) - using perturbation for speed")
+                elif total_rows > 5000:  # Medium datasets - use gaussian_copula
+                    generation_method = 'gaussian_copula'
+                    app.logger.info(f"Railway optimization: Medium dataset ({total_rows} rows) - using gaussian_copula")
+                else:  # Small datasets - allow CTGAN
+                    generation_method = 'ctgan'
+                    app.logger.info(f"Railway optimization: Small dataset ({total_rows} rows) - using CTGAN")
 
-            # Override any complex method to perturbation for Railway reliability
-            if generation_method in ['ctgan', 'gaussian_copula']:
-                app.logger.info(f"Railway override: Switching from {generation_method} to perturbation for stability")
+            # Only override if method is explicitly problematic for dataset size
+            if generation_method == 'ctgan' and total_rows > 15000:
+                app.logger.info(f"Railway override: Dataset too large for CTGAN ({total_rows} rows), switching to gaussian_copula")
+                generation_method = 'gaussian_copula'
+            elif generation_method == 'gaussian_copula' and total_rows > 20000:
+                app.logger.info(f"Railway override: Dataset too large for gaussian_copula ({total_rows} rows), switching to perturbation")
                 generation_method = 'perturbation'
 
             app.logger.info(f"Railway-optimized method: {generation_method}")
@@ -621,11 +633,20 @@ def generate_data():
                     app.logger.warning("Approaching timeout, using emergency generation")
                     success = create_emergency_synthetic_data(pipeline)
                 else:
-                    # Always use perturbation for Railway (fastest and most reliable)
-                    app.logger.info("Using Railway-optimized perturbation method")
-                    pipeline.apply_perturbation = True
-                    pipeline.perturbation_factor = pipeline.config.get('perturbation_factor', 0.1)  # Lower for speed
-                    success = pipeline.generate_perturbed_data()
+                    # Use the selected method with Railway optimizations
+                    app.logger.info(f"Using Railway-optimized {generation_method} method")
+                    
+                    if generation_method == 'perturbation':
+                        pipeline.apply_perturbation = True
+                        pipeline.perturbation_factor = pipeline.config.get('perturbation_factor', 0.1)
+                        success = pipeline.generate_perturbed_data()
+                    else:
+                        # Use ML methods with Railway timeout protection
+                        app.logger.info(f"Starting {generation_method} generation with timeout protection")
+                        success = pipeline.generate_synthetic_data(
+                            method=generation_method,
+                            parameters=pipeline.config
+                        )
                     
                 # Check timeout after generation attempt
                 elapsed = time.time() - start_time
