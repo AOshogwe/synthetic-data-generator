@@ -63,10 +63,30 @@ def create_app(config_class=Config):
     return app
 
 
+class HTTPSuccessFilter(logging.Filter):
+    """Filter to ensure HTTP 200-299 responses are logged as INFO, not ERROR"""
+    def filter(self, record):
+        # Check if this is an HTTP log message
+        if hasattr(record, 'getMessage'):
+            message = record.getMessage()
+            # If it's an HTTP response with 2xx status code, set level to INFO
+            if ' 2' in message and 'HTTP/1.1" 2' in message:
+                record.levelno = logging.INFO
+                record.levelname = 'INFO'
+        return True
+
 def setup_logging(app):
     """Configure application logging for Railway deployment"""
     # Remove default Flask handlers that may log to stderr
     app.logger.handlers.clear()
+    
+    # Configure root logger to use stdout
+    logging.basicConfig(
+        level=getattr(logging, app.config['LOG_LEVEL']),
+        format='%(asctime)s %(levelname)s: %(message)s',
+        stream=sys.stdout,
+        force=True
+    )
     
     # Set up custom formatter
     formatter = logging.Formatter(
@@ -82,13 +102,29 @@ def setup_logging(app):
     app.logger.addHandler(stdout_handler)
     app.logger.setLevel(getattr(logging, app.config['LOG_LEVEL']))
     
-    # Disable werkzeug logging to stderr for HTTP requests
-    logging.getLogger('werkzeug').handlers.clear()
+    # Completely disable Werkzeug's default logging and set up custom
+    werkzeug_logger = logging.getLogger('werkzeug')
+    werkzeug_logger.handlers.clear()
+    werkzeug_logger.propagate = False
+    
+    # Create custom werkzeug handler that logs to stdout at INFO level
     werkzeug_handler = logging.StreamHandler(sys.stdout)
-    werkzeug_handler.setFormatter(logging.Formatter('%(message)s'))
+    werkzeug_handler.setFormatter(logging.Formatter('%(asctime)s INFO: %(message)s'))
     werkzeug_handler.setLevel(logging.INFO)
-    logging.getLogger('werkzeug').addHandler(werkzeug_handler)
-    logging.getLogger('werkzeug').setLevel(logging.INFO)
+    werkzeug_handler.addFilter(HTTPSuccessFilter())
+    werkzeug_logger.addHandler(werkzeug_handler)
+    werkzeug_logger.setLevel(logging.INFO)
+    
+    # Also configure gunicorn loggers if present (for production)
+    for logger_name in ['gunicorn.error', 'gunicorn.access']:
+        logger = logging.getLogger(logger_name)
+        logger.handlers.clear()
+        logger.propagate = False
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
+        handler.setLevel(logging.INFO)
+        logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
     
     # Also add file handler for local debugging if not on Railway
     if not os.environ.get('RAILWAY_ENVIRONMENT') and not app.debug:
