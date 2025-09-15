@@ -18,7 +18,7 @@ from pathlib import Path
 import signal
 import atexit
 import logging
-logging.basicConfig(level=logging.DEBUG)
+# Logging configuration moved to setup_logging() function
 
 
 # Configuration class
@@ -64,22 +64,44 @@ def create_app(config_class=Config):
 
 
 def setup_logging(app):
-    """Configure application logging"""
-    if not app.debug:
-        # File handler for production
+    """Configure application logging for Railway deployment"""
+    # Remove default Flask handlers that may log to stderr
+    app.logger.handlers.clear()
+    
+    # Set up custom formatter
+    formatter = logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    )
+    
+    # Always use stdout handler for Railway
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setFormatter(formatter)
+    stdout_handler.setLevel(getattr(logging, app.config['LOG_LEVEL']))
+    
+    # Add the stdout handler
+    app.logger.addHandler(stdout_handler)
+    app.logger.setLevel(getattr(logging, app.config['LOG_LEVEL']))
+    
+    # Disable werkzeug logging to stderr for HTTP requests
+    logging.getLogger('werkzeug').handlers.clear()
+    werkzeug_handler = logging.StreamHandler(sys.stdout)
+    werkzeug_handler.setFormatter(logging.Formatter('%(message)s'))
+    werkzeug_handler.setLevel(logging.INFO)
+    logging.getLogger('werkzeug').addHandler(werkzeug_handler)
+    logging.getLogger('werkzeug').setLevel(logging.INFO)
+    
+    # Also add file handler for local debugging if not on Railway
+    if not os.environ.get('RAILWAY_ENVIRONMENT') and not app.debug:
         file_handler = RotatingFileHandler(
             app.config['LOG_FILE'],
             maxBytes=10240000,
             backupCount=10
         )
-        file_handler.setFormatter(logging.Formatter(
-            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-        ))
+        file_handler.setFormatter(formatter)
         file_handler.setLevel(getattr(logging, app.config['LOG_LEVEL']))
         app.logger.addHandler(file_handler)
-
-        app.logger.setLevel(getattr(logging, app.config['LOG_LEVEL']))
-        app.logger.info('Synthetic Data Generator startup')
+    
+    app.logger.info('Synthetic Data Generator startup')
 
 
 # Create Flask app
@@ -122,8 +144,13 @@ def internal_error(error):
 
 @app.route('/')
 def index():
-    """Serve the main application"""
+    """Serve the modern application interface"""
     return send_from_directory('.', 'index.html')
+
+@app.route('/classic')`
+def classic_interface():
+    """Serve the classic interface"""
+    return send_from_directory('.', 'index-classic.html')
 
 
 @app.route('/api/upload', methods=['POST'])
