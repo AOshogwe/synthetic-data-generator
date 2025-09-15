@@ -389,6 +389,10 @@
                             <i class="fas fa-play"></i>
                             <span class="text-sm font-medium">Generate</span>
                         </button>
+                        <button id="download-btn" onclick="downloadData()" style="display: none;" class="glass rounded-xl px-4 py-2 border border-blue-500/50 text-blue-400 hover:bg-blue-500/10 transition-all duration-200 flex items-center space-x-2">
+                            <i class="fas fa-download"></i>
+                            <span class="text-sm font-medium">Download</span>
+                        </button>
                         <div class="glass rounded-2xl px-6 py-3 border border-white/20">
                             <div class="flex items-center space-x-3">
                                 <div class="flex items-center space-x-2">
@@ -2097,6 +2101,9 @@
                 // Enable export or next steps
                 showNotification('Data ready for download!', 'info');
                 
+                // Show download button
+                showDownloadButton();
+                
             } catch (error) {
                 console.error('Quick generation error:', error);
                 
@@ -2114,6 +2121,206 @@
                 const button = document.getElementById('quick-generate-btn');
                 button.disabled = false;
                 button.innerHTML = '<i class="fas fa-play"></i><span class="text-sm font-medium">Generate</span>';
+                stopLogPolling();
+            }
+        }
+
+        // Download functionality
+        function showDownloadButton() {
+            const downloadBtn = document.getElementById('download-btn');
+            downloadBtn.style.display = 'flex';
+            addLog('System', 'Download button now available', 'INFO');
+        }
+
+        async function downloadData() {
+            try {
+                addLog('Download', 'Starting data export...', 'INFO');
+                
+                if (!generatedData) {
+                    showNotification('No generated data available for download!', 'error');
+                    return;
+                }
+
+                updateSystemStatus('Preparing download...', 'processing');
+                
+                // Show download options
+                const format = await showDownloadOptions();
+                if (!format) return; // User cancelled
+                
+                addLog('Download', `Exporting in ${format.toUpperCase()} format`, 'INFO');
+                
+                const exportConfig = {
+                    format: format,
+                    include_metadata: true,
+                    include_schema: true,
+                    include_evaluation: false
+                };
+
+                const response = await fetch(`${API_BASE_URL}/export`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(exportConfig)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Export failed: ${response.status}`);
+                }
+
+                // Get the filename from response headers or create one
+                const contentDisposition = response.headers.get('content-disposition');
+                let filename = 'synthetic_data.zip';
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+                    if (filenameMatch) {
+                        filename = filenameMatch[1];
+                    }
+                }
+
+                // Download the file
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                addLog('Download', `File downloaded: ${filename}`, 'SUCCESS');
+                updateSystemStatus('Download completed', 'success');
+                showNotification('Synthetic data downloaded successfully!', 'success');
+
+            } catch (error) {
+                console.error('Download error:', error);
+                addLog('Download', `Download failed: ${error.message}`, 'ERROR');
+                updateSystemStatus('Download failed', 'error');
+                showNotification(`Download failed: ${error.message}`, 'error');
+            }
+        }
+
+        function showDownloadOptions() {
+            return new Promise((resolve) => {
+                // Create modal for download options
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+                        <h3 class="text-2xl font-bold text-slate-800 mb-6 text-center">Choose Export Format</h3>
+                        <div class="space-y-4">
+                            <button onclick="selectFormat('csv')" class="w-full p-4 bg-slate-50 hover:bg-blue-50 border-2 border-slate-200 hover:border-blue-300 rounded-xl transition-all duration-200 flex items-center space-x-4">
+                                <i class="fas fa-file-csv text-2xl text-green-600"></i>
+                                <div class="text-left">
+                                    <div class="font-semibold text-slate-800">CSV Format</div>
+                                    <div class="text-sm text-slate-600">Comma-separated values (recommended)</div>
+                                </div>
+                            </button>
+                            <button onclick="selectFormat('excel')" class="w-full p-4 bg-slate-50 hover:bg-blue-50 border-2 border-slate-200 hover:border-blue-300 rounded-xl transition-all duration-200 flex items-center space-x-4">
+                                <i class="fas fa-file-excel text-2xl text-green-600"></i>
+                                <div class="text-left">
+                                    <div class="font-semibold text-slate-800">Excel Format</div>
+                                    <div class="text-sm text-slate-600">Microsoft Excel (.xlsx)</div>
+                                </div>
+                            </button>
+                            <button onclick="selectFormat('json')" class="w-full p-4 bg-slate-50 hover:bg-blue-50 border-2 border-slate-200 hover:border-blue-300 rounded-xl transition-all duration-200 flex items-center space-x-4">
+                                <i class="fas fa-file-code text-2xl text-blue-600"></i>
+                                <div class="text-left">
+                                    <div class="font-semibold text-slate-800">JSON Format</div>
+                                    <div class="text-sm text-slate-600">JavaScript Object Notation</div>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="mt-6 text-center">
+                            <button onclick="cancelDownload()" class="px-6 py-2 text-slate-600 hover:text-slate-800 transition-colors">Cancel</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+
+                // Add global functions for modal
+                window.selectFormat = (format) => {
+                    document.body.removeChild(modal);
+                    delete window.selectFormat;
+                    delete window.cancelDownload;
+                    resolve(format);
+                };
+
+                window.cancelDownload = () => {
+                    document.body.removeChild(modal);
+                    delete window.selectFormat;
+                    delete window.cancelDownload;
+                    resolve(null);
+                };
+            });
+        }
+
+        // Also update the regular generation function to show download button
+        async function startDataGeneration() {
+            try {
+                addLog('Generator', 'Starting data generation process', 'INFO');
+                
+                // Show log console automatically during generation
+                const console = document.getElementById('logging-console');
+                if (console.classList.contains('hidden')) {
+                    toggleLogConsole();
+                }
+                
+                updateSystemStatus('Generating synthetic data...', 'processing');
+                startLogPolling();
+                
+                // Collect configuration
+                const config = collectConfiguration();
+                addLog('Generator', 'Configuration collected', 'INFO', JSON.stringify(config, null, 2));
+                
+                // Send configuration
+                addLog('Generator', 'Sending configuration to server...', 'INFO');
+                const configResponse = await fetch(`${API_BASE_URL}/configure`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                
+                if (!configResponse.ok) {
+                    throw new Error(`Configuration failed: ${configResponse.status}`);
+                }
+                
+                const configResult = await configResponse.json();
+                addLog('Generator', 'Configuration accepted by server', 'SUCCESS');
+                
+                // Start generation
+                addLog('Generator', 'Initiating data generation...', 'INFO');
+                const genResponse = await fetch(`${API_BASE_URL}/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (!genResponse.ok) {
+                    if (genResponse.status === 408) {
+                        throw new Error('Generation timed out - dataset may be too large for Railway limits');
+                    }
+                    throw new Error(`Generation failed: ${genResponse.status}`);
+                }
+                
+                const genResult = await genResponse.json();
+                addLog('Generator', 'Data generation completed', 'SUCCESS');
+                addLog('Generator', `Generated ${genResult.total_synthetic_rows} rows in ${genResult.generation_time}s`, 'INFO');
+                addLog('Generator', `Method used: ${genResult.method_used}`, 'INFO');
+                
+                generatedData = genResult;
+                updateSystemStatus('Data generation completed', 'success');
+                showNotification('Synthetic data generated successfully!', 'success');
+                
+                // Show download button
+                showDownloadButton();
+                
+                stopLogPolling();
+                
+            } catch (error) {
+                console.error('Generation error:', error);
+                addLog('Generator', 'Data generation failed', 'ERROR', error.message);
+                updateSystemStatus('Generation failed', 'error');
+                showNotification(`Generation failed: ${error.message}`, 'error');
                 stopLogPolling();
             }
         }
