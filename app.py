@@ -147,7 +147,7 @@ def index():
     """Serve the modern application interface"""
     return send_from_directory('.', 'index.html')
 
-@app.route('/classic')`
+@app.route('/classic')
 def classic_interface():
     """Serve the classic interface"""
     return send_from_directory('.', 'index-classic.html')
