@@ -544,7 +544,7 @@ def debug_column_configuration():
 
 @app.route('/api/generate', methods=['POST'])
 def generate_data():
-    """Generate synthetic data with support for copy-only scenarios"""
+    """Generate synthetic data with Railway timeout and memory handling"""
     try:
         if not pipeline_state.get('pipeline'):
             return jsonify({'error': 'No pipeline initialized'}), 400
@@ -554,9 +554,13 @@ def generate_data():
 
         pipeline = pipeline_state['pipeline']
         pipeline_state['status'] = 'generating'
-        app.logger.info("Starting advanced synthetic data generation")
+        app.logger.info("Starting Railway-optimized synthetic data generation")
 
         start_time = time.time()
+        
+        # Railway timeout protection - set maximum generation time
+        RAILWAY_TIMEOUT = int(os.environ.get('GENERATION_TIMEOUT', 120))  # 2 minutes default
+        app.logger.info(f"Railway timeout set to {RAILWAY_TIMEOUT} seconds")
 
         # Check if any columns are selected for synthesis
         synthesis_required = False
@@ -577,49 +581,63 @@ def generate_data():
 
         # FIXED: Handle copy-only scenario
         if not synthesis_required:
-            app.logger.info("No columns selected for synthesis - creating copy with privacy features")
-            success = create_copy_with_privacy_features(pipeline)
+            app.logger.info("Railway: No columns selected for synthesis - creating copy with privacy features")
+            try:
+                success = create_copy_with_privacy_features(pipeline)
+                app.logger.info("Railway: Copy with privacy features completed successfully")
+            except Exception as e:
+                app.logger.error(f"Railway: Copy with privacy features failed: {str(e)}")
+                success = False
         else:
-            # Regular synthesis process
+            # Railway-optimized synthesis process
             generation_method = pipeline.config.get('generation_method', 'auto')
             total_rows = sum(len(df) for df in pipeline.original_data.values())
 
             app.logger.info(f"Dataset size: {total_rows} total rows")
 
-            # Auto-optimize method based on size
+            # Railway-specific optimizations: Force fast methods for cloud deployment
             if generation_method == 'auto':
-                if total_rows > 10000:
+                if total_rows > 5000:  # Lowered threshold for Railway
                     generation_method = 'perturbation'
-                    app.logger.info(
-                        f"Large dataset detected ({total_rows} rows), switching to perturbation method for speed")
-                elif total_rows > 5000:
-                    generation_method = 'gaussian_copula'
-                    app.logger.info(f"Medium dataset detected ({total_rows} rows), using gaussian_copula method")
+                    app.logger.info(f"Railway optimization: Using perturbation for {total_rows} rows")
+                elif total_rows > 1000:
+                    generation_method = 'perturbation'  # Changed from gaussian_copula
+                    app.logger.info(f"Railway optimization: Using perturbation for {total_rows} rows")
                 else:
-                    generation_method = 'ctgan'
-                    app.logger.info(f"Small dataset detected ({total_rows} rows), using ctgan method")
+                    generation_method = 'perturbation'  # Changed from ctgan
+                    app.logger.info(f"Railway optimization: Using perturbation for {total_rows} rows")
 
-            app.logger.info(f"Starting generation with method: {generation_method}")
+            # Override any complex method to perturbation for Railway reliability
+            if generation_method in ['ctgan', 'gaussian_copula']:
+                app.logger.info(f"Railway override: Switching from {generation_method} to perturbation for stability")
+                generation_method = 'perturbation'
+
+            app.logger.info(f"Railway-optimized method: {generation_method}")
 
             try:
-                # FORCE perturbation for large datasets
-                if total_rows > 20000:
-                    app.logger.info("Very large dataset - forcing perturbation mode")
-                    pipeline.apply_perturbation = True
-                    pipeline.perturbation_factor = 0.15
-                    success = pipeline.generate_perturbed_data()
+                # Check timeout before starting
+                elapsed = time.time() - start_time
+                if elapsed > RAILWAY_TIMEOUT * 0.8:  # 80% of timeout
+                    app.logger.warning("Approaching timeout, using emergency generation")
+                    success = create_emergency_synthetic_data(pipeline)
                 else:
-                    success = pipeline.generate_synthetic_data(
-                        method=generation_method,
-                        parameters=pipeline.config
-                    )
+                    # Always use perturbation for Railway (fastest and most reliable)
+                    app.logger.info("Using Railway-optimized perturbation method")
+                    pipeline.apply_perturbation = True
+                    pipeline.perturbation_factor = pipeline.config.get('perturbation_factor', 0.1)  # Lower for speed
+                    success = pipeline.generate_perturbed_data()
+                    
+                # Check timeout after generation attempt
+                elapsed = time.time() - start_time
+                if elapsed > RAILWAY_TIMEOUT:
+                    app.logger.error(f"Generation exceeded Railway timeout ({RAILWAY_TIMEOUT}s)")
+                    return jsonify({'error': 'Generation timeout - try with smaller dataset'}), 408
+                    
             except Exception as gen_error:
                 app.logger.error(f"Generation failed: {str(gen_error)}")
-                # Fallback to simple perturbation
-                app.logger.info("Falling back to simple perturbation method")
-                pipeline.apply_perturbation = True
-                pipeline.perturbation_factor = 0.2
-                success = pipeline.generate_perturbed_data()
+                # Emergency fallback for Railway
+                app.logger.info("Using emergency fallback for Railway")
+                success = create_emergency_synthetic_data(pipeline)
 
         generation_time = time.time() - start_time
         app.logger.info(f"Generation completed in {generation_time:.2f} seconds")
@@ -869,49 +887,49 @@ def apply_address_anonymization(df, table_name, schema_info):
     return df
 
 def create_emergency_synthetic_data(pipeline):
-    """Emergency fallback synthetic data creation"""
+    """Railway-optimized emergency fallback synthetic data creation"""
     try:
-        app.logger.info("Creating emergency synthetic data using simple sampling")
+        app.logger.info("Railway: Starting emergency synthetic data generation (ultra-fast mode)")
+
+        if not hasattr(pipeline, 'synthetic_data'):
+            pipeline.synthetic_data = {}
 
         for table_name, original_df in pipeline.original_data.items():
-            # Create synthetic data by sampling and adding small variations
+            app.logger.info(f"Railway: Processing table {table_name} with {len(original_df)} rows")
+            
+            # Create synthetic data by simple copy with minimal processing
             synthetic_df = original_df.copy()
 
-            # Add small random variations to numeric columns
-            for column in synthetic_df.columns:
-                if pd.api.types.is_numeric_dtype(synthetic_df[column]):
-                    if column.lower() == 'age':
-                        # Age: add ±1-2 years variation
-                        noise = np.random.randint(-2, 3, len(synthetic_df))
-                        synthetic_df[column] = (synthetic_df[column] + noise).clip(0, 120)
-                    else:
-                        # Other numeric: add 5% variation
-                        std = synthetic_df[column].std()
-                        if std > 0:
-                            noise = np.random.normal(0, std * 0.05, len(synthetic_df))
-                            synthetic_df[column] = synthetic_df[column] + noise
+            # Only process numeric columns for speed
+            numeric_columns = synthetic_df.select_dtypes(include=[np.number]).columns
+            app.logger.info(f"Railway: Found {len(numeric_columns)} numeric columns in {table_name}")
+            
+            for column in numeric_columns:
+                try:
+                    if len(synthetic_df) > 0:  # Safety check
+                        if 'age' in column.lower():
+                            # Minimal age variation for speed
+                            noise = np.random.randint(-1, 2, len(synthetic_df))
+                            synthetic_df[column] = (synthetic_df[column] + noise).clip(0, 120)
+                        else:
+                            # Very minimal variation (1% instead of 5%)
+                            std = synthetic_df[column].std()
+                            if std > 0:
+                                noise = np.random.normal(0, std * 0.01, len(synthetic_df))
+                                synthetic_df[column] = synthetic_df[column] + noise
+                except Exception as col_error:
+                    app.logger.warning(f"Railway: Skipping column {column} due to error: {str(col_error)}")
+                    continue
 
-                elif pd.api.types.is_datetime64_any_dtype(synthetic_df[column]) or 'date' in column.lower():
-                    # Dates: add ±1-3 days variation
-                    try:
-                        dates = pd.to_datetime(synthetic_df[column])
-                        random_days = np.random.randint(-3, 4, len(synthetic_df))
-                        new_dates = dates + pd.to_timedelta(random_days, unit='d')
-                        synthetic_df[column] = new_dates.dt.strftime('%Y-%m-%d')
-                    except:
-                        pass  # Keep original if conversion fails
-
-            # Store the synthetic data
-            if not hasattr(pipeline, 'synthetic_data'):
-                pipeline.synthetic_data = {}
+            # Store immediately to avoid memory issues
             pipeline.synthetic_data[table_name] = synthetic_df
+            app.logger.info(f"Railway: Emergency data created for {table_name}: {len(synthetic_df)} rows")
 
-            app.logger.info(f"Emergency synthetic data created for {table_name}: {len(synthetic_df)} rows")
-
+        app.logger.info("Railway: Emergency generation completed successfully")
         return True
 
     except Exception as e:
-        app.logger.error(f"Emergency generation failed: {str(e)}")
+        app.logger.error(f"Railway: Emergency generation failed: {str(e)}")
         return False
 
 
@@ -1145,6 +1163,17 @@ Total Rows: {sum(len(df) for df in pipeline.synthetic_data.values())}
         app.logger.error(traceback.format_exc())
         return jsonify({'error': f'Advanced export failed: {str(e)}'}), 500
 
+
+@app.route('/api/progress', methods=['GET'])
+def get_generation_progress():
+    """Get current generation progress for Railway monitoring"""
+    return jsonify({
+        'status': pipeline_state['status'],
+        'timestamp': datetime.now().isoformat(),
+        'railway_optimized': True,
+        'timeout_protection': True,
+        'is_generating': pipeline_state['status'] == 'generating'
+    })
 
 @app.route('/api/status', methods=['GET'])
 def get_status():
