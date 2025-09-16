@@ -170,11 +170,30 @@ class SyntheticDataPipeline:
             for column in df.columns:
                 column_info = {}
 
-                # Check if it's a name column
+                # Enhanced name column detection
                 if 'name' in column.lower() and not any(
                         substr in column.lower() for substr in ['filename', 'pathname']):
                     column_info['type'] = 'categorical'
                     column_info['is_name'] = True
+                    
+                    # Detect specific name types
+                    col_lower = column.lower().strip()
+                    if col_lower in ['first name', 'firstname', 'first_name', 'fname']:
+                        column_info['name_type'] = 'first_name'
+                        column_info['name_description'] = 'First name only'
+                    elif col_lower in ['last name', 'lastname', 'last_name', 'surname', 'lname', 'family name', 'family_name']:
+                        column_info['name_type'] = 'last_name'
+                        column_info['name_description'] = 'Last name only'
+                    elif col_lower in ['middle name', 'middlename', 'middle_name', 'mname']:
+                        column_info['name_type'] = 'middle_name'
+                        column_info['name_description'] = 'Middle name only'
+                    elif col_lower in ['name', 'full name', 'fullname', 'full_name', 'display name', 'display_name']:
+                        column_info['name_type'] = 'full_name'
+                        column_info['name_description'] = 'Full name (first + last)'
+                    else:
+                        # Default to full name if contains 'name' but not specifically categorized
+                        column_info['name_type'] = 'full_name'
+                        column_info['name_description'] = 'Full name (assumed)'
                 elif pd.api.types.is_numeric_dtype(df[column]):
                     column_info['type'] = 'numeric'
                 elif pd.api.types.is_datetime64_any_dtype(df[column]):

@@ -861,16 +861,43 @@ def apply_column_abstraction(df, column, method):
 
 
 def apply_name_anonymization(df, table_name, schema_info):
-    """Apply name anonymization to identified name columns"""
+    """Apply enhanced name anonymization based on name type"""
     import random
 
-    first_names = ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Emily', 'James', 'Jessica']
-    last_names = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis']
+    # Expanded name pools for better diversity
+    first_names_male = ['John', 'Michael', 'David', 'James', 'Robert', 'William', 'Richard', 'Thomas', 'Mark', 'Daniel']
+    first_names_female = ['Jane', 'Sarah', 'Emily', 'Jessica', 'Jennifer', 'Lisa', 'Nancy', 'Karen', 'Betty', 'Helen']
+    first_names_general = first_names_male + first_names_female
+    
+    last_names = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 
+                  'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 
+                  'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin']
+    
+    middle_names = ['Alan', 'Marie', 'Ann', 'Lee', 'Rose', 'Lynn', 'Grace', 'Hope', 'Faith', 'Joy']
 
     for column, info in schema_info.items():
         if column in df.columns and ('name' in column.lower() or info.get('is_name', False)):
-            df[column] = [f"{random.choice(first_names)} {random.choice(last_names)}" for _ in range(len(df))]
-            app.logger.info(f"Anonymized name column: {column}")
+            name_type = info.get('name_type', 'full_name')
+            
+            if name_type == 'first_name':
+                # Generate only first names
+                df[column] = [random.choice(first_names_general) for _ in range(len(df))]
+                app.logger.info(f"Anonymized first name column: {column}")
+                
+            elif name_type == 'last_name':
+                # Generate only last names
+                df[column] = [random.choice(last_names) for _ in range(len(df))]
+                app.logger.info(f"Anonymized last name column: {column}")
+                
+            elif name_type == 'middle_name':
+                # Generate only middle names
+                df[column] = [random.choice(middle_names) for _ in range(len(df))]
+                app.logger.info(f"Anonymized middle name column: {column}")
+                
+            else:  # full_name or default
+                # Generate full names (first + last)
+                df[column] = [f"{random.choice(first_names_general)} {random.choice(last_names)}" for _ in range(len(df))]
+                app.logger.info(f"Anonymized full name column: {column}")
 
     return df
 

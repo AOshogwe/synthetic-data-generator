@@ -2071,9 +2071,24 @@
                             const isSensitive = ['name', 'phone', 'address', 'email', 'id'].some(keyword => 
                                 columnName.toLowerCase().includes(keyword));
                             
+                            // Enhanced name type detection
+                            const colLower = columnName.toLowerCase().trim();
+                            let nameType = 'unknown';
+                            if (colLower.includes('first') && colLower.includes('name')) {
+                                nameType = 'first_name';
+                            } else if (colLower.includes('last') && colLower.includes('name')) {
+                                nameType = 'last_name';
+                            } else if (colLower === 'name' || colLower.includes('full') && colLower.includes('name')) {
+                                nameType = 'full_name';
+                            }
+                            
                             if (isNumeric || isSensitive) {
                                 config.column_selection[tableName][columnName] = 'synthesize';
-                                addLog('QuickGen', `Synthesizing column: ${columnName}`, 'DEBUG');
+                                if (nameType !== 'unknown') {
+                                    addLog('QuickGen', `Synthesizing ${nameType} column: ${columnName}`, 'DEBUG');
+                                } else {
+                                    addLog('QuickGen', `Synthesizing column: ${columnName}`, 'DEBUG');
+                                }
                             } else {
                                 config.column_selection[tableName][columnName] = 'copy';
                             }
@@ -2401,6 +2416,16 @@
                     uploadedData[tableName].column_names.forEach(columnName => {
                         const colLower = columnName.toLowerCase();
                         
+                        // Enhanced name type detection for ML test
+                        let nameType = 'unknown';
+                        if (colLower.includes('first') && colLower.includes('name')) {
+                            nameType = 'first_name';
+                        } else if (colLower.includes('last') && colLower.includes('name')) {
+                            nameType = 'last_name';
+                        } else if (colLower === 'name' || (colLower.includes('full') && colLower.includes('name'))) {
+                            nameType = 'full_name';
+                        }
+                        
                         // Synthesize key healthcare columns
                         if (colLower.includes('age') || 
                             colLower.includes('billing') || 
@@ -2408,7 +2433,11 @@
                             colLower.includes('name') ||
                             colLower.includes('room')) {
                             config.column_selection[tableName][columnName] = 'synthesize';
-                            addLog('MLTest', `Will synthesize: ${columnName}`, 'INFO');
+                            if (nameType !== 'unknown') {
+                                addLog('MLTest', `Will synthesize ${nameType}: ${columnName}`, 'INFO');
+                            } else {
+                                addLog('MLTest', `Will synthesize: ${columnName}`, 'INFO');
+                            }
                         } else {
                             config.column_selection[tableName][columnName] = 'copy';
                         }
