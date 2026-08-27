@@ -33,7 +33,7 @@ def test_module_imports():
     
     try:
         # Test pipeline import
-        from pipeline.core_pipeline import SyntheticDataPipeline
+        from pipeline_modular.core_pipeline import SyntheticDataPipeline
         print("✅ Pipeline module imports successfully")
         
         # Test utils imports

@@ -1,11 +1,35 @@
+import logging
 import pandas as pd
 import numpy as np
 from typing import Dict, List, Tuple, Any
 from sklearn.model_selection import train_test_split
-from models.ctgan_model import CTGAN
-from models.tabular_vae import TabularVAEModel
 from models.copula import GaussianCopula
 from evaluation.statistical_evaluator import SyntheticDataEvaluator
+
+# CTGAN and the tabular VAE are built on torch, which isn't listed in
+# requirements.txt or requirements-railway.txt. Importing this module used to
+# hard-fail with ModuleNotFoundError wherever torch wasn't installed, and since
+# pipeline.py imports this module unconditionally, that took the whole
+# pipeline down with it. Make these two optional, same pattern already used
+# for geopy/usaddress elsewhere in this codebase, and fall back to
+# GaussianCopula (pure numpy/scipy/sklearn, no torch) when unavailable.
+logger = logging.getLogger(__name__)
+
+try:
+    from models.ctgan_model import CTGAN
+    CTGAN_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"CTGAN unavailable ({e}); falling back to GaussianCopula where CTGAN would have been used.")
+    CTGAN = None
+    CTGAN_AVAILABLE = False
+
+try:
+    from models.tabular_vae import TabularVAEModel
+    TVAE_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"TabularVAE unavailable ({e}); falling back to GaussianCopula where TVAE would have been used.")
+    TabularVAEModel = None
+    TVAE_AVAILABLE = False
 
 
 class SyntheticGenerationEngine:
