@@ -292,34 +292,59 @@ class SyntheticDataPipeline:
             "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin"
         ]
 
+        # Pre-compute ONE first-name/last-name pair per row, shared across every
+        # name column in this table. This guarantees that (a) a column whose
+        # header says "First Name" only ever receives a first name, a column
+        # whose header says "Last name" only ever receives a surname (previously
+        # both were overwritten with a full "First Last" string, since both
+        # headers matched the generic `is_name` check), and (b) if a table has
+        # both a first-name and a last-name column, they refer to the same
+        # synthetic identity for a given row instead of being drawn independently.
+        gender_iter = gender_values if gender_column else [None] * len(df)
+        first_name_pool = []
+        last_name_pool = []
+        for gender in gender_iter:
+            if gender == 'M':
+                first_name_pool.append(random.choice(male_first_names))
+            elif gender == 'F':
+                first_name_pool.append(random.choice(female_first_names))
+            else:
+                first_name_pool.append(
+                    random.choice(male_first_names if random.random() < 0.5 else female_first_names))
+            last_name_pool.append(random.choice(last_names))
+
         # Process name columns
         if 'columns' in self.schema.get(table_name, {}):
             for column, info in self.schema[table_name]['columns'].items():
                 if info.get('is_name') and column in df.columns:
-                    logging.info(f"Generating synthetic names for column: {column}")
+                    name_part = self._classify_name_column(column)
+                    logging.info(f"Generating synthetic names for column: {column} (part: {name_part})")
 
-                    if gender_column:
-                        # Generate names based on gender
-                        names = []
-                        for gender in gender_values:
-                            if gender == 'M':
-                                first_name = random.choice(male_first_names)
-                            elif gender == 'F':
-                                first_name = random.choice(female_first_names)
-                            else:
-                                first_name = random.choice(
-                                    male_first_names if random.random() < 0.5 else female_first_names)
-
-                            last_name = random.choice(last_names)
-                            names.append(f"{first_name} {last_name}")
-                        df[column] = names
+                    if name_part == 'first':
+                        df[column] = list(first_name_pool)
+                    elif name_part == 'last':
+                        df[column] = list(last_name_pool)
                     else:
-                        # Generate random names without gender info
-                        df[column] = [
-                            f"{random.choice(male_first_names if random.random() < 0.5 else female_first_names)} {random.choice(last_names)}"
-                            for _ in range(len(df))]
+                        df[column] = [f"{f} {l}" for f, l in zip(first_name_pool, last_name_pool)]
 
         return df
+
+    @staticmethod
+    def _classify_name_column(column_name):
+        """Classify a name-like column as first-name-only, last-name-only, or full-name.
+
+        Column headers containing both "first" and "last" (unlikely) or neither
+        fall back to 'full', which preserves the previous "First Last" behaviour
+        for genuinely full-name columns (e.g. a plain "Name" column).
+        """
+        lc = str(column_name).lower()
+        is_first = 'first' in lc
+        is_last = 'last' in lc or 'surname' in lc or 'family name' in lc
+        if is_first and not is_last:
+            return 'first'
+        if is_last and not is_first:
+            return 'last'
+        return 'full'
 
     def identify_name_columns(self):
         """Interactive identification of name columns"""
@@ -1419,6 +1444,16 @@ class SyntheticDataPipeline:
                 logging.warning(f"Original table {table_name} is empty, skipping")
                 continue
 
+            # Single row mapping shared by every "copy"/fallback code path below.
+            # Without this, columns_to_copy, the whole-table fallback, and any
+            # per-column fallback each drew their own independent random sample,
+            # so a synthetic row could end up with one original patient's PII
+            # (birthdate, postal code, phone, income) paired with a *different*
+            # original patient's clinical values. Using one row_map means every
+            # non-synthesized value in a synthetic row traces back to the same
+            # original record.
+            row_map = np.random.choice(len(df), size=n_samples, replace=len(df) < n_samples)
+
             # Identify columns to synthesize versus columns to copy
             columns_to_synthesize = []
             columns_to_copy = []
@@ -1442,8 +1477,15 @@ class SyntheticDataPipeline:
             # Important: Train on ALL columns to preserve relationships
             try:
                 # Train models on ALL columns to capture relationships
-                if method == 'auto':
-                    logging.info("Training models with auto method on all columns")
+                if method in ('auto', 'ctgan', 'tvae', 'gaussian_copula', 'copula'):
+                    # SyntheticGenerationEngine.train_models() always trains
+                    # ctgan/tvae/copula together and picks the best-scoring one
+                    # internally, so every one of these requested method names
+                    # goes through the same training call. Previously only
+                    # 'auto' did this and 'ctgan' (the method app.py's
+                    # auto-size-based selection picks for small datasets) was a
+                    # silent no-op that always fell through to fallback below.
+                    logging.info(f"Training models (requested method: {method}) on all columns")
                     self.generator.train_models(df)  # Train on the entire dataframe
 
                     # Generate synthetic data for the entire structure
@@ -1451,7 +1493,7 @@ class SyntheticDataPipeline:
 
                     if full_synthetic_df is None or full_synthetic_df.empty:
                         logging.error(f"Generation produced empty DataFrame for {table_name}")
-                        full_synthetic_df = self._create_fallback_synthetic_data(df, n_samples)
+                        full_synthetic_df = self._create_fallback_synthetic_data(df, n_samples, row_map)
 
                     # Extract only the columns that need to be synthesized
                     if columns_to_synthesize:
@@ -1465,9 +1507,6 @@ class SyntheticDataPipeline:
                     else:
                         synthetic_df = pd.DataFrame(index=range(n_samples))
 
-                elif method == 'ctgan':
-                    # Other methods...
-                    pass
                 else:
                     raise ValueError(f"Unsupported generation method: {method}")
 
@@ -1480,7 +1519,7 @@ class SyntheticDataPipeline:
             if synthetic_df is None or synthetic_df.empty:
                 logging.warning(f"Primary generation failed for {table_name}, using fallback")
                 if columns_to_synthesize:
-                    synthetic_df = self._create_fallback_synthetic_data(df[columns_to_synthesize], n_samples)
+                    synthetic_df = self._create_fallback_synthetic_data(df[columns_to_synthesize], n_samples, row_map)
                 else:
                     synthetic_df = pd.DataFrame(index=range(n_samples))
 
@@ -1498,20 +1537,20 @@ class SyntheticDataPipeline:
                     final_df[column] = synthetic_df[column]
                 else:
                     logging.warning(f"Synthesized data missing column {column}, using fallback")
-                    final_df[column] = self._generate_fallback_column(df[column], n_samples)
+                    final_df[column] = self._generate_fallback_column(df[column], n_samples, row_map)
 
-            # Add copied columns - sample randomly from original data
+            # Add copied columns - use the SAME row_map as everything else for
+            # this table, so copied columns stay tied to one consistent
+            # original record per synthetic row (see row_map comment above).
             if columns_to_copy:
-                # Create a random index mapping for sampling
-                original_indices = np.random.choice(len(df), size=n_samples, replace=len(df) < n_samples)
                 for column in columns_to_copy:
-                    final_df[column] = df[column].iloc[original_indices].reset_index(drop=True)
+                    final_df[column] = df[column].iloc[row_map].reset_index(drop=True)
 
             # Ensure all original columns are present
             for column in df.columns:
                 if column not in final_df.columns:
                     logging.warning(f"Column {column} missing from final data, adding it")
-                    final_df[column] = self._generate_fallback_column(df[column], n_samples)
+                    final_df[column] = self._generate_fallback_column(df[column], n_samples, row_map)
 
             # Apply name abstraction only if requested by user
             if hasattr(self, 'apply_name_abstraction') and self.apply_name_abstraction:
@@ -1563,37 +1602,57 @@ class SyntheticDataPipeline:
 
         return True
 
-    def _generate_fallback_column(self, original_series, n_samples):
-        """Generate fallback values for a single column"""
+    def _generate_fallback_column(self, original_series, n_samples, row_map=None):
+        """Generate fallback values for a single column.
+
+        If row_map is provided (an array of indices into original_series, one
+        per synthetic row), values are taken from those exact positions so this
+        column stays aligned with every other column filled from the same
+        row_map for the same table, instead of drawing its own independent
+        random sample and risking a different original row per column.
+        """
         try:
-            # Sample with replacement from original values
-            if len(original_series) > 0:
-                return original_series.sample(n_samples, replace=True).reset_index(drop=True)
-            else:
-                # If original is empty, return empty/NA values
+            if len(original_series) == 0:
                 return pd.Series([None] * n_samples)
+
+            if row_map is not None and len(row_map) == n_samples:
+                idx = np.asarray(row_map)
+                if idx.max(initial=-1) < len(original_series):
+                    return original_series.iloc[idx].reset_index(drop=True)
+                # row_map was built against a differently-sized series; fall
+                # back to independent sampling rather than raise.
+
+            # Sample with replacement from original values
+            return original_series.sample(n_samples, replace=True).reset_index(drop=True)
         except Exception as e:
             logging.error(f"Error generating fallback column: {str(e)}")
             # Return empty/NA values
             return pd.Series([None] * n_samples)
 
-    def _create_fallback_synthetic_data(self, original_df, n_samples):
-        """Create fallback synthetic data when the generator fails"""
+    def _create_fallback_synthetic_data(self, original_df, n_samples, row_map=None):
+        """Create fallback synthetic data when the generator fails.
+
+        If row_map is provided, rows are drawn from original_df at those exact
+        positions (the same mapping used for this table's copied columns)
+        rather than an independent random sample, so the fallback-generated
+        columns still correspond to the same original record as everything
+        else in the synthetic row.
+        """
         logging.warning("Using fallback synthetic data generation")
 
         try:
             # Create a copy of the dataframe structure
             synthetic_df = pd.DataFrame(columns=original_df.columns)
 
+            if row_map is not None and len(row_map) == n_samples and np.asarray(row_map).max(initial=-1) < len(original_df):
+                synthetic_df = original_df.iloc[np.asarray(row_map)].copy().reset_index(drop=True)
             # Determine how to populate the data
-            if n_samples <= len(original_df):
+            elif n_samples <= len(original_df):
                 # If we need fewer rows than original, sample from original
                 synthetic_df = original_df.sample(n_samples, replace=False).copy().reset_index(drop=True)
             else:
                 # If we need more rows, sample with replacement
                 synthetic_df = original_df.sample(n_samples, replace=True).copy().reset_index(drop=True)
-
-            logging.info(f"Created basic synthetic dataframe with {len(synthetic_df)} rows")
 
             # Now add some variation to make it actually "synthetic"
             for column in synthetic_df.columns:

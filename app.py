@@ -727,6 +727,23 @@ def apply_column_abstraction(df, column, method):
     return df
 
 
+def _classify_name_column(column_name):
+    """Classify a name-like column as first-name-only, last-name-only, or full-name.
+
+    Both "First Name" and "Last name" headers contain the substring "name", so a
+    naive check used to overwrite both with a full "First Last" string. This
+    looks at "first"/"last" specifically so each column only gets its own part.
+    """
+    lc = str(column_name).lower()
+    is_first = 'first' in lc
+    is_last = 'last' in lc or 'surname' in lc or 'family name' in lc
+    if is_first and not is_last:
+        return 'first'
+    if is_last and not is_first:
+        return 'last'
+    return 'full'
+
+
 def apply_name_anonymization(df, table_name, schema_info):
     """Apply name anonymization to identified name columns"""
     import random
@@ -734,10 +751,23 @@ def apply_name_anonymization(df, table_name, schema_info):
     first_names = ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Emily', 'James', 'Jessica']
     last_names = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis']
 
+    # One first/last pair per row, shared across every name column in this table,
+    # so a first-name column and a last-name column stay consistent with each
+    # other for a given row instead of being anonymized independently.
+    n = len(df)
+    first_name_pool = [random.choice(first_names) for _ in range(n)]
+    last_name_pool = [random.choice(last_names) for _ in range(n)]
+
     for column, info in schema_info.items():
         if column in df.columns and ('name' in column.lower() or info.get('is_name', False)):
-            df[column] = [f"{random.choice(first_names)} {random.choice(last_names)}" for _ in range(len(df))]
-            app.logger.info(f"Anonymized name column: {column}")
+            name_part = _classify_name_column(column)
+            if name_part == 'first':
+                df[column] = list(first_name_pool)
+            elif name_part == 'last':
+                df[column] = list(last_name_pool)
+            else:
+                df[column] = [f"{f} {l}" for f, l in zip(first_name_pool, last_name_pool)]
+            app.logger.info(f"Anonymized name column: {column} (part: {name_part})")
 
     return df
 

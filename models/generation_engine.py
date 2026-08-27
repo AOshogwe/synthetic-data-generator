@@ -70,12 +70,15 @@ class SyntheticGenerationEngine:
         # Split data for evaluation
         train_data, test_data = train_test_split(df, test_size=test_size, random_state=42)
 
-        # Initialize models
-        models = {
-            'ctgan': CTGAN(self.schema),
-            'tvae': TabularVAEModel(self.schema),
-            'copula': GaussianCopula(self.schema)
-        }
+                # Initialize whichever models are actually available. GaussianCopula
+        # has no heavy/optional dependencies, so it's always included as a
+        # guaranteed-available baseline; CTGAN/TVAE are added only if torch
+        # was importable.
+        models = {'copula': GaussianCopula(self.schema)}
+        if CTGAN_AVAILABLE:
+            models['ctgan'] = CTGAN(self.schema)
+        if TVAE_AVAILABLE:
+            models['tvae'] = TabularVAEModel(self.schema)
 
         # Train each model
         for name, model in models.items():
