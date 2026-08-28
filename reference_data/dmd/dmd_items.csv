@@ -1,0 +1,113 @@
+Item ID,Item type,Unit,Value domain ID
+First name at birth,free text,,
+Last name at birth,free text,,
+Full date of birth,date,,
+Sex at birth,single selection,,Sex
+Country of birth,restricted text,,
+Place of birth,free text,,
+Date of birth,date,,
+Sex,single selection,,Sex
+Country of residence,restricted text,,
+Alive,yes/no,,
+Date of death,date,,
+Cause of death code,restricted text,,
+Cause of death classification,single selection,,Mortality classification
+Diagnosis date,date,,
+Diagnosis method,multiple selection,,Diagnosis methods
+Genetic confirmation,yes/no,,
+Genetic diagnosis,single selection,,DMD diagnosis
+Screening,single selection,,Screening
+Genetic report date,date,,
+DMD variant CNV,restricted text,,
+DMD variant HGVS,restricted text,,
+DMD testing method,single selection,,Genetic testing method
+Symptom onset,single selection,,Symptom onset
+Symptom onset date,date,,
+Height,decimal,centimetres,
+Height measurement method,single selection,,Height measurement method
+Weight,decimal,kilograms,
+Scoliosis diagnosis,single selection,,Scoliosis diagnosis
+Scoliosis surgery performed,yes/no,,
+Scoliosis surgery date,date,,
+Scoliosis surgery type,single selection,,Scoliosis surgery type
+Spinal fractures diagnosed,yes/no,,
+Spinal fracture date,date,,
+Non-spinal fractures diagnosed,yes/no,,
+Non-spinal fracture date,date,,
+Non-spinal fracture location,single selection,,Non-spinal fracture location
+Non-spinal fracture side,single selection,,Body side
+Motor ability,single selection,,Motor ability
+Motor ability status,yes/no,,
+Motor measure,single selection,,Motor measure
+Motor measure score,decimal,,
+Wheelchair usage,single selection,,Past and present status
+Wheelchair usage frequency,single selection,,Wheelchair usage frequency
+Feeding tube usage,single selection,,Past and present status
+Feeding tube usage type,single selection,,Feeding tube usage type
+Non-invasive ventilation usage,single selection,,Past and present status
+Non-invasive ventilation duration,single selection,,Ventilation duration
+Invasive ventilation usage,single selection,,Past and present status
+Invasive ventilation duration,single selection,,Ventilation duration
+Airway clearance assistance,single selection,,Airway clearance assistance frequency
+Airway clearance technique,multiple selection,,Airway clearance technique
+Pulmonary function test date,date,,
+Forced vital capacity volume,decimal,litres,
+Forced vital capacity percentage,decimal,percent,
+Spirometry position,single selection,,Spirometry position
+Peak cough flow,decimal,litres per minute,
+Cardiac imaging performed,yes/no,,
+Cardiac imaging date,date,,
+Cardiac imaging type,single selection,,Cardiac imaging type
+Left ventricular ejection fraction,decimal,percent,
+Fractional shortening,decimal,percent,
+DMT received,yes/no,,
+DMT,single selection,,DMD disease-modifying therapy
+DMT status,single selection,,Disease-modifying therapy status
+DMT stopping reason,single selection,,Reason for stopping disease-modifying therapies
+Corticosteroid usage,single selection,,Past and present status
+Corticosteroid drug,single selection,,Corticosteroid
+Corticosteroid administration days on,integer,,
+Corticosteroid administration days off,integer,,
+Corticosteroid dosage,decimal,milligrams per kilogram (mg/kg) of body weight,
+Corticosteroid stopping reason,multiple selection,,Reason for stopping treatment
+Cardiac treatment usage,single selection,,Past and present status
+Cardiac treatment,single selection,,Cardiac treatment
+Other cardiac drug,free text,,
+Cardiac treatment stopping reason,multiple selection,,Reason for stopping treatment
+Allopathic drug usage,yes/no,,
+Allopathic drugs,multiple selection,,Allopathic drugs
+Other allopathic drugs,free text,,
+Allopathic drug,single selection,,Allopathic drugs
+Other allopathic drug,free text,,
+Allopathic drug stopping reason,multiple selection,,Reason for stopping treatment
+Rehabilitative interventions usage,yes/no,,
+Rehabilitative interventions,multiple selection,,Rehabilitative interventions
+Hospitalisation occurred,yes/no,,
+Hospitalisation type,single selection,,Hospitalisation type
+Hospitalisation admission date,date,,
+Hospitalisation nights,integer,,
+Hospitalisation acute reason code,restricted text,,
+Hospitalisation acute reason classification,single selection,,Morbidity classification
+Hospitalisation planned reason,single selection,,Hospitalisation planned reason
+Hospitalisation SAE,yes/no,,
+Hospitalisation SAE DMT,single selection,,DMD disease-modifying therapy
+Comorbidities diagnosed,yes/no,,
+Comorbidity code,restricted text,,
+Comorbidity classification,single selection,,Morbidity classification
+Comorbidity SAE,yes/no,,
+Comorbidity SAE DMT,single selection,,DMD disease-modifying therapy
+Clinical trial participation,single selection,,Past and present status
+Clinical trial NCT number,restricted text,,
+Clinical trial name,free text,,
+Clinical trial drug,free text,,
+Other registry participation,yes/no,,
+Other registry,free text,,
+Patient-reported outcome measure,single selection,,Patient-reported outcome measure
+Patient-reported outcome measure score,decimal,,
+DEXA performed,yes/no,,
+Muscle imaging performed,yes/no,,
+Muscle biopsy performed,yes/no,,
+Muscle biopsy date,date,,
+Muscle biopsy purpose,single selection,,Muscle biopsy purpose
+Muscle biopsy stored in biobank,yes/no,,
+Muscle biopsy biobank,free text,,

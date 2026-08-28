@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from typing import Dict, List, Tuple, Any, Optional, Union
 import os
+import re
 import json
 import time
 import logging
@@ -197,6 +198,9 @@ class SyntheticDataPipeline:
         """Infer schema from loaded data"""
         logging.info("Inferring schema from data")
 
+        if not hasattr(self, 'dmd_items'):
+            self.load_dmd_reference()
+
         schema = {}
 
         for table_name, df in self.original_data.items():
@@ -221,11 +225,184 @@ class SyntheticDataPipeline:
                 if column.lower().endswith('id') and df[column].nunique() == len(df):
                     column_info['is_id'] = True
 
+                # Layer the richer DMD-style subtype/vocab info on top,
+                # without touching the base 'type' field above.
+                column_info.update(self._infer_column_subtype(column, df[column]))
+
                 table_schema['columns'][column] = column_info
 
             schema[table_name] = table_schema
 
         self.schema = schema
+
+    def load_dmd_reference(self, items_path='reference_data/dmd/dmd_items.csv',
+                            values_path='reference_data/dmd/dmd_permissible_values.csv'):
+        """Load the TREAT-NMD DMD Core Dataset item/vocabulary spec, if present.
+        Safe no-op if the files aren't there (e.g. on non-DMD deployments)."""
+        self.dmd_items = {}
+        self.dmd_vocab = {}
+        if not (os.path.exists(items_path) and os.path.exists(values_path)):
+            return
+
+        items = pd.read_csv(items_path)
+        values = pd.read_csv(values_path)
+
+        for _, row in items.iterrows():
+            item_id = row.get('Item ID')
+            if pd.isna(item_id):
+                continue
+            key = str(item_id).strip().lower()
+            self.dmd_items[key] = {
+                'dmd_type': row.get('Item type'),
+                'unit': row.get('Unit') if pd.notna(row.get('Unit')) else None,
+                'value_domain': row.get('Value domain ID') if pd.notna(row.get('Value domain ID')) else None,
+            }
+
+        for domain, group in values.groupby('Value domain ID'):
+            self.dmd_vocab[domain] = group['Value ID'].dropna().tolist()
+
+        logging.info(f"Loaded {len(self.dmd_items)} DMD items, {len(self.dmd_vocab)} vocab domains")
+
+    @staticmethod
+    def _normalize_column_name(column):
+        base = re.sub(r'\(.*?\)', '', str(column)).strip().lower()
+        return re.sub(r'\s+', ' ', base)
+
+    @staticmethod
+    def _extract_unit(column):
+        m = re.search(r'\(([^)]+)\)', str(column))
+        return m.group(1).strip() if m else None
+
+    def _match_dmd_item(self, column):
+        """Exact match only (after stripping trailing units/qualifiers) — a
+        loose substring match is too dangerous here (e.g. 'Age' would match
+        'Wheelchair usage', 'Diagnosis' would match 'Diagnosis date'). If a
+        real dataset uses different labels than the spec, it falls through
+        to the generic heuristics below instead of being mislabeled."""
+        if not getattr(self, 'dmd_items', None):
+            return None
+        return self.dmd_items.get(self._normalize_column_name(column))
+
+    @staticmethod
+    def _numeric_after_stripping(series, min_success_rate=0.9):
+        """Catch numbers stored as strings with formatting, e.g. '$45,231' or
+        '87%', so they aren't mistaken for multi-label or categorical fields."""
+        non_null = series.dropna().astype(str)
+        if len(non_null) == 0:
+            return None
+        cleaned = non_null.str.replace(r'[,$%\s]', '', regex=True)
+        parsed = pd.to_numeric(cleaned, errors='coerce')
+        if parsed.notna().mean() >= min_success_rate:
+            sample = non_null.iloc[0]
+            unit = 'currency' if '$' in sample else ('percent' if '%' in sample else None)
+            return parsed, unit
+        return None
+
+    @staticmethod
+    def _detect_yes_no(series):
+        vals = set(str(v).strip().lower() for v in series.dropna().unique())
+        if not vals:
+            return False
+        yes_no_sets = [{'yes', 'no'}, {'y', 'n'}, {'true', 'false'}, {'1', '0'}, {'1.0', '0.0'}]
+        return any(vals.issubset(s) for s in yes_no_sets) and len(vals) <= 2
+
+    @staticmethod
+    def _detect_multi_label(series, min_hits=2):
+        non_null = series.dropna().astype(str)
+        if len(non_null) == 0:
+            return None
+        for delim in [';', '|', ',']:
+            hits = non_null.str.contains(re.escape(delim), regex=True).sum()
+            if hits < min_hits:
+                continue
+            tokens = []
+            for v in non_null:
+                tokens.extend(t.strip() for t in v.split(delim) if t.strip())
+            if not tokens:
+                continue
+            # Comma-split tokens that are mostly numeric fragments are almost
+            # certainly a formatted number (e.g. "45,231"), not multi-label.
+            numeric_rate = sum(t.replace('.', '', 1).isdigit() for t in tokens) / len(tokens)
+            if delim == ',' and numeric_rate > 0.5:
+                continue
+            return {'delimiter': delim, 'values': sorted(set(tokens))}
+        return None
+
+    @staticmethod
+    def _detect_restricted_text(series, min_rows=5):
+        non_null = series.dropna().astype(str)
+        if len(non_null) < min_rows:
+            return None
+        for pat in [r'^[A-Za-z]{1,4}[\-]?\d+(\.\d+)?$', r'^[A-Z0-9\-]{2,15}$']:
+            if non_null.str.match(pat).all():
+                return pat
+        return None
+
+    def _infer_column_subtype(self, column, series):
+        """Layers a richer 8-type field classification (matching the DMD spec's
+        date/decimal/integer/yes_no/single_selection/multiple_selection/
+        restricted_text/free_text) on top of the existing numeric/categorical/
+        datetime 'type', without replacing it — so nothing that already reads
+        schema['type'] breaks."""
+        info = {}
+
+        matched = self._match_dmd_item(column)
+        if matched:
+            info['dmd_type'] = matched['dmd_type']
+            info['unit'] = matched['unit']
+            if matched['value_domain'] and matched['value_domain'] in self.dmd_vocab:
+                info['permissible_values'] = self.dmd_vocab[matched['value_domain']]
+            if matched['dmd_type'] == 'multiple selection':
+                info['is_multi_label'] = True
+            return info
+
+        unit = self._extract_unit(column)
+        if unit:
+            info['unit'] = unit
+
+        if pd.api.types.is_numeric_dtype(series):
+            non_null = series.dropna()
+            is_whole = (non_null == non_null.round()).all() if len(non_null) else True
+            info['dmd_type'] = 'integer' if is_whole else 'decimal'
+            return info
+
+        numeric_string = self._numeric_after_stripping(series)
+        if numeric_string is not None:
+            parsed, inferred_unit = numeric_string
+            if inferred_unit and 'unit' not in info:
+                info['unit'] = inferred_unit
+            non_null = parsed.dropna()
+            is_whole = (non_null == non_null.round()).all() if len(non_null) else True
+            info['dmd_type'] = 'integer' if is_whole else 'decimal'
+            return info
+
+        if self._detect_yes_no(series):
+            info['dmd_type'] = 'yes/no'
+            return info
+
+        multi = self._detect_multi_label(series)
+        if multi:
+            info['dmd_type'] = 'multiple selection'
+            info['is_multi_label'] = True
+            info['multi_label_delimiter'] = multi['delimiter']
+            info['permissible_values'] = multi['values']
+            return info
+
+        n = series.dropna().shape[0]
+        nunique = series.nunique(dropna=True)
+        if n > 0 and nunique <= 20 and (nunique / n) < 0.5:
+            info['dmd_type'] = 'single selection'
+            info['permissible_values'] = sorted(str(v) for v in series.dropna().unique())
+            return info
+
+        pattern = self._detect_restricted_text(series)
+        if pattern:
+            info['dmd_type'] = 'restricted text'
+            info['pattern'] = pattern
+            return info
+
+        info['dmd_type'] = 'free text'
+        return info
 
     def preprocess_data(self):
         """Preprocess the loaded data"""

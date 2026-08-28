@@ -1,0 +1,266 @@
+Value domain ID,Value ID
+Airway clearance assistance frequency,Daily
+Airway clearance assistance frequency,Weekly
+Airway clearance assistance frequency,Occasionally
+Airway clearance assistance frequency,Never
+Airway clearance technique,Suction
+Airway clearance technique,Bag valve mask
+Airway clearance technique,Intrapulmonary percussive ventilation
+Airway clearance technique,Mechanical insufflation-exsufflation
+Allopathic drugs,Vitamin D
+Allopathic drugs,Calcium
+Allopathic drugs,Bisphosphonates
+Allopathic drugs,Biphosphonate
+Allopathic drugs,Bone health
+Allopathic drugs,Gastroesophageal reflux
+Allopathic drugs,Constipation
+Allopathic drugs,Gastrointestinal
+Allopathic drugs,Antibiotics
+Allopathic drugs,Anticholinergic drugs
+Allopathic drugs,Influenza immunizations
+Allopathic drugs,Pneumococcal immunizations
+Allopathic drugs,Respiratory
+Allopathic drugs,Creatine
+Allopathic drugs,Acetyl-L-carnitine
+Allopathic drugs,Phenylbutyrate
+Allopathic drugs,Gabapentin
+Allopathic drugs,Thyrotropin-releasing hormone
+Allopathic drugs,Hydroxyurea
+Allopathic drugs,Valproate
+Allopathic drugs,Albuterol
+Allopathic drugs,Testosterone
+Allopathic drugs,Supplement
+Body side,Left
+Body side,Right
+Cardiac imaging type,Echocardiography
+Cardiac imaging type,Cardiac MRI
+Cardiac treatment,Angiotensin receptor blockers
+Cardiac treatment,ACE inhibitors
+Cardiac treatment,Beta blockers
+Cardiac treatment,Eplerenone
+Cardiac treatment,Spironolactone
+Cardiac treatment,Other diuretics
+Cardiac treatment,Pacemaker
+Cardiac treatment,Implantable cardioverter-defibrillator
+Corticosteroid,prednisone oral
+Corticosteroid,prednisolone oral
+Corticosteroid,deflazacort oral
+DMD diagnosis,DMD
+DMD diagnosis,BMD
+DMD disease-modifying therapy,Ataluren
+DMD disease-modifying therapy,Casimersen
+DMD disease-modifying therapy,Eteplirsen
+DMD disease-modifying therapy,Golodirsen
+DMD disease-modifying therapy,Viltolarsen
+Diagnosis methods,Genetic
+Diagnosis methods,Physical examination
+Diagnosis methods,Muscle biopsy
+Diagnosis methods,Biomarkers
+Disease-modifying therapy status,Ongoing
+Disease-modifying therapy status,Stopped
+Feeding tube usage type,Exclusive
+Feeding tube usage type,Supplementary
+Genetic testing method,RFLP
+Genetic testing method,HRM
+Genetic testing method,MLPA
+Genetic testing method,DNA sequencing
+Genetic testing method,qrtPCR
+Genetic testing method,ddPCR
+Genetic testing method,Exon sequencing
+Genetic testing method,RNA analysis
+Genetic testing method,Southern blotting
+Genetic testing method,FISH
+Height measurement method,Standing height
+Height measurement method,Recumbent length
+Height measurement method,Arm span
+Height measurement method,Ulnar length
+Hospitalisation planned reason,G-tube placement
+Hospitalisation planned reason,Sleep study
+Hospitalisation planned reason,Scoliosis surgery
+Hospitalisation planned reason,Hip surgery
+Hospitalisation planned reason,Contracture surgery
+Hospitalisation planned reason,Disease-modifying therapy
+Hospitalisation planned reason,Checkup
+Hospitalisation type,Planned
+Hospitalisation type,Acute
+Morbidity classification,ICD-10
+Morbidity classification,ICD-11
+Morbidity classification,MedDRA
+Mortality classification,ICD-10
+Mortality classification,ICD-11
+Motor ability,Hold head without support
+Motor ability,Roll onto side
+Motor ability,Sit without support
+Motor ability,Crawl
+Motor ability,Stand with assistance
+Motor ability,Transfer
+Motor ability,Stand without assistance
+Motor ability,Get up from chair
+Motor ability,Rise from floor
+Motor ability,Walk with assistance
+Motor ability,Walk without assistance
+Motor ability,Walk 10 metres without assistance
+Motor ability,Climb stairs
+Motor ability,Run
+Motor ability,Useful function of hands
+Motor ability,Reach overhead in a sitting position
+Motor ability,Raise hands to mouth in a sitting position
+Motor measure,10MWT
+Motor measure,100MTT
+Motor measure,4SC
+Motor measure,6MWT
+Motor measure,9HPT left hand
+Motor measure,9HPT right hand
+Motor measure,ACTIVE
+Motor measure,ACTIVE workspace volume
+Motor measure,AIMS
+Motor measure,BBT left hand
+Motor measure,BBT right hand
+Motor measure,Brooke
+Motor measure,BSID-III composite motor score
+Motor measure,BSID-III composite motor percentile
+Motor measure,CHOP-INTEND
+Motor measure,EK2
+Motor measure,ES9HPT left hand
+Motor measure,ES9HPT right hand
+Motor measure,ESBBT left hand
+Motor measure,ESBBT right hand
+Motor measure,Grip strength left hand
+Motor measure,Grip strength right hand
+Motor measure,HFMS
+Motor measure,HFMS-E
+Motor measure,HINE
+Motor measure,MFM-20
+Motor measure,MFM-20 D1
+Motor measure,MFM-20 D2
+Motor measure,MFM-20 D3
+Motor measure,MFM-32
+Motor measure,MFM-32 D1
+Motor measure,MFM-32 D2
+Motor measure,MFM-32 D3
+Motor measure,NSAA
+Motor measure,NSAD
+Motor measure,Pincer strength left hand
+Motor measure,Pincer strength right hand
+Motor measure,PUL2
+Motor measure,r9HPT left hand
+Motor measure,r9HPT right hand
+Motor measure,Revised Brooke left side
+Motor measure,Revised Brooke right side
+Motor measure,RFF
+Motor measure,RHS
+Motor measure,RULM left side
+Motor measure,RULM right side
+Motor measure,RULM unknown side
+Motor measure,TIMPSI
+Motor measure,TUG
+Motor measure,Vignos
+Motor measure,WHO Motor Milestones
+Muscle biopsy purpose,Diagnostic
+Muscle biopsy purpose,Clinical research
+Non-spinal fracture location,Upper arm
+Non-spinal fracture location,Lower arm
+Non-spinal fracture location,Upper leg
+Non-spinal fracture location,Lower leg
+Non-spinal fracture location,Hand
+Non-spinal fracture location,Finger
+Non-spinal fracture location,Pelvis
+Non-spinal fracture location,Ankle
+Non-spinal fracture location,Foot
+Non-spinal fracture location,Toe
+Non-spinal fracture location,Skull
+Non-spinal fracture location,Jaw
+Non-spinal fracture location,Rib
+Non-spinal fracture location,Scapula
+Non-spinal fracture location,Clavicle
+Past and present status,Currently
+Past and present status,Previously
+Past and present status,Never
+Past and present status,Sometime
+Past and present status,Not currently
+Patient-reported outcome measure,ACEND
+Patient-reported outcome measure,ACTIVLIM
+Patient-reported outcome measure,CarerQol7D
+Patient-reported outcome measure,DISABKIDS
+Patient-reported outcome measure,EQ-5D-5L state
+Patient-reported outcome measure,EQ-5D-5L VAS
+Patient-reported outcome measure,FSS
+Patient-reported outcome measure,INQoL
+Patient-reported outcome measure,IPAQ category
+Patient-reported outcome measure,IPAQ score
+Patient-reported outcome measure,KIDSCREEN-52
+Patient-reported outcome measure,PEDI-CAT
+Patient-reported outcome measure,PedsQL 3.0 Core Module
+Patient-reported outcome measure,PedsQL 4.0 Generic Core Scales
+Patient-reported outcome measure,PedsQL 3.0 Neurosmuscular Module
+Patient-reported outcome measure,PedsQL Multidimensional Fatigue Scale
+Patient-reported outcome measure,PedsQL 3.0 Duchenne Muscular Dystrophy Module
+Patient-reported outcome measure,PODCI
+Patient-reported outcome measure,PROMIS
+Patient-reported outcome measure,PROMIS mobility adult
+Patient-reported outcome measure,PROMIS mobility child
+Patient-reported outcome measure,PROMIS upper extremity adult
+Patient-reported outcome measure,PROMIS upper extremity child
+Patient-reported outcome measure,SF-36v2
+Patient-reported outcome measure,SMA FRS
+Patient-reported outcome measure,SMA HI
+Patient-reported outcome measure,QoL-gNMD
+Reason for stopping disease-modifying therapies,Funding
+Reason for stopping disease-modifying therapies,Availability
+Reason for stopping disease-modifying therapies,Side effects from procedure
+Reason for stopping disease-modifying therapies,Side effects from drug
+Reason for stopping disease-modifying therapies,Scoliosis
+Reason for stopping disease-modifying therapies,Insufficient benefit
+Reason for stopping disease-modifying therapies,Insufficient initial improvement
+Reason for stopping disease-modifying therapies,Loss of response
+Reason for stopping disease-modifying therapies,Elective choice
+Reason for stopping treatment,Side effects
+Reason for stopping treatment,Elective choice
+Reason for stopping treatment,Insufficient benefit
+Rehabilitative interventions,Physiotherapy
+Rehabilitative interventions,Respiratory physiotherapy
+Rehabilitative interventions,Massage
+Rehabilitative interventions,Home programme
+Rehabilitative interventions,Hydrotherapy
+Rehabilitative interventions,Contracture management using orthotics
+Rehabilitative interventions,Spinal brace
+Rehabilitative interventions,Occupational therapy
+Rehabilitative interventions,Speech therapy
+Scoliosis diagnosis,Cobb angle above 30
+Scoliosis diagnosis,Scoliosis diagnosed
+Scoliosis diagnosis,Scoliosis not diagnosed
+Scoliosis surgery type,Arthrodesis
+Scoliosis surgery type,Growing rods
+Screening,Family screening
+Screening,Newborn screening
+Screening,Prenatal screening
+Screening,No screening
+Sex,Male
+Sex,Female
+Sex,Intersex
+Sex,Unspecified
+Spirometry position,Supine
+Spirometry position,Sitting
+Spirometry position,Standing
+Symptom onset,Prenatal
+Symptom onset,At birth
+Symptom onset,Postnatal
+Symptom onset,At disease onset
+Symptom onset,Antenatal onset
+Symptom onset,Congenital onset
+Symptom onset,Neonatal onset
+Symptom onset,Pediatric onset
+Symptom onset,Infantile onset
+Symptom onset,Childhood onset
+Symptom onset,Juvenile onset
+Symptom onset,Adult onset
+Symptom onset,Young adult onset
+Symptom onset,Middle age onset
+Symptom onset,Late onset
+Symptom onset,Asymptomatic
+Ventilation duration,Full-time
+Ventilation duration,Part-time awake and sleeping
+Ventilation duration,Part-time sleeping
+Ventilation duration,Part-time
+Wheelchair usage frequency,Part-time
+Wheelchair usage frequency,Full-time
