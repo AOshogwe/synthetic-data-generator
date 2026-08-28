@@ -311,7 +311,7 @@ def configure_generation():
                                 pipeline.schema[table_name]['columns'][column] = {}
 
                             # Set based on user selection
-                            if action == 'synthesize':
+                                if action == 'synthesize':
                                     pipeline.schema[table_name]['columns'][column]['synthesize'] = True
                                     app.logger.info(f"Column '{column}' will be SYNTHESIZED")
                                 elif action == 'copy':
