@@ -645,6 +645,71 @@ class SyntheticDataPipeline:
 
         return result_df
 
+    def suggest_range_columns(self, df):
+        """Heuristic: flag numeric columns that are better candidates for
+        range generalization than free synthesis or exact copy — either the
+        name suggests a sensitive continuous measure, or the column is
+        high-cardinality continuous data."""
+        import re
+        pattern = re.compile(
+            r'income|salary|wage|earnings|price|cost|rate|score|weight|height|zip|postal',
+            re.IGNORECASE
+        )
+        suggestions = []
+        for column in df.columns:
+            if not pd.api.types.is_numeric_dtype(df[column]):
+                continue
+            n = df[column].dropna().shape[0]
+            if n == 0:
+                continue
+            name_match = bool(pattern.search(str(column)))
+            high_cardinality = n >= 20 and (df[column].nunique() / n) > 0.3
+            if name_match or high_cardinality:
+                suggestions.append({
+                    'column': column,
+                    'reason': 'name pattern' if name_match else 'high-cardinality continuous value'
+                })
+        return suggestions
+
+    def _generalize_to_range(self, values, reference_series, target_bins=8):
+        """Bucket each value into a human-readable range computed from the
+        full column's spread. Unlike random_numeric/scaled_numeric/random_in_range,
+        this keeps each row's *own* true value's information (at reduced
+        precision) instead of drawing an unrelated random number."""
+        import math
+
+        min_val = float(reference_series.min())
+        max_val = float(reference_series.max())
+        if pd.isna(min_val) or pd.isna(max_val) or max_val <= min_val:
+            return values
+
+        span = max_val - min_val
+        raw_width = span / target_bins
+        magnitude = 10 ** math.floor(math.log10(raw_width)) if raw_width > 0 else 1
+        width = magnitude
+        for m in (1, 2, 2.5, 5, 10):
+            if raw_width <= m * magnitude:
+                width = m * magnitude
+                break
+
+        start = math.floor(min_val / width) * width
+        edges = []
+        edge = start
+        while edge <= max_val + width:
+            edges.append(edge)
+            edge += width
+
+        def label(v):
+            if pd.isna(v):
+                return v
+            for i in range(len(edges) - 1):
+                lo, hi = edges[i], edges[i + 1]
+                if lo <= v < hi or (i == len(edges) - 2 and v <= hi):
+                    return f"{int(lo):,}-{int(hi):,}"
+            return v
+
+        return values.apply(label)
+
     def detect_temporal_relationships(self):
         """Detect and store temporal relationships between date columns"""
         logging.info("Detecting temporal relationships between columns")
@@ -1544,7 +1609,11 @@ class SyntheticDataPipeline:
             # original record per synthetic row (see row_map comment above).
             if columns_to_copy:
                 for column in columns_to_copy:
-                    final_df[column] = df[column].iloc[row_map].reset_index(drop=True)
+                    copied = df[column].iloc[row_map].reset_index(drop=True)
+                    col_info = self.schema.get(table_name, {}).get('columns', {}).get(column, {})
+                    if col_info.get('range_generalize') and pd.api.types.is_numeric_dtype(df[column]):
+                        copied = self._generalize_to_range(copied, df[column])
+                    final_df[column] = copied
 
             # Ensure all original columns are present
             for column in df.columns:
@@ -1700,7 +1769,7 @@ class SyntheticDataPipeline:
                     try:
                         # Try to get a valid value from the original data
                         valid_values = original_df[column].dropna()
-                        if len(valid_values) > 0:
+                        if len(valid_values) > 0:   
                             row_data[column] = valid_values.iloc[0]
                         else:
                             # Use an appropriate default value

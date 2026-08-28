@@ -1,5 +1,6 @@
 # app.py - Updated Flask Backend for SyntheticDataPipeline
 import os
+import re
 import sys
 from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
@@ -310,14 +311,16 @@ def configure_generation():
                                 pipeline.schema[table_name]['columns'][column] = {}
 
                             # Set based on user selection
-                            if column in columns_config:
-                                action = columns_config[column]
-                                if action == 'synthesize':
+                            if action == 'synthesize':
                                     pipeline.schema[table_name]['columns'][column]['synthesize'] = True
                                     app.logger.info(f"Column '{column}' will be SYNTHESIZED")
                                 elif action == 'copy':
                                     pipeline.schema[table_name]['columns'][column]['synthesize'] = False
                                     app.logger.info(f"Column '{column}' will be COPIED from original")
+                                elif action == 'range':
+                                    pipeline.schema[table_name]['columns'][column]['synthesize'] = False
+                                    pipeline.schema[table_name]['columns'][column]['range_generalize'] = True
+                                    app.logger.info(f"Column '{column}' will be CONVERTED TO RANGE")
                                 elif action == 'abstract':
                                     pipeline.schema[table_name]['columns'][column]['synthesize'] = True
                                     pipeline.schema[table_name]['columns'][column]['abstract'] = True
@@ -403,6 +406,23 @@ def configure_generation():
         if config.get('apply_age_grouping', False):
             pipeline.should_apply_age_grouping = True
             pipeline.config['age_grouping_method'] = config.get('age_grouping_method', '10-year')
+
+            # Auto-detect the age column(s) and attach the per-column config
+            # that apply_age_grouping() actually requires to do anything.
+            method_map = {'5-year': 5, '10-year': 10}
+            width = method_map.get(pipeline.config['age_grouping_method'], 10)
+            age_method = 'life_stages' if pipeline.config['age_grouping_method'] == 'life-stages' else 'equal_width'
+
+            for table_name, table_df in pipeline.original_data.items():
+                pipeline.schema.setdefault(table_name, {}).setdefault('columns', {})
+                for column in table_df.columns:
+                    if not re.search(r'\bage\b', column, re.IGNORECASE):
+                        continue
+                    pipeline.schema[table_name]['columns'].setdefault(column, {})
+                    pipeline.schema[table_name]['columns'][column]['age_grouping'] = {
+                        'method': age_method, 'width': width, 'start': 0, 'end': 100
+                    }
+                    app.logger.info(f"Age grouping ({age_method}) will be applied to column '{column}'")
 
         if config.get('anonymize_addresses', False):
             pipeline.should_apply_address_synthesis = True
@@ -775,7 +795,7 @@ def apply_name_anonymization(df, table_name, schema_info):
 def apply_age_grouping_to_copy(df, table_name, schema_info):
     """Apply age grouping to age columns"""
     for column, info in schema_info.items():
-        if column in df.columns and ('age' in column.lower() or info.get('is_age', False)):
+        if column in df.columns and (re.search(r'\bage\b', column, re.IGNORECASE) or info.get('is_age', False)):
             if pd.api.types.is_numeric_dtype(df[column]):
                 # Apply 10-year grouping
                 df[column] = pd.cut(df[column], bins=range(0, 101, 10), right=False,
