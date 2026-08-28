@@ -1682,6 +1682,88 @@ class SyntheticDataPipeline:
             else:
                 print(f"No problematic rows found in table {table_name}")
 
+    def _detect_shared_entity_key(self):
+        """Find a column name present in every loaded table that could serve
+        as the shared entity identifier (e.g. 'Patient ID') linking them,
+        so synthesis can keep one synthetic entity's rows consistent across
+        all of its tables instead of each table being resampled
+        independently."""
+        if len(self.original_data) < 2:
+            return None
+        common_columns = None
+        for tdf in self.original_data.values():
+            cols = set(tdf.columns)
+            common_columns = cols if common_columns is None else (common_columns & cols)
+        if not common_columns:
+            return None
+        id_like = [c for c in common_columns if c.strip().lower().endswith('id')]
+        return id_like[0] if id_like else None
+
+    def _build_entity_assignment(self, entity_key, linked_tables, n_target=None):
+        """Pick the 'master' table among linked_tables (the one with exactly
+        one row per entity, e.g. a Singular-items-style table), sample which
+        original entities become the n synthetic entities, and fabricate new
+        synthetic entity IDs. Returns (master_table_name, selected_entities,
+        synthetic_ids), or None if no table has exactly one row per entity."""
+        candidates = []
+        for t in linked_tables:
+            tdf = self.original_data[t]
+            n_rows = len(tdf)
+            n_unique = tdf[entity_key].nunique()
+            if n_rows > 0 and n_unique == n_rows:
+                candidates.append((t, n_rows))
+
+        if not candidates:
+            logging.warning(
+                f"Entity key '{entity_key}' found in {len(linked_tables)} tables, "
+                "but none has exactly one row per entity -- skipping cross-table linkage."
+            )
+            return None
+
+        master_table_name = max(candidates, key=lambda c: c[1])[0]
+        master_df = self.original_data[master_table_name]
+        original_entities = master_df[entity_key].dropna().unique()
+        n_target = n_target or len(original_entities)
+
+        selected_entities = np.random.choice(
+            original_entities, size=n_target, replace=len(original_entities) < n_target
+        )
+        synthetic_ids = [f"SYN-{i + 1:05d}" for i in range(n_target)]
+
+        return master_table_name, selected_entities, synthetic_ids
+
+    def _generate_linked_satellite_table(self, df, table_name, entity_key, selected_entities, synthetic_ids):
+        """For a table with multiple rows per shared entity (e.g. per-patient
+        episode/result records), copy each selected entity's full group of
+        original rows together and relabel them under the new synthetic
+        entity ID -- rather than resampling individual rows independently,
+        which would mix one patient's episode history with another's and
+        also risks breaking in-row consistency rules (e.g. exactly one of
+        Stop date / Ongoing date populated per episode)."""
+        grouped = {key: group for key, group in df.groupby(entity_key)}
+        pieces = []
+        for original_entity, new_id in zip(selected_entities, synthetic_ids):
+            group = grouped.get(original_entity)
+            if group is None or group.empty:
+                continue
+            piece = group.copy()
+            piece[entity_key] = new_id
+            pieces.append(piece)
+
+        if not pieces:
+            logging.warning(f"No rows found for any selected entity in linked table '{table_name}'")
+            return pd.DataFrame(columns=df.columns)
+
+        result = pd.concat(pieces, ignore_index=True)
+
+        # Per-column abstractions (e.g. range generalization) can still run
+        # on top of the copied groups -- they transform values in place and
+        # don't break row-to-row or cross-table correspondence.
+        if table_name in self.schema and 'columns' in self.schema[table_name]:
+            result = self.apply_abstractions(result, table_name)
+
+        return result
+
     def generate_synthetic_data(self, method='auto', parameters=None):
         """Generate synthetic data with guaranteed output"""
         logging.info(f"Generating synthetic data using method: {method}")
@@ -1705,26 +1787,66 @@ class SyntheticDataPipeline:
                 logging.error(traceback.format_exc())
                 self.generator = None
 
+        # If multiple tables share an entity identifier (e.g. 'Patient ID'
+        # across a DMD-style Singular items table and its satellite episode/
+        # result tables), link them so a synthetic entity's rows across every
+        # table trace back to the *same* original entity, instead of each
+        # table being resampled independently (which would mix one patient's
+        # demographics with a different patient's clinical history).
+        entity_key = getattr(self, 'entity_key', None) or self._detect_shared_entity_key()
+        linked_tables = [t for t, tdf in self.original_data.items() if entity_key and entity_key in tdf.columns]
+        entity_linkage = None
+        if entity_key and len(linked_tables) >= 2:
+            entity_linkage = self._build_entity_assignment(entity_key, linked_tables)
+            if entity_linkage:
+                logging.info(
+                    f"Linking {len(linked_tables)} tables via shared entity key '{entity_key}' "
+                    f"(master table: {entity_linkage[0]})"
+                )
+
         # Generate synthetic data for each table
         success = False
         for table_name, df in self.original_data.items():
             logging.info(f"Generating synthetic data for table: {table_name} with shape {df.shape}")
 
-            # Determine number of samples
-            n_samples = len(df)
-            if n_samples == 0:
+            if df.empty:
                 logging.warning(f"Original table {table_name} is empty, skipping")
                 continue
 
-            # Single row mapping shared by every "copy"/fallback code path below.
-            # Without this, columns_to_copy, the whole-table fallback, and any
-            # per-column fallback each drew their own independent random sample,
-            # so a synthetic row could end up with one original patient's PII
-            # (birthdate, postal code, phone, income) paired with a *different*
-            # original patient's clinical values. Using one row_map means every
-            # non-synthesized value in a synthetic row traces back to the same
-            # original record.
-            row_map = np.random.choice(len(df), size=n_samples, replace=len(df) < n_samples)
+            if entity_linkage and table_name in linked_tables:
+                master_table_name, selected_entities, synthetic_ids = entity_linkage
+
+                if table_name != master_table_name:
+                    # Satellite/multi-row-per-entity table: handled entirely
+                    # separately (see _generate_linked_satellite_table) and
+                    # skip the rest of the single-table logic below.
+                    self.synthetic_data[table_name] = self._generate_linked_satellite_table(
+                        df, table_name, entity_key, selected_entities, synthetic_ids
+                    )
+                    success = True
+                    continue
+
+                # Master table (one row per entity): reuse the existing
+                # per-table generation logic below, just with row_map chosen
+                # from the shared entity assignment instead of independently,
+                # so it lines up with whichever original entities were
+                # selected for the linked satellite tables.
+                entity_to_row = {val: idx for idx, val in enumerate(df[entity_key])}
+                row_map = np.array([entity_to_row[e] for e in selected_entities if e in entity_to_row])
+                n_samples = len(row_map)
+            else:
+                # Determine number of samples
+                n_samples = len(df)
+
+                # Single row mapping shared by every "copy"/fallback code path below.
+                # Without this, columns_to_copy, the whole-table fallback, and any
+                # per-column fallback each drew their own independent random sample,
+                # so a synthetic row could end up with one original patient's PII
+                # (birthdate, postal code, phone, income) paired with a *different*
+                # original patient's clinical values. Using one row_map means every
+                # non-synthesized value in a synthetic row traces back to the same
+                # original record.
+                row_map = np.random.choice(len(df), size=n_samples, replace=len(df) < n_samples)
 
             # Identify columns to synthesize versus columns to copy
             columns_to_synthesize = []
@@ -1841,6 +1963,13 @@ class SyntheticDataPipeline:
             if table_name in self.schema and 'columns' in self.schema[table_name]:
                 logging.info(f"Applying general column abstractions for table: {table_name}")
                 final_df = self.apply_abstractions(final_df, table_name)
+
+            if entity_linkage and table_name == entity_linkage[0]:
+                # Master table: the entity-key column must carry the new
+                # synthetic IDs so linked satellite tables reference the same
+                # identifiers, overriding whatever the normal synthesize/copy
+                # logic above did for that one column.
+                final_df[entity_key] = entity_linkage[2]
 
             # Store the final synthetic data
             self.synthetic_data[table_name] = final_df
