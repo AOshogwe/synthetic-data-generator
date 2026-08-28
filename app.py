@@ -792,13 +792,29 @@ def apply_name_anonymization(df, table_name, schema_info):
     return df
 
 
+def _numeric_after_stripping(series, min_success_rate=0.9):
+    """app.py's standalone version of pipeline.py's _coerce_numeric helper,
+    so formatted numeric strings (e.g. '$45,231') aren't mistaken for
+    non-numeric here either."""
+    non_null = series.dropna()
+    if len(non_null) == 0:
+        return None
+    cleaned = series.astype(str).str.replace(r'[,$%\s]', '', regex=True)
+    parsed = pd.to_numeric(cleaned, errors='coerce')
+    parsed[series.isna()] = np.nan
+    if parsed.notna().sum() / len(non_null) >= min_success_rate:
+        return parsed
+    return None
+
+
 def apply_age_grouping_to_copy(df, table_name, schema_info):
     """Apply age grouping to age columns"""
     for column, info in schema_info.items():
         if column in df.columns and (re.search(r'\bage\b', column, re.IGNORECASE) or info.get('is_age', False)):
-            if pd.api.types.is_numeric_dtype(df[column]):
+            numeric_col = df[column] if pd.api.types.is_numeric_dtype(df[column]) else _numeric_after_stripping(df[column])
+            if numeric_col is not None:
                 # Apply 10-year grouping
-                df[column] = pd.cut(df[column], bins=range(0, 101, 10), right=False,
+                df[column] = pd.cut(numeric_col, bins=range(0, 101, 10), right=False,
                                     labels=[f"{i}-{i + 9}" for i in range(0, 100, 10)])
                 app.logger.info(f"Applied age grouping to column: {column}")
 
