@@ -1732,6 +1732,59 @@ class SyntheticDataPipeline:
 
         return master_table_name, selected_entities, synthetic_ids
 
+    def _detect_episode_date_columns(self, df):
+        """Find Start/Stop/Ongoing or Begin/End style date-column groups in
+        a table (the DMD episode-record and reference-period-record shapes),
+        so their dates can be shifted together per row instead of being
+        perturbed independently per column -- translating a valid interval
+        keeps it valid (Start <= Stop/Ongoing, and exactly one of
+        Stop/Ongoing populated), whereas perturbing each column separately
+        would not."""
+        lower_to_actual = {c.strip().lower(): c for c in df.columns}
+        groups = []
+
+        def find(suffix):
+            for lower, actual in lower_to_actual.items():
+                if lower == suffix or lower.endswith(' ' + suffix):
+                    return actual
+            return None
+
+        start_col = find('start date')
+        stop_col = find('stop date')
+        ongoing_col = find('ongoing date')
+        if start_col and (stop_col or ongoing_col):
+            groups.append({'start': start_col, 'stop': stop_col, 'ongoing': ongoing_col})
+
+        begin_col = find('begin date')
+        end_col = find('end date')
+        if begin_col and end_col:
+            groups.append({'start': begin_col, 'stop': end_col, 'ongoing': None})
+
+        return groups
+
+    def _jitter_episode_dates(self, df, date_group, max_shift_days=30):
+        """Shift an episode's Start/Stop(/Ongoing) -- or a period's
+        Begin/End -- dates together by the same random per-row offset. This
+        gives duplicated or reused episodes (e.g. when oversampling more
+        synthetic patients than original ones) distinct dates instead of
+        byte-identical ones, while Start <= Stop/Ongoing and 'exactly one of
+        Stop/Ongoing set' both stay true automatically, since the whole
+        interval is translated rather than each column being resampled on
+        its own. Dates are normalized to YYYY-MM-DD in the process."""
+        result = df.copy()
+        cols = [c for c in (date_group['start'], date_group.get('stop'), date_group.get('ongoing')) if c]
+
+        parsed = {c: pd.to_datetime(result[c], errors='coerce') for c in cols}
+        offsets = pd.to_timedelta(np.random.randint(-max_shift_days, max_shift_days + 1, len(result)), unit='D')
+
+        for c in cols:
+            was_null = parsed[c].isna()
+            shifted = (parsed[c] + offsets).dt.strftime('%Y-%m-%d')
+            result[c] = shifted
+            result.loc[was_null, c] = df.loc[was_null, c]
+
+        return result
+
     def _generate_linked_satellite_table(self, df, table_name, entity_key, selected_entities, synthetic_ids):
         """For a table with multiple rows per shared entity (e.g. per-patient
         episode/result records), copy each selected entity's full group of
@@ -1755,6 +1808,13 @@ class SyntheticDataPipeline:
             return pd.DataFrame(columns=df.columns)
 
         result = pd.concat(pieces, ignore_index=True)
+
+        # Shift any episode/period date groups together per row, so reused
+        # episodes don't carry identical dates across duplicated synthetic
+        # patients, without breaking the Start<=Stop/Ongoing or
+        # exactly-one-of-Stop/Ongoing rules (see _jitter_episode_dates).
+        for date_group in self._detect_episode_date_columns(result):
+            result = self._jitter_episode_dates(result, date_group)
 
         # Per-column abstractions (e.g. range generalization) can still run
         # on top of the copied groups -- they transform values in place and
