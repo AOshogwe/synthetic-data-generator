@@ -75,7 +75,6 @@ def validate_deployment_files():
     """Validate all deployment files are ready"""
     deployment_files = [
         'app.py',
-        'app-simple.py',
         'requirements-railway.txt', 
         'Dockerfile.backend',
         'railway.toml',

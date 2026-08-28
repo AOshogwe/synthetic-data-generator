@@ -1,5 +1,6 @@
 # utils/file_security.py - Enhanced File Security and Validation
 import os
+import time
 import hashlib
 import mimetypes
 from pathlib import Path
@@ -28,7 +29,7 @@ class FileSecurityValidator:
     # Safe MIME types for each extension
     SAFE_MIME_TYPES = {
         'csv': ['text/csv', 'text/plain', 'application/csv'],
-        'xlsx': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+        'xlsx': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip'],
         'xls': ['application/vnd.ms-excel'],
         'json': ['application/json', 'text/json', 'text/plain'],
         'txt': ['text/plain'],
@@ -58,7 +59,7 @@ class FileSecurityValidator:
     ]
     
     def __init__(self):
-        self.quarantine_dir = Path("quarantine")
+        self.quarantine_dir = Path(__file__).resolve().parent.parent / "quarantine"
         self.quarantine_dir.mkdir(exist_ok=True)
     
     def validate_filename(self, filename: str) -> Tuple[bool, str, str]:
@@ -180,7 +181,7 @@ class FileSecurityValidator:
     
     def quarantine_file(self, file_path: Path, reason: str) -> Path:
         """Move suspicious file to quarantine"""
-        quarantine_path = self.quarantine_dir / f"{file_path.name}_{int(os.time())}"
+        quarantine_path = self.quarantine_dir / f"{file_path.name}_{int(time.time())}"
         try:
             file_path.rename(quarantine_path)
             logger.warning(f"File quarantined: {file_path.name} -> {quarantine_path} (Reason: {reason})")

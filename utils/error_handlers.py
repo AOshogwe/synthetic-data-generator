@@ -95,14 +95,22 @@ class ErrorHandler:
         if len(self.error_log) > self.max_error_log_size:
             self.error_log.pop(0)
         
-        # Log to application logger
+        # Log to application logger. Python's logging module reserves a
+        # set of LogRecord attribute names (message, msg, args, levelname,
+        # module, ...) and raises KeyError if `extra` contains any of them
+        # -- error_entry has both 'message' and (via **kwargs elsewhere)
+        # risked others, so every single call to log_error crashed with
+        # "Attempt to overwrite 'message' in LogRecord" instead of logging
+        # anything, taking down every one of these error handlers with it.
+        # Prefix the keys instead of passing error_entry directly.
         log_message = f"[{request_id}] {error_code}: {message}"
+        safe_extra = {f"ctx_{k}": v for k, v in error_entry.items()}
         if status_code >= 500:
-            logger.error(log_message, extra=error_entry)
+            logger.error(log_message, extra=safe_extra)
         elif status_code >= 400:
-            logger.warning(log_message, extra=error_entry)
+            logger.warning(log_message, extra=safe_extra)
         else:
-            logger.info(log_message, extra=error_entry)
+            logger.info(log_message, extra=safe_extra)
     
     def handle_bad_request(self, error):
         """Handle 400 Bad Request errors"""

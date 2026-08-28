@@ -3,19 +3,10 @@
 
 echo "🚀 Starting Synthetic Data Generator..."
 
-# Try to start the main application
-echo "Attempting to start main application (app.py)..."
-python app.py 2>&1 &
-MAIN_PID=$!
-
-# Wait a few seconds to see if it started successfully
-sleep 5
-
-# Check if the main process is still running
-if kill -0 $MAIN_PID 2>/dev/null; then
-    echo "✅ Main application started successfully (PID: $MAIN_PID)"
-    wait $MAIN_PID
-else
-    echo "⚠️ Main application failed, starting fallback (app-simple.py)..."
-    python app-simple.py
-fi
+# Start the application. (This fallback used to try app-simple.py if
+# app.py crashed on startup; app-simple.py has been removed as dead code,
+# and in any case Railway's own startCommand runs `python app.py` directly
+# and never invokes this script -- restarts on crash are handled by
+# railway.toml's restartPolicy instead.)
+echo "Starting application (app.py)..."
+exec python app.py

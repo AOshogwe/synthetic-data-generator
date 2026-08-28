@@ -54,6 +54,29 @@ def create_app(config_class=Config):
     # Initialize CORS
     CORS(app, origins=app.config['CORS_ORIGINS'])
 
+    # Security: rate limiting, IP blocking, request validation, and
+    # security headers on every response. Registered before the routes
+    # below so it applies to all of them.
+    from utils.security_middleware import SecurityMiddleware
+    SecurityMiddleware(app)
+
+    # Centralized error handling for status codes app.py doesn't already
+    # define its own handler for (400/401/403/404/429). 413 and 500 are
+    # deliberately left as app.py's existing handlers below -- they return
+    # a flat {'error': '...'} shape that the front-end's error handling
+    # already expects; ErrorHandler's shape is a nested {'error': {...}}
+    # object, and swapping either would silently change the response shape
+    # in ways that could break the existing upload/generate error handling
+    # in index.html.
+    from utils.error_handlers import ErrorHandler
+    error_handler = ErrorHandler()
+    app.errorhandler(400)(error_handler.handle_bad_request)
+    app.errorhandler(401)(error_handler.handle_unauthorized)
+    app.errorhandler(403)(error_handler.handle_forbidden)
+    app.errorhandler(404)(error_handler.handle_not_found)
+    app.errorhandler(429)(error_handler.handle_too_many_requests)
+    app.errorhandler(Exception)(error_handler.handle_generic_exception)
+
     # Set up logging
     setup_logging(app)
 
@@ -126,12 +149,6 @@ def index():
     """Serve the main application"""
     return send_from_directory('.', 'index.html')
 
-@app.route('/classic')
-def classic_interface():
-    """Serve the classic interface"""
-    return send_from_directory('.', 'dashboard.html')
-
-
 @app.route('/api/upload', methods=['POST'])
 def upload_files():
     """Handle file uploads with advanced pipeline"""
@@ -169,6 +186,22 @@ def upload_files():
                 file_path = os.path.join(app.config['UPLOAD_FOLDER'], timestamped_filename)
 
                 file.save(file_path)
+
+                # Content-level validation: dangerous file signatures (an
+                # executable/script disguised with a .csv/.xlsx extension),
+                # MIME type consistency, and size-by-type limits. This is
+                # separate from the extension check above and from the
+                # rate-limiting/pattern checks in SecurityMiddleware -- this
+                # one looks at what the file actually *is*, not its name.
+                from utils.file_security import FileSecurityValidator
+                is_safe, validation_info = FileSecurityValidator().validate_file_content(Path(file_path))
+                if not is_safe:
+                    app.logger.warning(f"Rejected upload '{file.filename}': failed content validation ({validation_info})")
+                    try:
+                        os.remove(file_path)
+                    except OSError:
+                        pass
+                    return jsonify({'error': f"File '{file.filename}' failed security validation"}), 400
 
                 uploaded_files.append({
                     'name': file.filename,

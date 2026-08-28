@@ -1,0 +1,220 @@
+diff --git a/app.py b/app.py
+index 7d9194c..279161f 100644
+--- a/app.py
++++ b/app.py
+@@ -54,6 +54,29 @@ def create_app(config_class=Config):
+     # Initialize CORS
+     CORS(app, origins=app.config['CORS_ORIGINS'])
+ 
++    # Security: rate limiting, IP blocking, request validation, and
++    # security headers on every response. Registered before the routes
++    # below so it applies to all of them.
++    from utils.security_middleware import SecurityMiddleware
++    SecurityMiddleware(app)
++
++    # Centralized error handling for status codes app.py doesn't already
++    # define its own handler for (400/401/403/404/429). 413 and 500 are
++    # deliberately left as app.py's existing handlers below -- they return
++    # a flat {'error': '...'} shape that the front-end's error handling
++    # already expects; ErrorHandler's shape is a nested {'error': {...}}
++    # object, and swapping either would silently change the response shape
++    # in ways that could break the existing upload/generate error handling
++    # in index.html.
++    from utils.error_handlers import ErrorHandler
++    error_handler = ErrorHandler()
++    app.errorhandler(400)(error_handler.handle_bad_request)
++    app.errorhandler(401)(error_handler.handle_unauthorized)
++    app.errorhandler(403)(error_handler.handle_forbidden)
++    app.errorhandler(404)(error_handler.handle_not_found)
++    app.errorhandler(429)(error_handler.handle_too_many_requests)
++    app.errorhandler(Exception)(error_handler.handle_generic_exception)
++
+     # Set up logging
+     setup_logging(app)
+ 
+@@ -170,6 +193,22 @@ def upload_files():
+ 
+                 file.save(file_path)
+ 
++                # Content-level validation: dangerous file signatures (an
++                # executable/script disguised with a .csv/.xlsx extension),
++                # MIME type consistency, and size-by-type limits. This is
++                # separate from the extension check above and from the
++                # rate-limiting/pattern checks in SecurityMiddleware -- this
++                # one looks at what the file actually *is*, not its name.
++                from utils.file_security import FileSecurityValidator
++                is_safe, validation_info = FileSecurityValidator().validate_file_content(Path(file_path))
++                if not is_safe:
++                    app.logger.warning(f"Rejected upload '{file.filename}': failed content validation ({validation_info})")
++                    try:
++                        os.remove(file_path)
++                    except OSError:
++                        pass
++                    return jsonify({'error': f"File '{file.filename}' failed security validation"}), 400
++
+                 uploaded_files.append({
+                     'name': file.filename,
+                     'path': file_path,
+diff --git a/utils/error_handlers.py b/utils/error_handlers.py
+index d614ff1..ec27071 100644
+--- a/utils/error_handlers.py
++++ b/utils/error_handlers.py
+@@ -95,14 +95,22 @@ class ErrorHandler:
+         if len(self.error_log) > self.max_error_log_size:
+             self.error_log.pop(0)
+         
+-        # Log to application logger
++        # Log to application logger. Python's logging module reserves a
++        # set of LogRecord attribute names (message, msg, args, levelname,
++        # module, ...) and raises KeyError if `extra` contains any of them
++        # -- error_entry has both 'message' and (via **kwargs elsewhere)
++        # risked others, so every single call to log_error crashed with
++        # "Attempt to overwrite 'message' in LogRecord" instead of logging
++        # anything, taking down every one of these error handlers with it.
++        # Prefix the keys instead of passing error_entry directly.
+         log_message = f"[{request_id}] {error_code}: {message}"
++        safe_extra = {f"ctx_{k}": v for k, v in error_entry.items()}
+         if status_code >= 500:
+-            logger.error(log_message, extra=error_entry)
++            logger.error(log_message, extra=safe_extra)
+         elif status_code >= 400:
+-            logger.warning(log_message, extra=error_entry)
++            logger.warning(log_message, extra=safe_extra)
+         else:
+-            logger.info(log_message, extra=error_entry)
++            logger.info(log_message, extra=safe_extra)
+     
+     def handle_bad_request(self, error):
+         """Handle 400 Bad Request errors"""
+diff --git a/utils/file_security.py b/utils/file_security.py
+index b2651e0..641c145 100644
+--- a/utils/file_security.py
++++ b/utils/file_security.py
+@@ -1,5 +1,6 @@
+ # utils/file_security.py - Enhanced File Security and Validation
+ import os
++import time
+ import hashlib
+ import mimetypes
+ from pathlib import Path
+@@ -28,7 +29,7 @@ class FileSecurityValidator:
+     # Safe MIME types for each extension
+     SAFE_MIME_TYPES = {
+         'csv': ['text/csv', 'text/plain', 'application/csv'],
+-        'xlsx': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
++        'xlsx': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip'],
+         'xls': ['application/vnd.ms-excel'],
+         'json': ['application/json', 'text/json', 'text/plain'],
+         'txt': ['text/plain'],
+@@ -58,7 +59,7 @@ class FileSecurityValidator:
+     ]
+     
+     def __init__(self):
+-        self.quarantine_dir = Path("quarantine")
++        self.quarantine_dir = Path(__file__).resolve().parent.parent / "quarantine"
+         self.quarantine_dir.mkdir(exist_ok=True)
+     
+     def validate_filename(self, filename: str) -> Tuple[bool, str, str]:
+@@ -180,7 +181,7 @@ class FileSecurityValidator:
+     
+     def quarantine_file(self, file_path: Path, reason: str) -> Path:
+         """Move suspicious file to quarantine"""
+-        quarantine_path = self.quarantine_dir / f"{file_path.name}_{int(os.time())}"
++        quarantine_path = self.quarantine_dir / f"{file_path.name}_{int(time.time())}"
+         try:
+             file_path.rename(quarantine_path)
+             logger.warning(f"File quarantined: {file_path.name} -> {quarantine_path} (Reason: {reason})")
+diff --git a/utils/security_middleware.py b/utils/security_middleware.py
+index e112c76..aba17f1 100644
+--- a/utils/security_middleware.py
++++ b/utils/security_middleware.py
+@@ -16,7 +16,8 @@ class SecurityMiddleware:
+     def __init__(self, app=None):
+         self.app = app
+         self.rate_limiters = defaultdict(lambda: deque())
+-        self.blocked_ips = set()
++        self.blocked_ips = {}  # ip -> unblock_at (epoch seconds), not a bare set
++        self.block_duration = 3600  # 1 hour -- blocks used to be permanent until restart
+         self.failed_attempts = defaultdict(int)
+         
+         if app:
+@@ -25,6 +26,13 @@ class SecurityMiddleware:
+     def init_app(self, app):
+         """Initialize security middleware with Flask app"""
+         self.app = app
++
++        # Trust exactly one hop of X-Forwarded-For/X-Proto (Railway's own
++        # reverse proxy) so request.remote_addr is the real client IP,
++        # instead of hand-parsing attacker-controlled headers ourselves.
++        from werkzeug.middleware.proxy_fix import ProxyFix
++        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
++
+         app.before_request(self.before_request)
+         app.after_request(self.after_request)
+         
+@@ -59,10 +67,17 @@ class SecurityMiddleware:
+         """Security checks before processing request"""
+         client_ip = self.get_client_ip()
+         
+-        # Check if IP is blocked
+-        if client_ip in self.blocked_ips:
+-            logger.warning(f"Blocked IP attempted access: {client_ip}")
+-            return jsonify({'error': 'Access denied'}), 403
++        # Check if IP is blocked (with expiry -- a block used to be
++        # permanent until process restart, which risks permanently locking
++        # out a shared/NAT'd IP over a handful of retries)
++        unblock_at = self.blocked_ips.get(client_ip)
++        if unblock_at is not None:
++            if time.time() < unblock_at:
++                logger.warning(f"Blocked IP attempted access: {client_ip}")
++                return jsonify({'error': 'Access denied'}), 403
++            else:
++                del self.blocked_ips[client_ip]
++                self.failed_attempts[client_ip] = 0
+         
+         # Rate limiting
+         if not self.rate_limit_check(client_ip):
+@@ -70,14 +85,18 @@ class SecurityMiddleware:
+             
+             # Block IP after too many failures
+             if self.failed_attempts[client_ip] > 50:
+-                self.blocked_ips.add(client_ip)
+-                logger.warning(f"IP blocked due to rate limit violations: {client_ip}")
++                self.blocked_ips[client_ip] = time.time() + self.block_duration
++                logger.warning(f"IP blocked for {self.block_duration}s due to rate limit violations: {client_ip}")
+             
+             logger.warning(f"Rate limit exceeded for IP: {client_ip}")
+             raise TooManyRequests("Rate limit exceeded. Please try again later.")
+         
+-        # Validate request size
+-        if request.content_length and request.content_length > 200 * 1024 * 1024:  # 200MB
++        # Validate request size against the app's own configured limit,
++        # rather than a second, different hardcoded number (this used to
++        # say 200MB while app.py's MAX_CONTENT_LENGTH defaults to 100MB, so
++        # Flask's own limit always fired first and this check never did).
++        max_size = self.app.config.get('MAX_CONTENT_LENGTH') if self.app else None
++        if max_size and request.content_length and request.content_length > max_size:
+             return jsonify({'error': 'Request too large'}), 413
+         
+         # Basic request validation
+@@ -96,16 +115,10 @@ class SecurityMiddleware:
+         return response
+     
+     def get_client_ip(self):
+-        """Get client IP address safely"""
+-        # Check for forwarded IP (be careful with proxy headers)
+-        if request.environ.get('HTTP_X_FORWARDED_FOR'):
+-            # Take the first IP in the chain
+-            ip = request.environ.get('HTTP_X_FORWARDED_FOR').split(',')[0].strip()
+-            return ip
+-        elif request.environ.get('HTTP_X_REAL_IP'):
+-            return request.environ.get('HTTP_X_REAL_IP')
+-        else:
+-            return request.environ.get('REMOTE_ADDR', 'unknown')
++        """Get client IP address safely -- relies on ProxyFix (set up in
++        init_app) to have already resolved this from a trusted proxy hop,
++        rather than reading attacker-controlled headers directly."""
++        return request.remote_addr or 'unknown'
+     
+     def rate_limit_check(self, client_ip, max_requests=100, time_window=300):
+         """

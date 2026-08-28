@@ -16,7 +16,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'synthetize=synthetic_data_generator.cli.main:main',
+            'synthetize=cli.main:main',
         ],
     },
 )

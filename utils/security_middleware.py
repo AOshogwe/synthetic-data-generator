@@ -16,7 +16,8 @@ class SecurityMiddleware:
     def __init__(self, app=None):
         self.app = app
         self.rate_limiters = defaultdict(lambda: deque())
-        self.blocked_ips = set()
+        self.blocked_ips = {}  # ip -> unblock_at (epoch seconds), not a bare set
+        self.block_duration = 3600  # 1 hour -- blocks used to be permanent until restart
         self.failed_attempts = defaultdict(int)
         
         if app:
@@ -25,6 +26,13 @@ class SecurityMiddleware:
     def init_app(self, app):
         """Initialize security middleware with Flask app"""
         self.app = app
+
+        # Trust exactly one hop of X-Forwarded-For/X-Proto (Railway's own
+        # reverse proxy) so request.remote_addr is the real client IP,
+        # instead of hand-parsing attacker-controlled headers ourselves.
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+
         app.before_request(self.before_request)
         app.after_request(self.after_request)
         
@@ -59,10 +67,17 @@ class SecurityMiddleware:
         """Security checks before processing request"""
         client_ip = self.get_client_ip()
         
-        # Check if IP is blocked
-        if client_ip in self.blocked_ips:
-            logger.warning(f"Blocked IP attempted access: {client_ip}")
-            return jsonify({'error': 'Access denied'}), 403
+        # Check if IP is blocked (with expiry -- a block used to be
+        # permanent until process restart, which risks permanently locking
+        # out a shared/NAT'd IP over a handful of retries)
+        unblock_at = self.blocked_ips.get(client_ip)
+        if unblock_at is not None:
+            if time.time() < unblock_at:
+                logger.warning(f"Blocked IP attempted access: {client_ip}")
+                return jsonify({'error': 'Access denied'}), 403
+            else:
+                del self.blocked_ips[client_ip]
+                self.failed_attempts[client_ip] = 0
         
         # Rate limiting
         if not self.rate_limit_check(client_ip):
@@ -70,14 +85,18 @@ class SecurityMiddleware:
             
             # Block IP after too many failures
             if self.failed_attempts[client_ip] > 50:
-                self.blocked_ips.add(client_ip)
-                logger.warning(f"IP blocked due to rate limit violations: {client_ip}")
+                self.blocked_ips[client_ip] = time.time() + self.block_duration
+                logger.warning(f"IP blocked for {self.block_duration}s due to rate limit violations: {client_ip}")
             
             logger.warning(f"Rate limit exceeded for IP: {client_ip}")
             raise TooManyRequests("Rate limit exceeded. Please try again later.")
         
-        # Validate request size
-        if request.content_length and request.content_length > 200 * 1024 * 1024:  # 200MB
+        # Validate request size against the app's own configured limit,
+        # rather than a second, different hardcoded number (this used to
+        # say 200MB while app.py's MAX_CONTENT_LENGTH defaults to 100MB, so
+        # Flask's own limit always fired first and this check never did).
+        max_size = self.app.config.get('MAX_CONTENT_LENGTH') if self.app else None
+        if max_size and request.content_length and request.content_length > max_size:
             return jsonify({'error': 'Request too large'}), 413
         
         # Basic request validation
@@ -96,16 +115,10 @@ class SecurityMiddleware:
         return response
     
     def get_client_ip(self):
-        """Get client IP address safely"""
-        # Check for forwarded IP (be careful with proxy headers)
-        if request.environ.get('HTTP_X_FORWARDED_FOR'):
-            # Take the first IP in the chain
-            ip = request.environ.get('HTTP_X_FORWARDED_FOR').split(',')[0].strip()
-            return ip
-        elif request.environ.get('HTTP_X_REAL_IP'):
-            return request.environ.get('HTTP_X_REAL_IP')
-        else:
-            return request.environ.get('REMOTE_ADDR', 'unknown')
+        """Get client IP address safely -- relies on ProxyFix (set up in
+        init_app) to have already resolved this from a trusted proxy hop,
+        rather than reading attacker-controlled headers directly."""
+        return request.remote_addr or 'unknown'
     
     def rate_limit_check(self, client_ip, max_requests=100, time_window=300):
         """
