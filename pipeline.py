@@ -13,7 +13,7 @@ from preprocessing.cleaning import DataCleaningPipeline
 from stats.relationships import RelationshipDiscoverer
 from models.generation_engine import SyntheticGenerationEngine
 from evaluation.statistical_evaluator import SyntheticDataEvaluator
-from export.validator import DataValidator
+from export.validator import DataValidator, DMDConsistencyValidator
 from export.adapters import ExportAdapter
 from models.address_synthesis import AddressSynthesizer
 
@@ -2305,6 +2305,18 @@ class SyntheticDataPipeline:
                 logging.warning(f"Table {table_name} has {len(issues)} validation errors")
                 for issue in issues:
                     logging.warning(f"  - {issue}")
+
+        # DMD Core Dataset consistency rules (death/alive, episode
+        # Stop-vs-Ongoing, stopping reasons, hospitalisation nights, muscle
+        # biopsy biobank, genetic confirmation, cardiac treatment exclusivity
+        # -- see export/validator.py:DMDConsistencyValidator). Matches by
+        # column/table name, so this is a safe no-op on non-DMD datasets.
+        dmd_violations = DMDConsistencyValidator().validate(self.synthetic_data)
+        validation_results['_dmd_consistency_rules'] = dmd_violations
+        if dmd_violations:
+            logging.warning(f"DMD consistency check found {len(dmd_violations)} rule violation group(s)")
+            for v in dmd_violations:
+                logging.warning(f"  - [{v['rule']}] {v['table']}: {v['message']}")
 
         return validation_results
 
