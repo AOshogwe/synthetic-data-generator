@@ -351,30 +351,41 @@ def configure_generation():
                     if table_df is not None:
                         all_columns = list(table_df.columns)
 
-                        # Set synthesize flag for each column
+                        # Set synthesize flag for each column. `action` used
+                        # to be referenced here without ever being assigned
+                        # from columns_config (a NameError waiting to
+                        # happen), and the whole if/elif chain was nested
+                        # one level too deep -- inside the "column is new to
+                        # the schema" branch -- so it only ever ran for
+                        # columns the schema hadn't already seen, which by
+                        # this point (after _infer_schema() at upload time)
+                        # is none of them. Every column silently fell through
+                        # to the "copy (default)" branch regardless of what
+                        # was actually selected. Both are fixed below: look
+                        # up this column's action every time, independent of
+                        # whether it already has a schema entry.
                         for column in all_columns:
                             if column not in pipeline.schema[table_name]['columns']:
                                 pipeline.schema[table_name]['columns'][column] = {}
 
-                            # Set based on user selection
-                                if action == 'synthesize':
-                                    pipeline.schema[table_name]['columns'][column]['synthesize'] = True
-                                    app.logger.info(f"Column '{column}' will be SYNTHESIZED")
-                                elif action == 'copy':
-                                    pipeline.schema[table_name]['columns'][column]['synthesize'] = False
-                                    app.logger.info(f"Column '{column}' will be COPIED from original")
-                                elif action == 'range':
-                                    pipeline.schema[table_name]['columns'][column]['synthesize'] = False
-                                    pipeline.schema[table_name]['columns'][column]['range_generalize'] = True
-                                    app.logger.info(f"Column '{column}' will be CONVERTED TO RANGE")
-                                elif action == 'abstract':
-                                    pipeline.schema[table_name]['columns'][column]['synthesize'] = True
-                                    pipeline.schema[table_name]['columns'][column]['abstract'] = True
-                                    app.logger.info(f"Column '{column}' will be ABSTRACTED/ANONYMIZED")
-                            else:
-                                # Default: copy if not specified
+                            action = columns_config.get(column, 'copy')
+
+                            if action == 'synthesize':
+                                pipeline.schema[table_name]['columns'][column]['synthesize'] = True
+                                app.logger.info(f"Column '{column}' will be SYNTHESIZED")
+                            elif action == 'range':
                                 pipeline.schema[table_name]['columns'][column]['synthesize'] = False
-                                app.logger.info(f"Column '{column}' will be COPIED (default)")
+                                pipeline.schema[table_name]['columns'][column]['range_generalize'] = True
+                                app.logger.info(f"Column '{column}' will be CONVERTED TO RANGE")
+                            elif action == 'abstract':
+                                pipeline.schema[table_name]['columns'][column]['synthesize'] = True
+                                pipeline.schema[table_name]['columns'][column]['abstract'] = True
+                                app.logger.info(f"Column '{column}' will be ABSTRACTED/ANONYMIZED")
+                            else:
+                                # 'copy', or anything unrecognized -- copy is
+                                # the safe default.
+                                pipeline.schema[table_name]['columns'][column]['synthesize'] = False
+                                app.logger.info(f"Column '{column}' will be COPIED from original")
 
         # ALTERNATIVE: Handle column selection from general config
         elif 'columns_to_synthesize' in config:

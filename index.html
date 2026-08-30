@@ -988,7 +988,7 @@
                     <h4 class="font-semibold mb-3">📊 ${tableName}</h4>
                     <div class="grid md:grid-cols-2 gap-3">
                         ${data.column_names.map(column => `
-                            <label class="flex items-center">
+                            <label class="flex items-center" data-table="${tableName}" data-column="${column}">
                                 <input type="checkbox" class="mr-3" checked>
                                 <span>${column}</span>
                                 <select class="ml-auto text-sm border rounded px-2 py-1">
@@ -1178,6 +1178,23 @@
             if (config.anonymize_addresses) {
                 config.address_method = document.getElementById('address-method').value;
             }
+
+            // Per-column Synthesize/Copy/Range/Abstract selections from the
+            // Column Selection tab. These render into the DOM but were never
+            // previously read back out, so every column silently defaulted
+            // to "copy" regardless of what was picked here. Unchecking a
+            // column's box forces a copy regardless of its dropdown value.
+            config.column_selection = {};
+            document.querySelectorAll('#column-selection [data-table]').forEach(label => {
+                const tableName = label.dataset.table;
+                const columnName = label.dataset.column;
+                const checkbox = label.querySelector('input[type="checkbox"]');
+                const select = label.querySelector('select');
+                if (!config.column_selection[tableName]) {
+                    config.column_selection[tableName] = {};
+                }
+                config.column_selection[tableName][columnName] = checkbox.checked ? select.value : 'copy';
+            });
 
             return config;
         }
