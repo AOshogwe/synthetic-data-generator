@@ -1308,8 +1308,17 @@ def reset_pipeline():
 
 
 @app.route('/health', methods=['GET'])
+@app.route('/api/health', methods=['GET'])
 def health_check():
-    """Health check endpoint for monitoring"""
+    """Health check endpoint for monitoring.
+
+    Registered under both paths: railway.toml's healthcheckPath (and
+    docker-compose.yml / Dockerfile.simple / the deployment guide) all point
+    at /api/health, while Dockerfile.backend -- the Dockerfile railway.toml
+    actually builds -- and existing manual checks use plain /health. Rather
+    than pick one and leave the others broken, both resolve to the same
+    handler.
+    """
     return jsonify({
         'status': 'healthy',
         'timestamp': datetime.now().isoformat(),
