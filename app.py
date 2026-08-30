@@ -650,11 +650,20 @@ def generate_data():
                 synthesized_cols = [col for col, info in table_schema.items() if info.get('synthesize', False)]
                 copied_cols = [col for col, info in table_schema.items() if not info.get('synthesize', False)]
 
+                # Age grouping (and other bucketing) leaves pandas Categorical
+                # columns behind; Categorical.fillna() rejects '' as an
+                # unrecognized category and crashes the whole response, so
+                # cast to plain objects first when that's in play.
+                preview_df = df.head(2)
+                if any(isinstance(dt, pd.CategoricalDtype) for dt in preview_df.dtypes):
+                    preview_df = preview_df.astype(object)
+                sample_data = preview_df.fillna('').to_dict('records')
+
                 summary[table_name] = {
                     'rows': synthetic_rows,
                     'columns': len(df.columns),
                     'original_rows': original_rows,
-                    'sample_data': df.head(2).fillna('').to_dict('records'),
+                    'sample_data': sample_data,
                     'generation_method': generation_method if synthesis_required else 'copy_with_privacy',
                     'generation_time': round(generation_time, 2),
                     'columns_synthesized': len(synthesized_cols),
@@ -841,7 +850,15 @@ def _numeric_after_stripping(series, min_success_rate=0.9):
 
 
 def apply_age_grouping_to_copy(df, table_name, schema_info):
-    """Apply age grouping to age columns"""
+    """Apply age grouping to age columns, and keep any Date-of-Birth column
+    consistent with the resulting bucket.
+
+    Bucketing Age to "10-19" while leaving Birthdate as the real, exact date
+    both contradicts the bucket and defeats the point of grouping it in the
+    first place -- so any detected DOB column gets degraded to a matching
+    birth-year range instead of being left untouched.
+    """
+    age_columns = []
     for column, info in schema_info.items():
         if column in df.columns and (re.search(r'\bage\b', column, re.IGNORECASE) or info.get('is_age', False)):
             numeric_col = df[column] if pd.api.types.is_numeric_dtype(df[column]) else _numeric_after_stripping(df[column])
@@ -849,7 +866,44 @@ def apply_age_grouping_to_copy(df, table_name, schema_info):
                 # Apply 10-year grouping
                 df[column] = pd.cut(numeric_col, bins=range(0, 101, 10), right=False,
                                     labels=[f"{i}-{i + 9}" for i in range(0, 100, 10)])
+                age_columns.append(column)
                 app.logger.info(f"Applied age grouping to column: {column}")
+
+    if age_columns:
+        dob_columns = [
+            c for c in df.columns
+            if re.search(r'\bdob\b', c, re.IGNORECASE) or 'birthdate' in c.lower()
+            or 'birth date' in c.lower() or 'date of birth' in c.lower()
+        ]
+        if dob_columns:
+            ref_column = None
+            for c in df.columns:
+                lc = c.lower()
+                if 'date' in lc and any(k in lc for k in ('collection', 'visit', 'assessment', 'session', 'exam')):
+                    ref_column = c
+                    break
+
+            current_year = datetime.now().year
+            if ref_column is not None:
+                ref_years = pd.to_datetime(df[ref_column], errors='coerce').dt.year.fillna(current_year)
+            else:
+                ref_years = pd.Series(current_year, index=df.index)
+
+            age_col = age_columns[0]
+            bucket_re = re.compile(r'^(\d+)\s*-\s*(\d+)$')
+            for dob_col in dob_columns:
+                new_values = []
+                for idx in df.index:
+                    label = df.at[idx, age_col]
+                    ref_year = int(ref_years.at[idx])
+                    m = bucket_re.match(str(label))
+                    if m:
+                        low, high = int(m.group(1)), int(m.group(2))
+                        new_values.append(f"{ref_year - high}-{ref_year - low}")
+                    else:
+                        new_values.append(df.at[idx, dob_col])
+                df[dob_col] = new_values
+                app.logger.info(f"Converted '{dob_col}' to a birth-year range consistent with '{age_col}'")
 
     return df
 
