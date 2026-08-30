@@ -1,0 +1,171 @@
+diff --git a/app.py b/app.py
+index cbfc532..c0670e1 100644
+--- a/app.py
++++ b/app.py
+@@ -451,10 +451,35 @@ def configure_generation():
+             if not isinstance(factor, (int, float)) or factor < 0 or factor > 1:
+                 return jsonify({'error': 'Perturbation factor must be between 0 and 1'}), 400
+ 
++        # Apply the Privacy Level preset (minimal/balanced/high). This used
++        # to render in the Advanced Options tab but was never read by the
++        # front end or acted on here. 'high' overrides the individual
++        # anonymization checkboxes -- someone picking the strongest preset
++        # should get the strongest settings without also having to tick
++        # every box themselves; 'minimal'/'balanced' only fill in a default
++        # perturbation strength and never weaken an explicit user choice.
++        privacy_level = config.get('privacy_level', 'balanced')
++        if privacy_level == 'minimal':
++            config.setdefault('perturbation_factor', 0.05)
++        elif privacy_level == 'high':
++            config['perturbation_factor'] = 0.4
++            config['anonymize_names'] = True
++            config['apply_age_grouping'] = True
++            config['anonymize_addresses'] = True
++        else:
++            privacy_level = 'balanced'
++            config.setdefault('perturbation_factor', 0.2)
++        app.logger.info(f"Privacy level '{privacy_level}' applied")
++
+         # Set configuration in pipeline
+         pipeline.config = config
+ 
+         # Configure advanced features based on settings
++        if config.get('differential_privacy', False):
++            pipeline.apply_differential_privacy = True
++            pipeline.dp_epsilon = float(config.get('dp_epsilon', 1.0))
++            app.logger.info(f"Differential-privacy-style noise enabled (epsilon={pipeline.dp_epsilon})")
++
+         if config.get('anonymize_names', False):
+             pipeline.apply_name_abstraction = True
+             pipeline.config['name_method'] = config.get('name_method', 'synthetic')
+@@ -513,7 +538,9 @@ def configure_generation():
+                 'age_grouping': config.get('apply_age_grouping', False),
+                 'address_anonymization': config.get('anonymize_addresses', False),
+                 'relationship_preservation': config.get('preserve_temporal', True),
+-                'perturbation_mode': config.get('generation_method') == 'perturbation'
++                'perturbation_mode': config.get('generation_method') == 'perturbation',
++                'privacy_level': privacy_level,
++                'differential_privacy': config.get('differential_privacy', False)
+             }
+         })
+ 
+@@ -769,6 +796,12 @@ def create_copy_with_privacy_features(pipeline):
+             if getattr(pipeline, 'should_apply_address_synthesis', False):
+                 synthetic_df = apply_address_anonymization(synthetic_df, table_name, schema_info)
+ 
++            # Apply differential-privacy-style noise if enabled
++            if getattr(pipeline, 'apply_differential_privacy', False):
++                synthetic_df = pipeline.apply_differential_privacy_noise(
++                    synthetic_df, table_name, epsilon=getattr(pipeline, 'dp_epsilon', 1.0)
++                )
++
+             # Store the result
+             pipeline.synthetic_data[table_name] = synthetic_df
+             app.logger.info(f"Created privacy-enhanced copy for {table_name}: {len(synthetic_df)} rows")
+diff --git a/index.html b/index.html
+index b8753a6..8ec5818 100644
+--- a/index.html
++++ b/index.html
+@@ -1153,7 +1153,9 @@
+                 perturbation_factor: parseFloat(document.getElementById('perturbation-slider').value) / 100,
+                 preserve_temporal: document.getElementById('preserve-temporal').checked,
+                 preserve_dependencies: document.getElementById('preserve-dependencies').checked,
+-                preserve_correlations: document.getElementById('preserve-correlations').checked
++                preserve_correlations: document.getElementById('preserve-correlations').checked,
++                privacy_level: document.getElementById('privacy-level').value,
++                differential_privacy: document.getElementById('differential-privacy').checked
+             };
+ 
+             // Handle data size specifics
+diff --git a/pipeline.py b/pipeline.py
+index f1cb86c..2240917 100644
+--- a/pipeline.py
++++ b/pipeline.py
+@@ -1797,6 +1797,58 @@ class SyntheticDataPipeline:
+ 
+         return groups
+ 
++    def apply_differential_privacy_noise(self, df, table_name, epsilon=1.0):
++        """Add Laplace-mechanism noise to numeric columns as a lightweight,
++        per-column differential-privacy-style protection.
++
++        This is NOT a formally audited differential-privacy implementation
++        -- there's no cross-query privacy budget accounting, and
++        'sensitivity' is approximated from each column's observed min/max
++        rather than a domain-defined bound. It does add real, calibrated
++        Laplace(0, (max-min)/epsilon) noise to every numeric column in the
++        output, which is a genuine (if basic) privacy mechanism -- it just
++        shouldn't be presented to end users, auditors, or IRBs as a
++        compliance guarantee without a proper review.
++        """
++        result_df = df.copy()
++        original_df = self.original_data.get(table_name)
++
++        for column in result_df.columns:
++            numeric_col = self._coerce_numeric(result_df[column])
++            if numeric_col is None or numeric_col.isna().all():
++                continue
++
++            # Sensitivity is approximated from the ORIGINAL column's
++            # observed range, not the (possibly already-perturbed) output
++            # -- using the output's own range would let earlier
++            # perturbation shrink or inflate how much noise gets added.
++            reference = None
++            if original_df is not None and column in original_df.columns:
++                reference = self._coerce_numeric(original_df[column])
++            if reference is None or reference.isna().all():
++                reference = numeric_col
++
++            col_range = reference.max() - reference.min()
++            if not np.isfinite(col_range) or col_range <= 0:
++                continue
++
++            scale = col_range / epsilon
++            noise = np.random.laplace(0, scale, len(result_df))
++            noisy = numeric_col + noise
++
++            # Keep values within the range actually observed in the
++            # original data -- unbounded Laplace noise can otherwise
++            # produce a negative age or an out-of-range vital sign.
++            noisy = noisy.clip(lower=reference.min(), upper=reference.max())
++            decimals = self._get_decimal_precision(reference)
++            result_df[column] = noisy.round(decimals)
++
++        logging.info(
++            f"Applied differential-privacy-style Laplace noise (epsilon={epsilon}) "
++            f"to numeric columns in '{table_name}'"
++        )
++        return result_df
++
+     def _find_diagnosis_date_column(self, df):
+         """Find a diagnosis-date-like column by name (e.g. 'Diagnosis Date',
+         'Date of Diagnosis')."""
+@@ -2187,6 +2239,15 @@ class SyntheticDataPipeline:
+                     self.synthetic_data[table_name], table_name
+                 )
+ 
++        # Apply differential-privacy-style noise if configured
++        if getattr(self, 'apply_differential_privacy', False):
++            epsilon = getattr(self, 'dp_epsilon', 1.0)
++            logging.info(f"Applying differential-privacy-style noise (epsilon={epsilon}) to all synthetic data tables")
++            for table_name in self.synthetic_data.keys():
++                self.synthetic_data[table_name] = self.apply_differential_privacy_noise(
++                    self.synthetic_data[table_name], table_name, epsilon=epsilon
++                )
++
+         # Check overall success
+         if not success:
+             logging.error("Failed to generate any synthetic data")
+@@ -2845,6 +2906,12 @@ class SyntheticDataPipeline:
+                 # independently above -- reconcile them before storing.
+                 perturbed_df = self.reconcile_age_with_dob(perturbed_df, table_name)
+ 
++                # Apply differential-privacy-style noise if configured
++                if getattr(self, 'apply_differential_privacy', False):
++                    perturbed_df = self.apply_differential_privacy_noise(
++                        perturbed_df, table_name, epsilon=getattr(self, 'dp_epsilon', 1.0)
++                    )
++
+                 # Store the perturbed data
+                 self.synthetic_data[table_name] = perturbed_df
+                 logging.info(f"Successfully generated perturbed data for {table_name} with {len(perturbed_df)} rows")

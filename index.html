@@ -1153,7 +1153,9 @@
                 perturbation_factor: parseFloat(document.getElementById('perturbation-slider').value) / 100,
                 preserve_temporal: document.getElementById('preserve-temporal').checked,
                 preserve_dependencies: document.getElementById('preserve-dependencies').checked,
-                preserve_correlations: document.getElementById('preserve-correlations').checked
+                preserve_correlations: document.getElementById('preserve-correlations').checked,
+                privacy_level: document.getElementById('privacy-level').value,
+                differential_privacy: document.getElementById('differential-privacy').checked
             };
 
             // Handle data size specifics

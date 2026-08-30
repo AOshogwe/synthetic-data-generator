@@ -1797,6 +1797,58 @@ class SyntheticDataPipeline:
 
         return groups
 
+    def apply_differential_privacy_noise(self, df, table_name, epsilon=1.0):
+        """Add Laplace-mechanism noise to numeric columns as a lightweight,
+        per-column differential-privacy-style protection.
+
+        This is NOT a formally audited differential-privacy implementation
+        -- there's no cross-query privacy budget accounting, and
+        'sensitivity' is approximated from each column's observed min/max
+        rather than a domain-defined bound. It does add real, calibrated
+        Laplace(0, (max-min)/epsilon) noise to every numeric column in the
+        output, which is a genuine (if basic) privacy mechanism -- it just
+        shouldn't be presented to end users, auditors, or IRBs as a
+        compliance guarantee without a proper review.
+        """
+        result_df = df.copy()
+        original_df = self.original_data.get(table_name)
+
+        for column in result_df.columns:
+            numeric_col = self._coerce_numeric(result_df[column])
+            if numeric_col is None or numeric_col.isna().all():
+                continue
+
+            # Sensitivity is approximated from the ORIGINAL column's
+            # observed range, not the (possibly already-perturbed) output
+            # -- using the output's own range would let earlier
+            # perturbation shrink or inflate how much noise gets added.
+            reference = None
+            if original_df is not None and column in original_df.columns:
+                reference = self._coerce_numeric(original_df[column])
+            if reference is None or reference.isna().all():
+                reference = numeric_col
+
+            col_range = reference.max() - reference.min()
+            if not np.isfinite(col_range) or col_range <= 0:
+                continue
+
+            scale = col_range / epsilon
+            noise = np.random.laplace(0, scale, len(result_df))
+            noisy = numeric_col + noise
+
+            # Keep values within the range actually observed in the
+            # original data -- unbounded Laplace noise can otherwise
+            # produce a negative age or an out-of-range vital sign.
+            noisy = noisy.clip(lower=reference.min(), upper=reference.max())
+            decimals = self._get_decimal_precision(reference)
+            result_df[column] = noisy.round(decimals)
+
+        logging.info(
+            f"Applied differential-privacy-style Laplace noise (epsilon={epsilon}) "
+            f"to numeric columns in '{table_name}'"
+        )
+        return result_df
+
     def _find_diagnosis_date_column(self, df):
         """Find a diagnosis-date-like column by name (e.g. 'Diagnosis Date',
         'Date of Diagnosis')."""
@@ -2185,6 +2237,15 @@ class SyntheticDataPipeline:
                 logging.info(f"Applying address synthesis to synthetic data for table: {table_name}")
                 self.synthetic_data[table_name] = self.apply_address_synthesis(
                     self.synthetic_data[table_name], table_name
+                )
+
+        # Apply differential-privacy-style noise if configured
+        if getattr(self, 'apply_differential_privacy', False):
+            epsilon = getattr(self, 'dp_epsilon', 1.0)
+            logging.info(f"Applying differential-privacy-style noise (epsilon={epsilon}) to all synthetic data tables")
+            for table_name in self.synthetic_data.keys():
+                self.synthetic_data[table_name] = self.apply_differential_privacy_noise(
+                    self.synthetic_data[table_name], table_name, epsilon=epsilon
                 )
 
         # Check overall success
@@ -2844,6 +2905,12 @@ class SyntheticDataPipeline:
                 # Age grouping and perturbation each touch Age/DOB
                 # independently above -- reconcile them before storing.
                 perturbed_df = self.reconcile_age_with_dob(perturbed_df, table_name)
+
+                # Apply differential-privacy-style noise if configured
+                if getattr(self, 'apply_differential_privacy', False):
+                    perturbed_df = self.apply_differential_privacy_noise(
+                        perturbed_df, table_name, epsilon=getattr(self, 'dp_epsilon', 1.0)
+                    )
 
                 # Store the perturbed data
                 self.synthetic_data[table_name] = perturbed_df

@@ -451,10 +451,35 @@ def configure_generation():
             if not isinstance(factor, (int, float)) or factor < 0 or factor > 1:
                 return jsonify({'error': 'Perturbation factor must be between 0 and 1'}), 400
 
+        # Apply the Privacy Level preset (minimal/balanced/high). This used
+        # to render in the Advanced Options tab but was never read by the
+        # front end or acted on here. 'high' overrides the individual
+        # anonymization checkboxes -- someone picking the strongest preset
+        # should get the strongest settings without also having to tick
+        # every box themselves; 'minimal'/'balanced' only fill in a default
+        # perturbation strength and never weaken an explicit user choice.
+        privacy_level = config.get('privacy_level', 'balanced')
+        if privacy_level == 'minimal':
+            config.setdefault('perturbation_factor', 0.05)
+        elif privacy_level == 'high':
+            config['perturbation_factor'] = 0.4
+            config['anonymize_names'] = True
+            config['apply_age_grouping'] = True
+            config['anonymize_addresses'] = True
+        else:
+            privacy_level = 'balanced'
+            config.setdefault('perturbation_factor', 0.2)
+        app.logger.info(f"Privacy level '{privacy_level}' applied")
+
         # Set configuration in pipeline
         pipeline.config = config
 
         # Configure advanced features based on settings
+        if config.get('differential_privacy', False):
+            pipeline.apply_differential_privacy = True
+            pipeline.dp_epsilon = float(config.get('dp_epsilon', 1.0))
+            app.logger.info(f"Differential-privacy-style noise enabled (epsilon={pipeline.dp_epsilon})")
+
         if config.get('anonymize_names', False):
             pipeline.apply_name_abstraction = True
             pipeline.config['name_method'] = config.get('name_method', 'synthetic')
@@ -513,7 +538,9 @@ def configure_generation():
                 'age_grouping': config.get('apply_age_grouping', False),
                 'address_anonymization': config.get('anonymize_addresses', False),
                 'relationship_preservation': config.get('preserve_temporal', True),
-                'perturbation_mode': config.get('generation_method') == 'perturbation'
+                'perturbation_mode': config.get('generation_method') == 'perturbation',
+                'privacy_level': privacy_level,
+                'differential_privacy': config.get('differential_privacy', False)
             }
         })
 
@@ -768,6 +795,12 @@ def create_copy_with_privacy_features(pipeline):
             # Apply address synthesis if enabled
             if getattr(pipeline, 'should_apply_address_synthesis', False):
                 synthetic_df = apply_address_anonymization(synthetic_df, table_name, schema_info)
+
+            # Apply differential-privacy-style noise if enabled
+            if getattr(pipeline, 'apply_differential_privacy', False):
+                synthetic_df = pipeline.apply_differential_privacy_noise(
+                    synthetic_df, table_name, epsilon=getattr(pipeline, 'dp_epsilon', 1.0)
+                )
 
             # Store the result
             pipeline.synthetic_data[table_name] = synthetic_df
