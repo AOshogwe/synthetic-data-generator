@@ -1732,6 +1732,41 @@ class SyntheticDataPipeline:
 
         return master_table_name, selected_entities, synthetic_ids
 
+    def describe_entity_linkage(self):
+        """Non-destructive preview of cross-table entity linkage: which
+        shared key (if any) links two or more uploaded tables, which table
+        looks like the 'master' (one row per entity), and which are
+        satellites. This detection already drives generation internally
+        (see _build_entity_assignment / _generate_linked_satellite_table);
+        this method just exposes the same result so the UI can show it to
+        the user right after upload instead of it happening silently."""
+        entity_key = self._detect_shared_entity_key()
+        if not entity_key:
+            return {'detected': False}
+
+        linked_tables = [t for t, tdf in self.original_data.items() if entity_key in tdf.columns]
+        if len(linked_tables) < 2:
+            return {'detected': False}
+
+        assignment = self._build_entity_assignment(entity_key, linked_tables)
+        if not assignment:
+            return {
+                'detected': False,
+                'entity_key': entity_key,
+                'candidate_tables': linked_tables,
+                'reason': "No table has exactly one row per entity, so these tables can't be linked."
+            }
+
+        master_table_name, selected_entities, _ = assignment
+        satellite_tables = [t for t in linked_tables if t != master_table_name]
+        return {
+            'detected': True,
+            'entity_key': entity_key,
+            'master_table': master_table_name,
+            'satellite_tables': satellite_tables,
+            'entity_count': int(self.original_data[master_table_name][entity_key].dropna().nunique())
+        }
+
     def _detect_episode_date_columns(self, df):
         """Find Start/Stop/Ongoing or Begin/End style date-column groups in
         a table (the DMD episode-record and reference-period-record shapes),

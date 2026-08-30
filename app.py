@@ -286,13 +286,26 @@ def upload_files():
 
         app.logger.info(f"Successfully loaded {len(preview_data)} tables with advanced pipeline")
 
+        # Detect (without mutating anything) whether a shared key like
+        # 'Patient ID' links two or more of the uploaded tables, so the UI
+        # can tell the user up front that cross-table consistency will be
+        # preserved during generation, instead of that only being visible
+        # in server logs.
+        entity_linkage = pipeline.describe_entity_linkage()
+        if entity_linkage.get('detected'):
+            app.logger.info(
+                f"Detected entity linkage via '{entity_linkage['entity_key']}': "
+                f"master={entity_linkage['master_table']}, satellites={entity_linkage['satellite_tables']}"
+            )
+
         return jsonify({
             'success': True,
             'files_uploaded': len(uploaded_files),
             'tables': preview_data,
             'schema': pipeline.schema,
             'session_id': pipeline_state['session_id'],
-            'advanced_features_enabled': True
+            'advanced_features_enabled': True,
+            'entity_linkage': entity_linkage
         })
 
     except Exception as e:
@@ -689,7 +702,8 @@ def generate_data():
                 'method_used': method_used,
                 'synthesis_required': synthesis_required,
                 'total_synthesize_columns': total_synthesize_columns,
-                'total_copy_columns': total_copy_columns
+                'total_copy_columns': total_copy_columns,
+                'entity_linkage': pipeline.describe_entity_linkage()
             })
         else:
             pipeline_state['status'] = 'error'
