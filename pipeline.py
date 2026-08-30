@@ -1797,7 +1797,46 @@ class SyntheticDataPipeline:
 
         return groups
 
-    def _jitter_episode_dates(self, df, date_group, max_shift_days=30):
+    def _find_diagnosis_date_column(self, df):
+        """Find a diagnosis-date-like column by name (e.g. 'Diagnosis Date',
+        'Date of Diagnosis')."""
+        for column in df.columns:
+            lc = str(column).lower()
+            if 'diagnos' in lc and 'date' in lc:
+                return column
+        return None
+
+    def _get_patient_timeline_floor(self, entity_key, original_entity, master_table_name):
+        """Earliest date an episode/event for this patient could plausibly
+        carry: the later of their date of birth and diagnosis date (when
+        known), read from that real patient's row in the master table.
+        Returns None if no such bound can be determined."""
+        if not master_table_name or master_table_name not in self.original_data:
+            return None
+        master_df = self.original_data[master_table_name]
+        if entity_key not in master_df.columns:
+            return None
+        match = master_df[master_df[entity_key] == original_entity]
+        if match.empty:
+            return None
+        row = match.iloc[0]
+
+        floor = None
+        dob_cols = self._detect_dob_columns(master_df)
+        if dob_cols:
+            dob = pd.to_datetime(row[dob_cols[0]], errors='coerce')
+            if pd.notna(dob):
+                floor = dob
+
+        diag_col = self._find_diagnosis_date_column(master_df)
+        if diag_col:
+            diag = pd.to_datetime(row[diag_col], errors='coerce')
+            if pd.notna(diag) and (floor is None or diag > floor):
+                floor = diag
+
+        return floor
+
+    def _jitter_episode_dates(self, df, date_group, max_shift_days=30, floor_dates=None):
         """Shift an episode's Start/Stop(/Ongoing) -- or a period's
         Begin/End -- dates together by the same random per-row offset. This
         gives duplicated or reused episodes (e.g. when oversampling more
@@ -1805,12 +1844,30 @@ class SyntheticDataPipeline:
         byte-identical ones, while Start <= Stop/Ongoing and 'exactly one of
         Stop/Ongoing set' both stay true automatically, since the whole
         interval is translated rather than each column being resampled on
-        its own. Dates are normalized to YYYY-MM-DD in the process."""
+        its own. Dates are normalized to YYYY-MM-DD in the process.
+
+        If floor_dates (a per-row Series, e.g. from _get_patient_timeline_floor)
+        is given, an offset that would push the episode's start date earlier
+        than that patient's DOB/diagnosis date is reduced to the largest
+        offset that still respects it -- an episode can't sensibly predate
+        the patient's birth or their diagnosis.
+        """
         result = df.copy()
         cols = [c for c in (date_group['start'], date_group.get('stop'), date_group.get('ongoing')) if c]
 
         parsed = {c: pd.to_datetime(result[c], errors='coerce') for c in cols}
-        offsets = pd.to_timedelta(np.random.randint(-max_shift_days, max_shift_days + 1, len(result)), unit='D')
+        offsets = pd.Series(
+            pd.to_timedelta(np.random.randint(-max_shift_days, max_shift_days + 1, len(result)), unit='D'),
+            index=result.index
+        )
+
+        if floor_dates is not None:
+            start_col = date_group['start']
+            start_dates = parsed.get(start_col, pd.to_datetime(result[start_col], errors='coerce'))
+            floor_series = pd.Series(floor_dates, index=result.index) if not isinstance(floor_dates, pd.Series) else floor_dates.reindex(result.index)
+            min_allowed_offset = floor_series - start_dates
+            needs_clamp = min_allowed_offset.notna() & start_dates.notna() & (offsets < min_allowed_offset)
+            offsets = offsets.where(~needs_clamp, min_allowed_offset)
 
         for c in cols:
             was_null = parsed[c].isna()
@@ -1820,7 +1877,7 @@ class SyntheticDataPipeline:
 
         return result
 
-    def _generate_linked_satellite_table(self, df, table_name, entity_key, selected_entities, synthetic_ids):
+    def _generate_linked_satellite_table(self, df, table_name, entity_key, selected_entities, synthetic_ids, master_table_name=None):
         """For a table with multiple rows per shared entity (e.g. per-patient
         episode/result records), copy each selected entity's full group of
         original rows together and relabel them under the new synthetic
@@ -1836,6 +1893,12 @@ class SyntheticDataPipeline:
                 continue
             piece = group.copy()
             piece[entity_key] = new_id
+            # Attach this patient's DOB/diagnosis-derived floor to every row
+            # in their group now, while we still know which real patient the
+            # rows came from -- entity_key has just been relabeled above.
+            piece['_timeline_floor'] = self._get_patient_timeline_floor(
+                entity_key, original_entity, master_table_name
+            )
             pieces.append(piece)
 
         if not pieces:
@@ -1843,13 +1906,16 @@ class SyntheticDataPipeline:
             return pd.DataFrame(columns=df.columns)
 
         result = pd.concat(pieces, ignore_index=True)
+        floor_dates = result.pop('_timeline_floor')
 
         # Shift any episode/period date groups together per row, so reused
         # episodes don't carry identical dates across duplicated synthetic
         # patients, without breaking the Start<=Stop/Ongoing or
-        # exactly-one-of-Stop/Ongoing rules (see _jitter_episode_dates).
+        # exactly-one-of-Stop/Ongoing rules (see _jitter_episode_dates), and
+        # without drifting a date earlier than that patient's own DOB or
+        # diagnosis date (see _get_patient_timeline_floor).
         for date_group in self._detect_episode_date_columns(result):
-            result = self._jitter_episode_dates(result, date_group)
+            result = self._jitter_episode_dates(result, date_group, floor_dates=floor_dates)
 
         # Per-column abstractions (e.g. range generalization) can still run
         # on top of the copied groups -- they transform values in place and
@@ -1916,7 +1982,7 @@ class SyntheticDataPipeline:
                     # separately (see _generate_linked_satellite_table) and
                     # skip the rest of the single-table logic below.
                     self.synthetic_data[table_name] = self._generate_linked_satellite_table(
-                        df, table_name, entity_key, selected_entities, synthetic_ids
+                        df, table_name, entity_key, selected_entities, synthetic_ids, master_table_name
                     )
                     success = True
                     continue
