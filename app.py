@@ -370,6 +370,22 @@ def configure_generation():
 
                             action = columns_config.get(column, 'copy')
 
+                            # A column explicitly set to "copy" here is a
+                            # deliberate "leave this exact column alone"
+                            # signal from the Column Selection tab -- the
+                            # front end's default for an untouched column is
+                            # "synthesize", not "copy" (see collectConfiguration
+                            # in index.html), so 'copy' only ever arrives when
+                            # the user unchecked the column or chose "Copy
+                            # original" on purpose. Global Privacy tab toggles
+                            # (Anonymize Names/Age Grouping/Anonymize Addresses)
+                            # used to overwrite this column anyway if it
+                            # happened to match their name/age/address pattern,
+                            # silently contradicting the explicit per-column
+                            # choice. user_protected marks it so those global
+                            # passes know to skip it.
+                            pipeline.schema[table_name]['columns'][column]['user_protected'] = (action == 'copy')
+
                             if action == 'synthesize':
                                 pipeline.schema[table_name]['columns'][column]['synthesize'] = True
                                 app.logger.info(f"Column '{column}' will be SYNTHESIZED")
@@ -385,7 +401,7 @@ def configure_generation():
                                 # 'copy', or anything unrecognized -- copy is
                                 # the safe default.
                                 pipeline.schema[table_name]['columns'][column]['synthesize'] = False
-                                app.logger.info(f"Column '{column}' will be COPIED from original")
+                                app.logger.info(f"Column '{column}' will be COPIED from original (protected from global privacy toggles)")
 
         # ALTERNATIVE: Handle column selection from general config
         elif 'columns_to_synthesize' in config:
@@ -879,6 +895,8 @@ def apply_name_anonymization(df, table_name, schema_info):
     last_name_pool = [random.choice(last_names) for _ in range(n)]
 
     for column, info in schema_info.items():
+        if info.get('user_protected', False):
+            continue
         if column in df.columns and ('name' in column.lower() or info.get('is_name', False)):
             name_part = _classify_name_column(column)
             if name_part == 'first':
@@ -918,6 +936,8 @@ def apply_age_grouping_to_copy(df, table_name, schema_info):
     """
     age_columns = []
     for column, info in schema_info.items():
+        if info.get('user_protected', False):
+            continue
         if column in df.columns and (re.search(r'\bage\b', column, re.IGNORECASE) or info.get('is_age', False)):
             numeric_col = df[column] if pd.api.types.is_numeric_dtype(df[column]) else _numeric_after_stripping(df[column])
             if numeric_col is not None:
@@ -974,6 +994,8 @@ def apply_address_anonymization(df, table_name, schema_info):
     states = ['CA', 'NY', 'TX', 'FL', 'IL']
 
     for column, info in schema_info.items():
+        if info.get('user_protected', False):
+            continue
         if column in df.columns and ('address' in column.lower() or 'postal' in column.lower()):
             if 'postal' in column.lower():
                 # Generate random postal codes

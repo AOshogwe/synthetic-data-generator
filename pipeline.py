@@ -520,6 +520,8 @@ class SyntheticDataPipeline:
         # Process name columns
         if 'columns' in self.schema.get(table_name, {}):
             for column, info in self.schema[table_name]['columns'].items():
+                if info.get('user_protected', False):
+                    continue
                 if info.get('is_name') and column in df.columns:
                     name_part = self._classify_name_column(column)
                     logging.info(f"Generating synthetic names for column: {column} (part: {name_part})")
@@ -1812,8 +1814,11 @@ class SyntheticDataPipeline:
         """
         result_df = df.copy()
         original_df = self.original_data.get(table_name)
+        schema_info = self.schema.get(table_name, {}).get('columns', {})
 
         for column in result_df.columns:
+            if schema_info.get(column, {}).get('user_protected', False):
+                continue
             numeric_col = self._coerce_numeric(result_df[column])
             if numeric_col is None or numeric_col.isna().all():
                 continue
@@ -3609,6 +3614,8 @@ class SyntheticDataPipeline:
         applied_grouping = False
         for column, info in schema_info.items():
             if column not in df.columns:
+                continue
+            if info.get('user_protected', False):
                 continue
 
             grouping_config = info.get('age_grouping')
