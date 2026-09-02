@@ -1,4 +1,5 @@
 import { useAppDispatch, useAppState } from '../../state/AppContext'
+import { CORRELATION_LEVELS } from '../../config/contract'
 
 export default function RelationshipsTab() {
   const { config } = useAppState()
@@ -59,6 +60,22 @@ export default function RelationshipsTab() {
           />
           <span>Preserve statistical correlations</span>
         </label>
+        {config.preserve_correlations && (
+          <div className="space-y-3">
+            <label>Correlation preservation level:</label>
+            <select
+              className="w-full p-3 border border-gray-300 rounded-lg"
+              value={config.correlation_level}
+              onChange={(e) => setField('correlation_level', e.target.value)}
+            >
+              {CORRELATION_LEVELS.map((level) => (
+                <option key={level.value} value={level.value}>
+                  {level.label} ({level.description})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
     </div>
   )

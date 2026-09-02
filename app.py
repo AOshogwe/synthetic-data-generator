@@ -343,7 +343,8 @@ KNOWN_CONFIG_FIELDS = {
     'preserve_gender', 'apply_age_grouping', 'age_grouping_method',
     'anonymize_addresses', 'address_method', 'perturbation_factor',
     'preserve_temporal', 'preserve_dependencies', 'preserve_correlations',
-    'privacy_level', 'differential_privacy', 'dp_epsilon',
+    'correlation_level', 'privacy_level', 'differential_privacy', 'dp_epsilon',
+    'handle_missing_values', 'remove_duplicate_rows', 'detect_and_handle_outliers',
     'column_selection', 'columns_to_synthesize',
 }
 
@@ -585,6 +586,31 @@ def configure_generation():
         pipeline.config['preserve_temporal'] = config.get('preserve_temporal', True)
         pipeline.config['preserve_dependencies'] = config.get('preserve_dependencies', True)
         pipeline.config['preserve_correlations'] = config.get('preserve_correlations', True)
+
+        # 'preserve_correlations' was stored on pipeline.config above but
+        # never actually read by anything -- the checkbox and its
+        # correlation-level select were fully decorative (#46). Wire them to
+        # pipeline.apply_correlation_preservation() via the flags it reads.
+        if config.get('preserve_correlations', True):
+            pipeline.apply_correlation_preservation_flag = True
+            pipeline.correlation_preservation_level = config.get('correlation_level', 'moderate')
+            app.logger.info(f"Correlation preservation enabled (level={pipeline.correlation_preservation_level})")
+
+        # Data Quality options (Advanced Options tab) -- handle-missing,
+        # remove-duplicates, and outlier-detection checkboxes rendered with
+        # no backend behind any of them until now (#46).
+        handle_missing_values = config.get('handle_missing_values', True)
+        remove_duplicate_rows = config.get('remove_duplicate_rows', False)
+        detect_and_handle_outliers = config.get('detect_and_handle_outliers', False)
+        if handle_missing_values or remove_duplicate_rows or detect_and_handle_outliers:
+            pipeline.apply_data_quality = True
+            pipeline.dq_handle_missing = handle_missing_values
+            pipeline.dq_remove_duplicates = remove_duplicate_rows
+            pipeline.dq_handle_outliers = detect_and_handle_outliers
+            app.logger.info(
+                f"Data quality options enabled (missing={handle_missing_values}, "
+                f"duplicates={remove_duplicate_rows}, outliers={detect_and_handle_outliers})"
+            )
 
         pipeline_state['config'] = config
         pipeline_state['status'] = 'configured'
@@ -862,6 +888,23 @@ def create_copy_with_privacy_features(pipeline):
             if getattr(pipeline, 'apply_differential_privacy', False):
                 synthetic_df = pipeline.apply_differential_privacy_noise(
                     synthetic_df, table_name, epsilon=getattr(pipeline, 'dp_epsilon', 1.0)
+                )
+
+            # Apply Data Quality options if enabled
+            if getattr(pipeline, 'apply_data_quality', False):
+                synthetic_df = pipeline.apply_data_quality_options(
+                    synthetic_df, table_name,
+                    handle_missing=getattr(pipeline, 'dq_handle_missing', True),
+                    remove_duplicates=getattr(pipeline, 'dq_remove_duplicates', False),
+                    handle_outliers=getattr(pipeline, 'dq_handle_outliers', False)
+                )
+
+            # Apply correlation preservation last, same ordering rationale
+            # as the synthesis/perturbation paths.
+            if getattr(pipeline, 'apply_correlation_preservation_flag', False):
+                synthetic_df = pipeline.apply_correlation_preservation(
+                    synthetic_df, table_name,
+                    level=getattr(pipeline, 'correlation_preservation_level', 'moderate')
                 )
 
             # Store the result

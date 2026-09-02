@@ -11,11 +11,12 @@
 // matching Python-side list -- so a new field added to only one side is
 // caught immediately instead of silently doing nothing.
 //
-// Deliberately NOT included: handle-missing, remove-duplicates,
-// outlier-detection, correlation-level (found decorative during this
-// rebuild -- see task #46) and privacy_level's differential_privacy epsilon
-// override (fixed at 1.0 server-side for now). Add a field here only once
-// there's a real backend implementation for it.
+// Deliberately NOT included: privacy_level's differential_privacy epsilon
+// override (fixed at 1.0 server-side for now). handle_missing_values,
+// remove_duplicate_rows, detect_and_handle_outliers, and correlation_level
+// were found decorative during this rebuild (task #46) and now have a real
+// backend implementation (pipeline.py's apply_data_quality_options and
+// apply_correlation_preservation), so they're included below.
 
 export const DEFAULT_CONFIG = {
   generation_method: 'auto',
@@ -31,8 +32,12 @@ export const DEFAULT_CONFIG = {
   preserve_temporal: true,
   preserve_dependencies: true,
   preserve_correlations: true,
+  correlation_level: 'moderate',
   privacy_level: 'balanced',
   differential_privacy: false,
+  handle_missing_values: true,
+  remove_duplicate_rows: false,
+  detect_and_handle_outliers: false,
   // { [tableName]: { [columnName]: 'synthesize' | 'copy' | 'range' | 'abstract' } }
   column_selection: {},
 }
@@ -67,6 +72,12 @@ export const ADDRESS_METHODS = [
   { value: 'city_only', label: 'City/region only' },
 ]
 
+export const CORRELATION_LEVELS = [
+  { value: 'strict', label: 'Strict', description: 'Maintain exact correlations' },
+  { value: 'moderate', label: 'Moderate', description: 'Allow some variation' },
+  { value: 'loose', label: 'Loose', description: 'Preserve general trends only' },
+]
+
 export const PRIVACY_LEVELS = [
   { value: 'minimal', label: 'Minimal', description: 'Preserve data utility' },
   { value: 'balanced', label: 'Balanced', description: 'Balance privacy and utility' },
@@ -97,8 +108,12 @@ export function buildConfigPayload(config) {
     preserve_temporal: config.preserve_temporal,
     preserve_dependencies: config.preserve_dependencies,
     preserve_correlations: config.preserve_correlations,
+    correlation_level: config.correlation_level,
     privacy_level: config.privacy_level,
     differential_privacy: config.differential_privacy,
+    handle_missing_values: config.handle_missing_values,
+    remove_duplicate_rows: config.remove_duplicate_rows,
+    detect_and_handle_outliers: config.detect_and_handle_outliers,
     column_selection: config.column_selection,
   }
 

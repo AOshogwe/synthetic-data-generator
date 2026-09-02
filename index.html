@@ -1154,8 +1154,16 @@
                 preserve_temporal: document.getElementById('preserve-temporal').checked,
                 preserve_dependencies: document.getElementById('preserve-dependencies').checked,
                 preserve_correlations: document.getElementById('preserve-correlations').checked,
+                correlation_level: document.getElementById('correlation-level').value,
                 privacy_level: document.getElementById('privacy-level').value,
-                differential_privacy: document.getElementById('differential-privacy').checked
+                differential_privacy: document.getElementById('differential-privacy').checked,
+                // Data Quality panel (Advanced Options tab) -- these controls
+                // render but were never read back into the payload before
+                // now, so they silently did nothing regardless of the
+                // checkbox state (#46).
+                handle_missing_values: document.getElementById('handle-missing').checked,
+                remove_duplicate_rows: document.getElementById('remove-duplicates').checked,
+                detect_and_handle_outliers: document.getElementById('outlier-detection').checked
             };
 
             // Handle data size specifics

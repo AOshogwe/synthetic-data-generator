@@ -44,6 +44,41 @@ export default function AdvancedTab() {
           </p>
         </div>
       </div>
+
+      <div className="config-panel rounded-lg p-6">
+        <h3 className="text-lg font-semibold mb-4">
+          <i className="fas fa-shield-alt mr-2"></i>Data Quality
+        </h3>
+        <div className="space-y-3">
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              className="mr-3"
+              checked={config.handle_missing_values}
+              onChange={(e) => setField('handle_missing_values', e.target.checked)}
+            />
+            <span>Handle missing values</span>
+          </label>
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              className="mr-3"
+              checked={config.remove_duplicate_rows}
+              onChange={(e) => setField('remove_duplicate_rows', e.target.checked)}
+            />
+            <span>Remove duplicate rows</span>
+          </label>
+          <label className="flex items-center">
+            <input
+              type="checkbox"
+              className="mr-3"
+              checked={config.detect_and_handle_outliers}
+              onChange={(e) => setField('detect_and_handle_outliers', e.target.checked)}
+            />
+            <span>Detect and handle outliers</span>
+          </label>
+        </div>
+      </div>
     </div>
   )
 }

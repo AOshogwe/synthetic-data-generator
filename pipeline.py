@@ -1799,6 +1799,128 @@ class SyntheticDataPipeline:
 
         return groups
 
+    def apply_data_quality_options(self, df, table_name, handle_missing=True,
+                                    remove_duplicates=False, handle_outliers=False):
+        """Data Quality options from the Advanced Options tab -- these
+        rendered in the UI (handle-missing, remove-duplicates,
+        outlier-detection checkboxes) with no backend implementation behind
+        any of them until now (found during the UI redesign, task #46).
+
+        Order matters: outliers are winsorized first (fixing extreme values
+        before they influence what "missing" gets imputed to), then missing
+        values are imputed, then duplicates are dropped last (imputation can
+        itself create new duplicate rows).
+        """
+        result_df = df.copy()
+        schema_info = self.schema.get(table_name, {}).get('columns', {})
+
+        if handle_outliers:
+            for column in result_df.columns:
+                if schema_info.get(column, {}).get('user_protected', False):
+                    continue
+                numeric_col = self._coerce_numeric(result_df[column])
+                if numeric_col is None or numeric_col.isna().all():
+                    continue
+                q1, q3 = numeric_col.quantile(0.25), numeric_col.quantile(0.75)
+                iqr = q3 - q1
+                if not iqr or not np.isfinite(iqr):
+                    continue
+                lower, upper = q1 - 1.5 * iqr, q3 + 1.5 * iqr
+                result_df[column] = numeric_col.clip(lower=lower, upper=upper)
+            logging.info(f"Outlier detection/handling applied to '{table_name}' (IQR winsorization)")
+
+        if handle_missing:
+            for column in result_df.columns:
+                if schema_info.get(column, {}).get('user_protected', False):
+                    continue
+                if result_df[column].isna().sum() == 0:
+                    continue
+                numeric_col = self._coerce_numeric(result_df[column])
+                if numeric_col is not None:
+                    fill_value = numeric_col.median()
+                    if pd.isna(fill_value):
+                        fill_value = 0
+                    result_df[column] = result_df[column].where(~result_df[column].isna(), fill_value)
+                else:
+                    mode = result_df[column].mode(dropna=True)
+                    fill_value = mode.iloc[0] if not mode.empty else 'Unknown'
+                    result_df[column] = result_df[column].fillna(fill_value)
+            logging.info(f"Missing values imputed for '{table_name}'")
+
+        if remove_duplicates:
+            before = len(result_df)
+            result_df = result_df.drop_duplicates().reset_index(drop=True)
+            removed = before - len(result_df)
+            if removed:
+                logging.info(f"Removed {removed} duplicate row(s) from '{table_name}'")
+
+        return result_df
+
+    def apply_correlation_preservation(self, df, table_name, level='moderate'):
+        """Induce a target correlation structure onto already-synthesized
+        numeric columns via rank restoration (an Iman-Conover-style
+        approach): draw a multivariate-normal sample whose covariance is
+        the original data's correlation matrix shrunk toward independence
+        by `level`, then reorder each column's own already-generated values
+        to match that sample's rank order. Each column's exact synthesized
+        marginal distribution is preserved -- only which row gets which
+        value changes.
+
+        This exists because preserve_correlations/correlation-level
+        rendered in the UI with no backend implementation until now (task
+        #46) -- 'preserve_correlations: true' was stored on pipeline.config
+        and never read again.
+        """
+        strengths = {'strict': 1.0, 'moderate': 0.6, 'loose': 0.3}
+        strength = strengths.get(level, 0.6)
+        if strength <= 0:
+            return df
+
+        original_df = self.original_data.get(table_name)
+        if original_df is None:
+            return df
+
+        schema_info = self.schema.get(table_name, {}).get('columns', {})
+        numeric_cols = [
+            c for c in df.columns
+            if c in original_df.columns
+            and not schema_info.get(c, {}).get('user_protected', False)
+            and self._coerce_numeric(original_df[c]) is not None
+            and self._coerce_numeric(df[c]) is not None
+        ]
+        if len(numeric_cols) < 2:
+            return df
+
+        orig_numeric = original_df[numeric_cols].apply(lambda s: self._coerce_numeric(s)).dropna()
+        if len(orig_numeric) < 3:
+            return df
+
+        corr = np.nan_to_num(orig_numeric.corr().values, nan=0.0)
+        identity = np.eye(len(numeric_cols))
+        target_corr = strength * corr + (1 - strength) * identity
+        target_corr = (target_corr + target_corr.T) / 2  # enforce symmetry
+
+        n = len(df)
+        try:
+            mvn_sample = np.random.multivariate_normal(mean=np.zeros(len(numeric_cols)), cov=target_corr, size=n)
+        except Exception as e:
+            logging.warning(f"Skipping correlation preservation for '{table_name}': {e}")
+            return df
+
+        result_df = df.copy()
+        for i, column in enumerate(numeric_cols):
+            values = self._coerce_numeric(result_df[column])
+            if values is None or values.isna().any():
+                # Rank restoration needs a complete column to reorder into;
+                # skip rather than guess how to place values around gaps.
+                continue
+            sorted_values = np.sort(values.values)
+            ranks = pd.Series(mvn_sample[:, i]).rank(method='first').astype(int).values - 1
+            result_df[column] = sorted_values[ranks]
+
+        logging.info(f"Correlation preservation ('{level}') applied to '{table_name}' across {numeric_cols}")
+        return result_df
+
     def apply_differential_privacy_noise(self, df, table_name, epsilon=1.0):
         """Add Laplace-mechanism noise to numeric columns as a lightweight,
         per-column differential-privacy-style protection.
@@ -2251,6 +2373,30 @@ class SyntheticDataPipeline:
             for table_name in self.synthetic_data.keys():
                 self.synthetic_data[table_name] = self.apply_differential_privacy_noise(
                     self.synthetic_data[table_name], table_name, epsilon=epsilon
+                )
+
+        # Apply Data Quality options (handle missing / remove duplicates /
+        # handle outliers) if configured -- these controls rendered in the
+        # Advanced Options tab with no backend behind them until now (#46).
+        if getattr(self, 'apply_data_quality', False):
+            logging.info("Applying data quality options to all synthetic data tables")
+            for table_name in self.synthetic_data.keys():
+                self.synthetic_data[table_name] = self.apply_data_quality_options(
+                    self.synthetic_data[table_name], table_name,
+                    handle_missing=getattr(self, 'dq_handle_missing', True),
+                    remove_duplicates=getattr(self, 'dq_remove_duplicates', False),
+                    handle_outliers=getattr(self, 'dq_handle_outliers', False)
+                )
+
+        # Apply correlation preservation last, so it reorders the final
+        # synthesized values rather than having a later step (like DP noise)
+        # undo the correlation structure it just induced.
+        if getattr(self, 'apply_correlation_preservation_flag', False):
+            correlation_level = getattr(self, 'correlation_preservation_level', 'moderate')
+            logging.info(f"Applying correlation preservation ('{correlation_level}') to all synthetic data tables")
+            for table_name in self.synthetic_data.keys():
+                self.synthetic_data[table_name] = self.apply_correlation_preservation(
+                    self.synthetic_data[table_name], table_name, level=correlation_level
                 )
 
         # Check overall success
@@ -2915,6 +3061,24 @@ class SyntheticDataPipeline:
                 if getattr(self, 'apply_differential_privacy', False):
                     perturbed_df = self.apply_differential_privacy_noise(
                         perturbed_df, table_name, epsilon=getattr(self, 'dp_epsilon', 1.0)
+                    )
+
+                # Apply Data Quality options if configured
+                if getattr(self, 'apply_data_quality', False):
+                    perturbed_df = self.apply_data_quality_options(
+                        perturbed_df, table_name,
+                        handle_missing=getattr(self, 'dq_handle_missing', True),
+                        remove_duplicates=getattr(self, 'dq_remove_duplicates', False),
+                        handle_outliers=getattr(self, 'dq_handle_outliers', False)
+                    )
+
+                # Apply correlation preservation last, for the same reason
+                # as in generate_synthetic_data(): it should be the final
+                # value-reordering step.
+                if getattr(self, 'apply_correlation_preservation_flag', False):
+                    perturbed_df = self.apply_correlation_preservation(
+                        perturbed_df, table_name,
+                        level=getattr(self, 'correlation_preservation_level', 'moderate')
                     )
 
                 # Store the perturbed data
