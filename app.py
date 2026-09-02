@@ -149,6 +149,25 @@ def index():
     """Serve the main application"""
     return send_from_directory('.', 'index.html')
 
+
+@app.route('/v2')
+@app.route('/v2/')
+def index_v2():
+    """Serve the new React-based UI (see ui_redesign_plan.md / task #34).
+
+    Built from frontend/ via `npm run build`, output lands in static_v2/
+    next to app.py. Served at a separate path so / keeps working unchanged
+    while this reaches feature parity -- swap the default over later by
+    pointing / at this instead, once it's been tried for a while.
+    """
+    return send_from_directory('static_v2', 'index.html')
+
+
+@app.route('/v2/assets/<path:filename>')
+def v2_assets(filename):
+    return send_from_directory('static_v2/assets', filename)
+
+
 @app.route('/api/upload', methods=['POST'])
 def upload_files():
     """Handle file uploads with advanced pipeline"""
@@ -314,6 +333,31 @@ def upload_files():
         return jsonify({'error': f'Upload failed: {str(e)}'}), 500
 
 
+# Mirrors frontend/src/config/contract.js's DEFAULT_CONFIG keys. Kept as a
+# warning rather than a hard rejection so older/other clients don't break,
+# but this is what makes a field added on only one side of the contract
+# visible immediately instead of silently doing nothing -- the exact bug
+# pattern behind tasks #17, #18, #22, #30, #31, #33.
+KNOWN_CONFIG_FIELDS = {
+    'generation_method', 'data_size', 'anonymize_names', 'name_method',
+    'preserve_gender', 'apply_age_grouping', 'age_grouping_method',
+    'anonymize_addresses', 'address_method', 'perturbation_factor',
+    'preserve_temporal', 'preserve_dependencies', 'preserve_correlations',
+    'privacy_level', 'differential_privacy', 'dp_epsilon',
+    'column_selection', 'columns_to_synthesize',
+}
+
+
+def validate_config_payload(config):
+    unknown = set(config.keys()) - KNOWN_CONFIG_FIELDS
+    if unknown:
+        app.logger.warning(
+            f"/api/configure received field(s) not in KNOWN_CONFIG_FIELDS: {sorted(unknown)} -- "
+            "these will be ignored. If this is a real new setting, add it to KNOWN_CONFIG_FIELDS "
+            "here and to DEFAULT_CONFIG in frontend/src/config/contract.js."
+        )
+
+
 @app.route('/api/configure', methods=['POST'])
 def configure_generation():
     """Configure the synthetic data generation with proper column selection"""
@@ -322,6 +366,8 @@ def configure_generation():
 
         if not config:
             return jsonify({'error': 'No configuration provided'}), 400
+
+        validate_config_payload(config)
 
         if not pipeline_state.get('pipeline'):
             return jsonify({'error': 'No pipeline initialized. Please upload data first.'}), 400
