@@ -47,7 +47,16 @@ export async function debugColumns() {
   return handle(response)
 }
 
-export async function exportData({ format, includeMetadata = true, includeSchema = true, includeEvaluation = true }) {
+export async function exportData({
+  format,
+  includeMetadata = true,
+  includeSchema = true,
+  includeEvaluation = true,
+  compressFiles = false,
+  filenamePrefix = '',
+  timestampFormat = 'datetime',
+  customSuffix = '',
+}) {
   const response = await fetch(`${API_BASE}/export`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -56,11 +65,21 @@ export async function exportData({ format, includeMetadata = true, includeSchema
       include_metadata: includeMetadata,
       include_schema: includeSchema,
       include_evaluation: includeEvaluation,
+      compress_files: compressFiles,
+      filename_prefix: filenamePrefix,
+      timestamp_format: timestampFormat,
+      custom_suffix: customSuffix,
     }),
   })
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
     throw new Error(body.error || `HTTP ${response.status}`)
   }
-  return response.blob()
+  // Use the filename the server actually generated (reflecting the
+  // prefix/timestamp options above) rather than making the caller guess one.
+  const disposition = response.headers.get('Content-Disposition') || ''
+  const match = disposition.match(/filename="?([^";]+)"?/)
+  const filename = match ? match[1] : `synthetic_data_${Date.now()}.zip`
+  const blob = await response.blob()
+  return { blob, filename }
 }

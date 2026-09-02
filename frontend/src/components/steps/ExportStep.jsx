@@ -7,6 +7,14 @@ const FORMATS = [
   { value: 'excel', label: '📈 Excel Workbook' },
   { value: 'json', label: '🔗 JSON' },
   { value: 'parquet', label: '⚡ Parquet' },
+  { value: 'sql', label: '🗄️ SQL Insert Statements' },
+]
+
+const TIMESTAMP_FORMATS = [
+  { value: 'none', label: 'No timestamp' },
+  { value: 'datetime', label: 'Date and time' },
+  { value: 'date', label: 'Date only' },
+  { value: 'custom', label: 'Custom suffix' },
 ]
 
 function downloadBlob(blob, filename) {
@@ -28,6 +36,10 @@ export default function ExportStep() {
   const [includeMetadata, setIncludeMetadata] = useState(true)
   const [includeSchema, setIncludeSchema] = useState(true)
   const [includeEvaluation, setIncludeEvaluation] = useState(true)
+  const [compressFiles, setCompressFiles] = useState(false)
+  const [filenamePrefix, setFilenamePrefix] = useState('')
+  const [timestampFormat, setTimestampFormat] = useState('datetime')
+  const [customSuffix, setCustomSuffix] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [status, setStatus] = useState(null)
@@ -37,9 +49,17 @@ export default function ExportStep() {
     setError(null)
     setStatus('Preparing export...')
     try {
-      const blob = await exportData({ format, includeMetadata, includeSchema, includeEvaluation })
-      const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-')
-      downloadBlob(blob, `synthetic_data_${timestamp}.zip`)
+      const { blob, filename } = await exportData({
+        format,
+        includeMetadata,
+        includeSchema,
+        includeEvaluation,
+        compressFiles,
+        filenamePrefix,
+        timestampFormat,
+        customSuffix,
+      })
+      downloadBlob(blob, filename)
       setStatus('Export complete ✅')
     } catch (err) {
       setError(err.message)
@@ -115,7 +135,49 @@ export default function ExportStep() {
               />
               <span>Include evaluation report</span>
             </label>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                className="mr-3"
+                checked={compressFiles}
+                onChange={(e) => setCompressFiles(e.target.checked)}
+              />
+              <span>Compress output files</span>
+            </label>
           </div>
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-lg font-semibold mb-4">🏷️ File Naming</h3>
+        <div className="grid md:grid-cols-2 gap-4">
+          <input
+            type="text"
+            placeholder="Filename prefix (optional)"
+            className="p-3 border border-gray-300 rounded-lg"
+            value={filenamePrefix}
+            onChange={(e) => setFilenamePrefix(e.target.value)}
+          />
+          <select
+            className="p-3 border border-gray-300 rounded-lg"
+            value={timestampFormat}
+            onChange={(e) => setTimestampFormat(e.target.value)}
+          >
+            {TIMESTAMP_FORMATS.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+          {timestampFormat === 'custom' && (
+            <input
+              type="text"
+              placeholder="Custom suffix (e.g. v2, draft)"
+              className="p-3 border border-gray-300 rounded-lg"
+              value={customSuffix}
+              onChange={(e) => setCustomSuffix(e.target.value)}
+            />
+          )}
         </div>
       </div>
 

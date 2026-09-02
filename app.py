@@ -1232,37 +1232,80 @@ def export_data():
         include_schema = export_config.get('include_schema', True)
         include_evaluation = export_config.get('include_evaluation', True)
 
-        app.logger.info(f"Starting advanced export in {export_format} format")
+        # Export tab controls that rendered with no backend behind them
+        # until now (#47): compress-files, filename-prefix, timestamp-format.
+        # Selecting 'sql' as the format was worse than decorative -- the
+        # format-dispatch loop below had no 'sql' branch at all, so it
+        # silently produced a zip with no data files (just metadata.json and
+        # a README that falsely claimed a .sql file was included).
+        compress_files = bool(export_config.get('compress_files', False))
+        raw_prefix = (export_config.get('filename_prefix') or '').strip()
+        timestamp_format = export_config.get('timestamp_format', 'datetime')
+        custom_suffix = (export_config.get('custom_suffix') or '').strip()
 
-        # Use advanced pipeline export - UPDATED EXPORT
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        output_path = f"synthetic_data_advanced_{timestamp}"
+        file_prefix = raw_prefix or 'synthetic'
+        now = datetime.now()
+        if timestamp_format == 'none':
+            ts_suffix = ''
+        elif timestamp_format == 'date':
+            ts_suffix = '_' + now.strftime('%Y%m%d')
+        elif timestamp_format == 'custom':
+            sanitized = re.sub(r'[^A-Za-z0-9_-]+', '_', custom_suffix).strip('_') if custom_suffix else ''
+            ts_suffix = f'_{sanitized}' if sanitized else ''
+        else:
+            timestamp_format = 'datetime'
+            ts_suffix = '_' + now.strftime('%Y%m%d_%H%M%S')
+
+        # Preserve the exact previous default filename when nothing new is
+        # configured (no prefix, default 'datetime' timestamp) so existing
+        # API callers that don't send these fields see no behavior change.
+        zip_base = file_prefix if raw_prefix else 'synthetic_data_advanced'
+        filename = f'{zip_base}{ts_suffix}.zip'
+        zip_compression = zipfile.ZIP_DEFLATED if compress_files else zipfile.ZIP_STORED
+
+        app.logger.info(
+            f"Starting advanced export in {export_format} format "
+            f"(compress={compress_files}, prefix='{file_prefix}', timestamp='{timestamp_format}')"
+        )
 
         # Create a zip file with all exports
         memory_file = io.BytesIO()
 
-        with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+        with zipfile.ZipFile(memory_file, 'w', zip_compression) as zf:
             # Export each table with enhanced metadata
             for table_name, df in pipeline.synthetic_data.items():
                 if export_format == 'csv':
                     csv_buffer = io.StringIO()
                     df.to_csv(csv_buffer, index=False)
-                    zf.writestr(f"synthetic_{table_name}.csv", csv_buffer.getvalue())
+                    zf.writestr(f"{file_prefix}_{table_name}.csv", csv_buffer.getvalue())
 
                 elif export_format == 'excel':
                     excel_buffer = io.BytesIO()
                     with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
                         df.to_excel(writer, sheet_name=table_name, index=False)
-                    zf.writestr(f"synthetic_{table_name}.xlsx", excel_buffer.getvalue())
+                    zf.writestr(f"{file_prefix}_{table_name}.xlsx", excel_buffer.getvalue())
 
                 elif export_format == 'json':
                     json_data = df.to_json(orient='records', indent=2, date_format='iso')
-                    zf.writestr(f"synthetic_{table_name}.json", json_data)
+                    zf.writestr(f"{file_prefix}_{table_name}.json", json_data)
 
                 elif export_format == 'parquet':
                     parquet_buffer = io.BytesIO()
                     df.to_parquet(parquet_buffer, index=False)
-                    zf.writestr(f"synthetic_{table_name}.parquet", parquet_buffer.getvalue())
+                    zf.writestr(f"{file_prefix}_{table_name}.parquet", parquet_buffer.getvalue())
+
+                elif export_format == 'sql':
+                    # Round-trip through an in-memory SQLite database rather
+                    # than hand-rolling INSERT statements -- this gets
+                    # correct type inference, quoting, and NULL handling for
+                    # free from SQLite's own dump format.
+                    import sqlite3
+                    sql_conn = sqlite3.connect(':memory:')
+                    safe_table = re.sub(r'\W+', '_', table_name).strip('_') or 'table_data'
+                    df.to_sql(safe_table, sql_conn, if_exists='replace', index=False)
+                    sql_dump = '\n'.join(sql_conn.iterdump())
+                    sql_conn.close()
+                    zf.writestr(f"{file_prefix}_{table_name}.sql", sql_dump)
 
             # Add enhanced metadata if requested
             if include_metadata:
@@ -1342,7 +1385,7 @@ Total Rows: {sum(len(df) for df in pipeline.synthetic_data.values())}
 
 """
             for table_name in pipeline.synthetic_data.keys():
-                readme_content += f"- synthetic_{table_name}.{export_format}: Enhanced synthetic data for {table_name} table\n"
+                readme_content += f"- {file_prefix}_{table_name}.{export_format}: Enhanced synthetic data for {table_name} table\n"
 
             if include_metadata:
                 readme_content += "- metadata.json: Comprehensive generation metadata and configuration\n"
@@ -1356,8 +1399,6 @@ Total Rows: {sum(len(df) for df in pipeline.synthetic_data.values())}
             zf.writestr('README.txt', readme_content)
 
         memory_file.seek(0)
-
-        filename = f'synthetic_data_advanced_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip'
 
         app.logger.info(f"Advanced export completed: {filename}")
 

@@ -682,6 +682,8 @@
                             <option value="date">Date only</option>
                             <option value="custom">Custom suffix</option>
                         </select>
+                        <input type="text" id="custom-suffix" placeholder="Custom suffix (e.g. v2, draft)"
+                               class="p-3 border border-gray-300 rounded-lg hidden">
                     </div>
                 </div>
 
@@ -1368,13 +1370,22 @@
                 const includeSchema = document.getElementById('include-schema').checked;
                 const includeEvaluation = document.getElementById('include-evaluation').checked;
                 const compressFiles = document.getElementById('compress-files').checked;
+                const filenamePrefix = document.getElementById('filename-prefix').value;
+                const timestampFormat = document.getElementById('timestamp-format').value;
+                const customSuffix = document.getElementById('custom-suffix').value;
 
                 const exportConfig = {
                     format: format,
                     include_metadata: includeMetadata,
                     include_schema: includeSchema,
                     include_evaluation: includeEvaluation,
-                    compress_files: compressFiles
+                    // compress_files, filename_prefix, timestamp_format, and
+                    // custom_suffix rendered as controls with nothing behind
+                    // them server-side until now (#47).
+                    compress_files: compressFiles,
+                    filename_prefix: filenamePrefix,
+                    timestamp_format: timestampFormat,
+                    custom_suffix: customSuffix
                 };
 
                 updateStatus('Preparing export...');
@@ -1389,13 +1400,20 @@
                 });
 
                 if (response.ok) {
-                    // Handle file download
+                    // Handle file download -- use the filename the server
+                    // actually generated (reflecting the prefix/timestamp
+                    // options above) instead of a hardcoded client-side name
+                    // that ignored them.
+                    const disposition = response.headers.get('Content-Disposition') || '';
+                    const match = disposition.match(/filename="?([^";]+)"?/);
+                    const downloadName = match ? match[1] : `synthetic_data_${new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-')}.zip`;
+
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.style.display = 'none';
                     a.href = url;
-                    a.download = `synthetic_data_${new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-')}.zip`;
+                    a.download = downloadName;
                     document.body.appendChild(a);
                     a.click();
                     window.URL.revokeObjectURL(url);
@@ -1703,6 +1721,9 @@
             document.getElementById('compress-files').addEventListener('change', updateExportSummary);
             document.getElementById('filename-prefix').addEventListener('input', updateExportSummary);
             document.getElementById('timestamp-format').addEventListener('change', updateExportSummary);
+            document.getElementById('timestamp-format').addEventListener('change', function() {
+                document.getElementById('custom-suffix').classList.toggle('hidden', this.value !== 'custom');
+            });
 
             // Auto-evaluate when entering evaluation step
             const originalShowStep = showStep;
