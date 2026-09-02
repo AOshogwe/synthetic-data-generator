@@ -67,9 +67,17 @@ export const AGE_GROUPING_METHODS = [
   { value: 'life-stages', label: 'Life stages' },
 ]
 
+// Matches models/address_synthesis.py's AddressSynthesizer.anonymize_address
+// method names exactly -- 'city_only' here previously didn't match any real
+// method name, so picking it silently fell through to "leave value
+// unchanged" (task #35).
 export const ADDRESS_METHODS = [
-  { value: 'remove_house_number', label: 'Remove house number' },
-  { value: 'city_only', label: 'City/region only' },
+  { value: 'remove_house_number', label: 'Remove house number', description: 'Keep street, city, state, zip' },
+  { value: 'street_only', label: 'Street name only', description: 'Drop house number and everything after the street' },
+  { value: 'city_state_only', label: 'City and state only', description: 'Drop street and zip' },
+  { value: 'zip_only', label: 'Zip code only', description: 'Drop everything but the zip code' },
+  { value: 'general_area', label: 'General area', description: 'Keep city, state, and zip' },
+  { value: 'synthesize_realistic', label: 'Synthesize realistic address', description: 'Generate a plausible fake address' },
 ]
 
 export const CORRELATION_LEVELS = [

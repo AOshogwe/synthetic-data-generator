@@ -4360,44 +4360,99 @@ class SyntheticDataPipeline:
             print(f"  {addr} → {anonymized}")
 
     def apply_address_synthesis(self, df, table_name):
-        """Apply address synthesis to specified columns"""
+        """Auto-detect and anonymize address-like columns using
+        AddressSynthesizer, plus separately generalize postal/zip-code
+        columns by truncating to their area-identifying prefix.
+
+        This used to require a per-column
+        schema['columns'][col]['address_synthesis'] = {'enabled': True,
+        'method': ...} entry, which only ever got set by
+        identify_address_synthesis_options() -- a CLI-only, input()-based
+        method the Flask app never calls. So checking "Anonymize Addresses"
+        in the web UI silently did nothing whenever generation went through
+        this method (the full CTGAN/GaussianCopula synthesis path), while
+        the *separate* implementation in app.py's apply_address_anonymization
+        (used only by the copy-only path) did work -- task #35. This now
+        auto-detects address columns the same way identify_address_columns
+        already does, respects the per-column 'copy' choice like every
+        other global privacy pass, and actually reads the configured
+        address_method instead of ignoring it.
+        """
         if not hasattr(self, 'should_apply_address_synthesis') or not self.should_apply_address_synthesis:
             logging.info("Address synthesis not enabled, skipping")
             return df
 
         result_df = df.copy()
         schema_info = self.schema.get(table_name, {}).get('columns', {})
+        config = getattr(self, 'config', None) or {}
+        method = config.get('address_method', 'remove_house_number')
 
-        applied_synthesis = False
-        for column, info in schema_info.items():
-            if column not in df.columns:
+        # Deliberately NOT using AddressSynthesizer.identify_address_columns()
+        # here -- its content-based heuristic (any string with a digit
+        # followed by a word character) flags nearly every column in a real
+        # dataset as "address-like" (confirmed against the DMD mock data: it
+        # caught Age, Height, Postal Code, Phone Number, Family Income...).
+        # That's tolerable in the CLI flow it was built for, where a human
+        # reviews and confirms the suggested columns one at a time -- there's
+        # no equivalent confirmation step here, so acting on it automatically
+        # would corrupt unrelated columns. Stick to conservative column-name
+        # matching instead, same as the (working) copy-path implementation.
+        synthesizer = getattr(self, 'address_synthesizer', None) or AddressSynthesizer()
+        address_columns = {
+            c for c in result_df.columns
+            if any(k in c.lower() for k in ['address', 'addr', 'street'])
+        }
+        # Postal/zip codes aren't full street addresses -- AddressSynthesizer's
+        # parser expects a house number + street (e.g. "123 Main St"), so
+        # running "T5J 2N3" or "90210" through it is a silent no-op. Handle
+        # them with straightforward prefix truncation instead.
+        postal_columns = {
+            c for c in result_df.columns
+            if c not in address_columns and any(k in c.lower() for k in ['postal', 'zip'])
+        }
+
+        applied = []
+        for column in address_columns:
+            if schema_info.get(column, {}).get('user_protected', False):
                 continue
-
-            synthesis_config = info.get('address_synthesis')
-            if not synthesis_config or not synthesis_config.get('enabled'):
-                continue
-
-            logging.info(f"Applying address synthesis to column {column}")
-
             try:
-                method = synthesis_config.get('method', 'remove_house_number')
-
-                # Use the address synthesizer
-                synthesizer = getattr(self, 'address_synthesizer', AddressSynthesizer())
                 result_df[column] = synthesizer.process_address_column(result_df[column], method)
-
-                logging.info(f"Address synthesis successfully applied to {column}")
-                applied_synthesis = True
-
+                applied.append(column)
             except Exception as e:
                 logging.error(f"Error applying address synthesis to column {column}: {str(e)}")
 
-        if applied_synthesis:
-            logging.info(f"Address synthesis completed for table {table_name}")
+        for column in postal_columns:
+            if schema_info.get(column, {}).get('user_protected', False):
+                continue
+            result_df[column] = self._generalize_postal_code(result_df[column])
+            applied.append(column)
+
+        if applied:
+            logging.info(f"Address synthesis (method='{method}') applied to {applied} in table '{table_name}'")
         else:
-            logging.info(f"No address synthesis configurations found for table {table_name}")
+            logging.info(f"No address-like columns detected for table '{table_name}'")
 
         return result_df
+
+    @staticmethod
+    def _generalize_postal_code(series):
+        """Truncate each postal/zip code to its area-identifying prefix,
+        rather than assuming a specific country's format -- e.g. HIPAA
+        safe-harbor truncates a US ZIP to its first 3 digits, and Canadian
+        postal codes are conventionally generalized to their 3-character
+        Forward Sortation Area (e.g. 'T5J 2N3' -> 'T5J'). Keeps the first
+        whitespace-delimited token when there is one; otherwise keeps the
+        first half of the string."""
+        def truncate(value):
+            if pd.isna(value):
+                return value
+            text = str(value).strip()
+            if not text:
+                return value
+            if ' ' in text:
+                return text.split(' ', 1)[0]
+            return text[:max(1, len(text) // 2)]
+        return series.apply(truncate)
 
     def run_pipeline(self, input_path, output_path, format_type="csv", generation_method="auto",
                      interactive=False, apply_perturbation=False, perturbation_factor=0.2, print_evaluation=True):

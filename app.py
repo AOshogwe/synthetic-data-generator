@@ -893,7 +893,8 @@ def create_copy_with_privacy_features(pipeline):
 
             # Apply address synthesis if enabled
             if getattr(pipeline, 'should_apply_address_synthesis', False):
-                synthetic_df = apply_address_anonymization(synthetic_df, table_name, schema_info)
+                address_method = (pipeline.config or {}).get('address_method', 'remove_house_number') if hasattr(pipeline, 'config') else 'remove_house_number'
+                synthetic_df = apply_address_anonymization(synthetic_df, table_name, schema_info, address_method)
 
             # Apply differential-privacy-style noise if enabled
             if getattr(pipeline, 'apply_differential_privacy', False):
@@ -1086,24 +1087,42 @@ def apply_age_grouping_to_copy(df, table_name, schema_info):
     return df
 
 
-def apply_address_anonymization(df, table_name, schema_info):
-    """Apply address anonymization to address columns"""
-    import random
+def apply_address_anonymization(df, table_name, schema_info, address_method='remove_house_number'):
+    """Apply address anonymization to address/postal columns.
 
-    cities = ['Springfield', 'Franklin', 'Georgetown', 'Madison', 'Washington']
-    states = ['CA', 'NY', 'TX', 'FL', 'IL']
+    Previously this hardcoded a random US city/state (or a random 5-digit
+    number for anything with 'postal' in the name) regardless of the
+    Address Method the user picked -- 'address_method' was set on
+    pipeline.config but never read here, and the result was wrong for
+    non-US data (e.g. Canadian postal codes like 'T5J 2N3' becoming a
+    fabricated US zip). Now uses the same AddressSynthesizer as the full
+    synthesis path (pipeline.py's apply_address_synthesis) for real street
+    addresses, and a format-agnostic prefix-truncation for postal/zip
+    columns, so both generation paths behave consistently (task #35).
+    """
+    from models.address_synthesis import AddressSynthesizer
 
-    for column, info in schema_info.items():
-        if info.get('user_protected', False):
+    synthesizer = AddressSynthesizer()
+    address_columns = [
+        c for c in df.columns
+        if any(k in c.lower() for k in ['address', 'addr', 'street', 'residence'])
+    ]
+    postal_columns = [
+        c for c in df.columns
+        if c not in address_columns and any(k in c.lower() for k in ['postal', 'zip'])
+    ]
+
+    for column in address_columns:
+        if schema_info.get(column, {}).get('user_protected', False):
             continue
-        if column in df.columns and ('address' in column.lower() or 'postal' in column.lower()):
-            if 'postal' in column.lower():
-                # Generate random postal codes
-                df[column] = [f"{random.randint(10000, 99999)}" for _ in range(len(df))]
-            else:
-                # Generate random addresses
-                df[column] = [f"{random.choice(cities)}, {random.choice(states)}" for _ in range(len(df))]
-            app.logger.info(f"Anonymized address column: {column}")
+        df[column] = synthesizer.process_address_column(df[column], address_method)
+        app.logger.info(f"Anonymized address column '{column}' using method '{address_method}'")
+
+    for column in postal_columns:
+        if schema_info.get(column, {}).get('user_protected', False):
+            continue
+        df[column] = SyntheticDataPipeline._generalize_postal_code(df[column])
+        app.logger.info(f"Generalized postal/zip column '{column}' to its area prefix")
 
     return df
 
