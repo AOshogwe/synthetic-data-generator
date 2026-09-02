@@ -872,6 +872,17 @@ def create_copy_with_privacy_features(pipeline):
                     synthetic_df = apply_column_abstraction(synthetic_df, column, abstract_method)
                     app.logger.info(f"Applied abstraction '{abstract_method}' to column '{column}'")
 
+            # Task #48: the 'random_categorical' default above (and any
+            # other non-'copy' handling of a restricted-text/ID column, like
+            # 'Identifier' values such as 'T001') can reassign one real
+            # person's real ID to a different row -- unlike every other
+            # column here, nothing else in this row gets reshuffled in the
+            # copy path, so the rest of that row's real data stays attached
+            # to a now-mislabeled identifier. Overwrite any such column
+            # (skipping ones explicitly marked 'copy'/user_protected) with
+            # guaranteed-fresh, non-colliding values as the definitive fix.
+            synthetic_df = pipeline.regenerate_restricted_text_identifiers(synthetic_df, table_name)
+
             # Apply name anonymization if enabled
             if getattr(pipeline, 'apply_name_abstraction', False):
                 synthetic_df = apply_name_anonymization(synthetic_df, table_name, schema_info)

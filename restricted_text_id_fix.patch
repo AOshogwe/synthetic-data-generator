@@ -1,0 +1,224 @@
+diff --git a/app.py b/app.py
+index 07d24c0..4bbd266 100644
+--- a/app.py
++++ b/app.py
+@@ -872,6 +872,17 @@ def create_copy_with_privacy_features(pipeline):
+                     synthetic_df = apply_column_abstraction(synthetic_df, column, abstract_method)
+                     app.logger.info(f"Applied abstraction '{abstract_method}' to column '{column}'")
+ 
++            # Task #48: the 'random_categorical' default above (and any
++            # other non-'copy' handling of a restricted-text/ID column, like
++            # 'Identifier' values such as 'T001') can reassign one real
++            # person's real ID to a different row -- unlike every other
++            # column here, nothing else in this row gets reshuffled in the
++            # copy path, so the rest of that row's real data stays attached
++            # to a now-mislabeled identifier. Overwrite any such column
++            # (skipping ones explicitly marked 'copy'/user_protected) with
++            # guaranteed-fresh, non-colliding values as the definitive fix.
++            synthetic_df = pipeline.regenerate_restricted_text_identifiers(synthetic_df, table_name)
++
+             # Apply name anonymization if enabled
+             if getattr(pipeline, 'apply_name_abstraction', False):
+                 synthetic_df = apply_name_anonymization(synthetic_df, table_name, schema_info)
+diff --git a/pipeline.py b/pipeline.py
+index 319898e..8751a46 100644
+--- a/pipeline.py
++++ b/pipeline.py
+@@ -1799,6 +1799,134 @@ class SyntheticDataPipeline:
+ 
+         return groups
+ 
++    @staticmethod
++    def _generate_fresh_restricted_text_values(real_values, n):
++        """Generate `n` fresh ID-like values that look like `real_values`
++        (same alpha-prefix + zero-padded-number shape when one is detected,
++        otherwise the same letter/digit/other character pattern as a sample
++        value) but are guaranteed not to equal any value in `real_values`,
++        and are unique among themselves.
++
++        This exists to fix task #48: GaussianCopula/CTGAN's categorical
++        handling, the perturbation path's category-swap, and the column
++        abstraction methods all resample restricted-text/ID columns from
++        the *exact set* of real observed values. That's correct for a
++        genuine category like 'Sex' (there's nothing identifying about
++        'Male' or 'Female' on their own), but for a near-unique ID column
++        every 'category' IS one specific real person's identifier -- so
++        resampling just reattaches a real person's real ID to a different,
++        fabricated row. That's the opposite of anonymization: it discloses
++        that the real ID was in the dataset at all (membership disclosure)
++        and falsely links it to fabricated data.
++        """
++        import random
++        import string
++
++        real_values = {str(v) for v in real_values if pd.notna(v)}
++
++        id_pattern = re.compile(r'^([A-Za-z]{1,4}-?)(\d+)$')
++        matches = [id_pattern.match(v) for v in real_values]
++        decomposed = [(m.group(1), len(m.group(2))) for m in matches if m]
++
++        # A clean "prefix + zero-padded number" scheme (e.g. 'T001') covers
++        # most of the real values -- keep that exact format, just count
++        # past every number actually used so nothing collides.
++        if decomposed and len(decomposed) >= max(1, len(real_values) * 0.8):
++            from collections import Counter
++            prefix, width = Counter(decomposed).most_common(1)[0][0]
++            max_seen = max(
++                (int(m.group(2)) for m in matches if m and m.group(1) == prefix),
++                default=0
++            )
++            values = []
++            next_num = max_seen + 1
++            for _ in range(n):
++                values.append(f"{prefix}{str(next_num).zfill(width)}")
++                next_num += 1
++            return values
++
++        # No clean numeric scheme -- generate random values matching the
++        # letter/digit/other character pattern of a sample value, rejecting
++        # any collision with a real value or one already used in this batch.
++        sample = next(iter(real_values), 'ID0000000')
++        char_pattern = [
++            'A' if c.isalpha() and c.isupper() else
++            'a' if c.isalpha() else
++            '9' if c.isdigit() else c
++            for c in sample
++        ]
++
++        def make_candidate():
++            out = []
++            for c in char_pattern:
++                if c == 'A':
++                    out.append(random.choice(string.ascii_uppercase))
++                elif c == 'a':
++                    out.append(random.choice(string.ascii_lowercase))
++                elif c == '9':
++                    out.append(random.choice(string.digits))
++                else:
++                    out.append(c)
++            return ''.join(out)
++
++        values = []
++        seen = set()
++        attempts = 0
++        max_attempts = n * 200 + 1000
++        while len(values) < n and attempts < max_attempts:
++            attempts += 1
++            candidate = make_candidate()
++            if candidate in real_values or candidate in seen:
++                continue
++            seen.add(candidate)
++            values.append(candidate)
++        # Extremely unlikely fallback if the pattern's value space is too
++        # small to fit n unique non-colliding candidates.
++        while len(values) < n:
++            values.append(f"SYN-{len(values) + 1:08d}")
++        return values
++
++    def regenerate_restricted_text_identifiers(self, df, table_name, skip_columns=None):
++        """Overwrite every 'restricted text' (ID-pattern) column in `df`
++        with freshly generated values that are guaranteed not to be any
++        real observed value -- see _generate_fresh_restricted_text_values
++        for why. Respects the same per-column 'copy' contract as every
++        other global privacy pass (apply_differential_privacy_noise,
++        apply_data_quality_options, etc.): a column explicitly marked
++        user_protected is left untouched. `skip_columns` additionally
++        excludes columns already handled elsewhere -- specifically the
++        cross-table entity-linkage key, which already has its own
++        collision-free, linkage-consistent synthetic IDs assigned by
++        _build_entity_assignment."""
++        schema_info = self.schema.get(table_name, {}).get('columns', {})
++        if not schema_info:
++            return df
++
++        skip_columns = set(skip_columns or [])
++        result_df = df.copy()
++        n = len(result_df)
++        original_df = self.original_data.get(table_name)
++
++        for column, info in schema_info.items():
++            if column not in result_df.columns or column in skip_columns:
++                continue
++            if info.get('dmd_type') != 'restricted text':
++                continue
++            if info.get('user_protected', False):
++                continue
++
++            real_values = set()
++            if original_df is not None and column in original_df.columns:
++                real_values = set(original_df[column].dropna().astype(str))
++
++            result_df[column] = self._generate_fresh_restricted_text_values(real_values, n)
++            logging.info(
++                f"Regenerated {n} fresh restricted-text value(s) for '{column}' in "
++                f"'{table_name}' (task #48: no real values reused across rows)"
++            )
++
++        return result_df
++
+     def apply_data_quality_options(self, df, table_name, handle_missing=True,
+                                     remove_duplicates=False, handle_outliers=False):
+         """Data Quality options from the Advanced Options tab -- these
+@@ -2333,6 +2461,18 @@ class SyntheticDataPipeline:
+                 # logic above did for that one column.
+                 final_df[entity_key] = entity_linkage[2]
+ 
++            # Task #48: any other restricted-text/ID column (e.g. a
++            # secondary identifier column, or the primary one when no
++            # cross-table linkage was detected) still went through the
++            # normal synthesize/copy logic above, which can reattach a
++            # real person's real ID to a different fabricated row. Fix
++            # those up now -- skipping the entity-linkage key, which was
++            # just assigned its own linkage-consistent synthetic ID above.
++            linkage_key_on_master = entity_key if (entity_linkage and table_name == entity_linkage[0]) else None
++            final_df = self.regenerate_restricted_text_identifiers(
++                final_df, table_name, skip_columns=[linkage_key_on_master] if linkage_key_on_master else None
++            )
++
+             # Store the final synthetic data
+             self.synthetic_data[table_name] = final_df
+ 
+@@ -2821,7 +2961,27 @@ class SyntheticDataPipeline:
+ 
+         # Apply appropriate perturbation based on column type
+         for column, col_type in column_types.items():
+-            perturbation_factor = schema_info.get(column, {}).get('perturbation_factor', 0.2)  # Default 20% change
++            col_info = schema_info.get(column, {})
++
++            # A column explicitly marked 'copy' (user_protected) should be
++            # left completely untouched here, same as every other global
++            # privacy pass -- this loop had never checked it, so a
++            # perturbation-mode generation could still swap/perturb a
++            # column the user explicitly chose to preserve exactly.
++            if col_info.get('user_protected', False):
++                continue
++
++            # Restricted-text/ID columns (e.g. 'Identifier' values like
++            # 'T001') are handled by regenerate_restricted_text_identifiers
++            # right after perturb_data() returns, not by the generic
++            # 'categorical' branch below -- that branch swaps a row's value
++            # for another value already present in the column, which for a
++            # near-unique ID column means reattaching one real person's real
++            # ID to a different row (task #48). Skip them here entirely.
++            if col_info.get('dmd_type') == 'restricted text':
++                continue
++
++            perturbation_factor = col_info.get('perturbation_factor', 0.2)  # Default 20% change
+ 
+             try:
+                 # Different perturbation approaches for different column types
+@@ -3053,6 +3213,14 @@ class SyntheticDataPipeline:
+                     logging.info(f"Applying column abstractions for table: {table_name}")
+                     perturbed_df = self.apply_abstractions(perturbed_df, table_name)
+ 
++                # Task #48: perturb_data() now skips restricted-text/ID
++                # columns entirely (see the skip added there), and
++                # apply_abstractions()'s default 'random_categorical' method
++                # can still reassign a real ID to a different row. Overwrite
++                # any restricted-text column with guaranteed-fresh values as
++                # the definitive fix, regardless of which path touched it.
++                perturbed_df = self.regenerate_restricted_text_identifiers(perturbed_df, table_name)
++
+                 # Age grouping and perturbation each touch Age/DOB
+                 # independently above -- reconcile them before storing.
+                 perturbed_df = self.reconcile_age_with_dob(perturbed_df, table_name)
