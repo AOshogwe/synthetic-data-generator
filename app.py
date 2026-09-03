@@ -145,20 +145,17 @@ def internal_error(error):
 
 
 @app.route('/')
-def index():
-    """Serve the main application"""
-    return send_from_directory('.', 'index.html')
-
-
 @app.route('/v2')
 @app.route('/v2/')
-def index_v2():
-    """Serve the new React-based UI (see ui_redesign_plan.md / task #34).
+def index():
+    """Serve the main application.
 
+    This used to serve the old hand-rolled index.html, with the React-based
+    rebuild (ui_redesign_plan.md / task #34) available in parallel at /v2
+    until it reached feature parity. It now has, so / serves it directly;
+    /v2 is kept as an alias so any existing links/bookmarks keep working.
     Built from frontend/ via `npm run build`, output lands in static_v2/
-    next to app.py. Served at a separate path so / keeps working unchanged
-    while this reaches feature parity -- swap the default over later by
-    pointing / at this instead, once it's been tried for a while.
+    next to app.py.
     """
     return send_from_directory('static_v2', 'index.html')
 
@@ -166,6 +163,12 @@ def index_v2():
 @app.route('/v2/assets/<path:filename>')
 def v2_assets(filename):
     return send_from_directory('static_v2/assets', filename)
+
+
+@app.route('/legacy')
+def index_legacy():
+    """Serve the old pre-redesign UI, kept available for reference/rollback."""
+    return send_from_directory('.', 'index.html')
 
 
 @app.route('/api/upload', methods=['POST'])

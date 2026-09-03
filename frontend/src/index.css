@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+
 .step-indicator {
   transition: all 0.3s ease;
 }

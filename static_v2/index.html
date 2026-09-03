@@ -4,11 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Synthetic Data Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
-    <script type="module" crossorigin src="/v2/assets/index-YojXnXzQ.js"></script>
-    <link rel="stylesheet" crossorigin href="/v2/assets/index-uBu7lNLe.css">
+    <!-- Tailwind and Font Awesome used to load from cdnjs.cloudflare.com
+         here, but the app's Content-Security-Policy (script-src/style-src
+         'self' only) silently blocks third-party origins in production, so
+         neither ever loaded and the page rendered unstyled. Both are now
+         bundled at build time instead -- see src/index.css and
+         vite.config.js. -->
+    <script type="module" crossorigin src="/v2/assets/index-Bl0ziwcW.js"></script>
+    <link rel="stylesheet" crossorigin href="/v2/assets/index-CTJY8Mtj.css">
   </head>
   <body class="bg-gray-50 min-h-screen">
     <div id="root"></div>
