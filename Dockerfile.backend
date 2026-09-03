@@ -22,10 +22,12 @@ RUN pip install --upgrade pip setuptools wheel
 # Copy requirements first for better caching
 COPY requirements-railway.txt .
 
-# Install Python dependencies with fallback
-RUN pip install --no-cache-dir -r requirements-railway.txt || \
-    (echo "Trying fallback installation..." && \
-     pip install --no-cache-dir Flask==2.3.3 Flask-CORS==4.0.0 pandas numpy scikit-learn requests python-dotenv werkzeug)
+# Install Python dependencies. Deliberately no "|| fallback" here: a
+# fallback that silently swaps in a smaller package set turns a real
+# dependency failure (e.g. a pin with no wheel for this Python version)
+# into a container that builds fine but crashes at import time once
+# deployed. Fail the build loudly instead so broken pins get caught here.
+RUN pip install --no-cache-dir -r requirements-railway.txt
 
 # Copy application code
 COPY . .
@@ -37,7 +39,10 @@ RUN mkdir -p uploads outputs
 ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 ENV PYTHONPATH=/app
-ENV SECRET_KEY=railway-production-secret-key-32chars-long-0123456789abcdef
+# SECRET_KEY is intentionally not set here -- baking a secret into the
+# image gets flagged by Docker (SecretsUsedInArgOrEnv) and means every
+# build ships the same key. Set SECRET_KEY in Railway's project Variables
+# instead; app.py already falls back to a dev-only default if it's unset.
 ENV PORT=5000
 ENV MAX_CONTENT_LENGTH=104857600
 ENV UPLOAD_FOLDER=uploads

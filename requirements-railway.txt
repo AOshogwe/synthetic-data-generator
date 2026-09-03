@@ -10,8 +10,6 @@ scipy==1.10.1
 
 # Machine learning and synthetic data generation - compatible versions  
 scikit-learn==1.2.2
-# SDV with specific version for stability
-sdv==1.2.0
 
 # Statistical analysis
 statsmodels==0.14.0
