@@ -10,3 +10,4 @@ python-magic==0.4.27
 # Additional optional dependencies for production
 gunicorn==21.2.0
 redis==5.0.0
+

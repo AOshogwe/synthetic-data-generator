@@ -48,3 +48,5 @@ chardet==5.2.0
 
 # Development and testing
 pytest==7.4.0
+
+networkx==3.1
