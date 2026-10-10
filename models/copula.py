@@ -85,8 +85,28 @@ class GaussianCopula:
 
             # Handle datetime columns - convert to numeric then handle like continuous
             elif column_type == 'datetime':
-                # Convert datetime to numeric (timestamp)
-                timestamps = pd.to_datetime(df[column]).astype(np.int64) // 10 ** 9  # Convert to seconds
+                # Convert to an actual datetime series first. A numeric-dtype
+                # column (e.g. a source file that already stores dates as Unix
+                # timestamps) must be parsed with unit='s': pd.to_datetime()
+                # treats a bare number as nanoseconds-since-epoch by default,
+                # which silently collapses every real date down to a fraction
+                # of a second after 1970-01-01. A string/object column (e.g.
+                # "2023-05-08") has no such ambiguity and parses as-is.
+                if pd.api.types.is_numeric_dtype(df[column]):
+                    parsed_dates = pd.to_datetime(df[column], unit='s', errors='coerce')
+                else:
+                    parsed_dates = pd.to_datetime(df[column], errors='coerce')
+
+                # Convert datetime to numeric (seconds since epoch). Not
+                # parsed_dates.astype(np.int64) // 10**9: that assumes
+                # datetime64 is always nanosecond-resolution, which pandas
+                # guaranteed through 1.x but no longer does from 2.0 on --
+                # pd.to_datetime(..., unit='s') can return datetime64[s]
+                # directly, and .astype(int64) on THAT is already seconds,
+                # so dividing by 10**9 again silently truncates every
+                # timestamp down to ~0-1. Timedelta.total_seconds() gives
+                # the right answer regardless of the underlying resolution.
+                timestamps = (parsed_dates - pd.Timestamp('1970-01-01')).dt.total_seconds()
 
                 # Create transformer
                 transformer = QuantileTransformer(output_distribution='normal')
@@ -96,8 +116,8 @@ class GaussianCopula:
                 # Store datetime information
                 self.categorical_encoders[column] = {
                     'type': 'datetime',
-                    'min': pd.to_datetime(df[column]).min(),
-                    'max': pd.to_datetime(df[column]).max()
+                    'min': parsed_dates.min(),
+                    'max': parsed_dates.max()
                 }
 
                 # Convert to uniform
@@ -149,7 +169,20 @@ class GaussianCopula:
                 original_values = transformer.inverse_transform(
                     normal_values.reshape(-1, 1)
                 ).flatten()
-                result[column] = original_values
+
+                # Datetime columns are also fit through this numeric
+                # transformer (see fit(), column_type == 'datetime'), with
+                # original_values coming back as seconds-since-epoch floats.
+                # Without this conversion those raw numbers were assigned to
+                # result[column] as-is, so every synthetic date column came
+                # out as a plain number instead of a date.
+                encoder_info = self.categorical_encoders.get(column)
+                if encoder_info and encoder_info.get('type') == 'datetime':
+                    result[column] = pd.to_datetime(
+                        original_values, unit='s', errors='coerce'
+                    ).strftime('%Y-%m-%d %H:%M:%S')
+                else:
+                    result[column] = original_values
             elif column in self.categorical_encoders:
                 # Handle categorical columns
                 encoder = self.categorical_encoders[column]

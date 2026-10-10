@@ -1,0 +1,169 @@
+diff --git a/evaluation/privacy_evaluator.py b/evaluation/privacy_evaluator.py
+index 1199759..4e9c646 100644
+--- a/evaluation/privacy_evaluator.py
++++ b/evaluation/privacy_evaluator.py
+@@ -120,10 +120,15 @@ class PrivacyRiskEvaluator:
+         Evaluate risk based on distance to closest record in original data
+         Small distances indicate potential privacy leakage
+         """
+-        # Select common numeric columns for distance calculation
++        # Select common numeric columns for distance calculation. Must be
++        # numeric in synthetic_df too, not just original_df: a datetime
++        # column stored as a raw timestamp in the source data is numeric
++        # there, but a correctly synthesized copy comes back as a formatted
++        # date string, which would crash scaler.transform() below if included.
+         numeric_cols = [col for col in original_df.columns
+                         if pd.api.types.is_numeric_dtype(original_df[col]) and
+-                        col in synthetic_df.columns]
++                        col in synthetic_df.columns and
++                        pd.api.types.is_numeric_dtype(synthetic_df[col])]
+ 
+         if not numeric_cols:
+             return {
+diff --git a/evaluation/statistical_evaluator.py b/evaluation/statistical_evaluator.py
+index a76491a..86e8dba 100644
+--- a/evaluation/statistical_evaluator.py
++++ b/evaluation/statistical_evaluator.py
+@@ -238,9 +238,18 @@ class StatisticalSimilarityEvaluator:
+ 
+     def _evaluate_correlation_similarity(self, original_df: pd.DataFrame, synthetic_df: pd.DataFrame) -> float:
+         """Evaluate similarity between correlation matrices"""
+-        # Select numeric columns
++        # Select columns that are numeric in BOTH frames. original_df alone
++        # isn't enough: a datetime column (e.g. one stored as a raw Unix
++        # timestamp in the source data) is numeric there but, once correctly
++        # synthesized, comes back from GaussianCopula as a formatted date
++        # string in synthetic_df -- indexing synthetic_df with a
++        # numeric_cols list built from original_df alone then crashes
++        # .corr() trying to convert those strings to float. Date columns
++        # already get their own comparison in _evaluate_date_range_similarity.
+         numeric_cols = [col for col in original_df.columns
+-                        if pd.api.types.is_numeric_dtype(original_df[col])]
++                        if pd.api.types.is_numeric_dtype(original_df[col])
++                        and col in synthetic_df.columns
++                        and pd.api.types.is_numeric_dtype(synthetic_df[col])]
+ 
+         if len(numeric_cols) < 2:
+             return 1.0  # Not enough numeric columns for correlation
+@@ -265,9 +274,12 @@ class StatisticalSimilarityEvaluator:
+         """Evaluate similarity in principal component explained variance"""
+         from sklearn.decomposition import PCA
+ 
+-        # Select numeric columns
++        # Select columns that are numeric in BOTH frames -- see the same
++        # guard (and why it's needed) in _evaluate_correlation_similarity.
+         numeric_cols = [col for col in original_df.columns
+-                        if pd.api.types.is_numeric_dtype(original_df[col])]
++                        if pd.api.types.is_numeric_dtype(original_df[col])
++                        and col in synthetic_df.columns
++                        and pd.api.types.is_numeric_dtype(synthetic_df[col])]
+ 
+         if len(numeric_cols) < 2:
+             return 1.0  # Not enough numeric columns for PCA
+diff --git a/models/copula.py b/models/copula.py
+index a60a8d8..de6712e 100644
+--- a/models/copula.py
++++ b/models/copula.py
+@@ -85,8 +85,28 @@ class GaussianCopula:
+ 
+             # Handle datetime columns - convert to numeric then handle like continuous
+             elif column_type == 'datetime':
+-                # Convert datetime to numeric (timestamp)
+-                timestamps = pd.to_datetime(df[column]).astype(np.int64) // 10 ** 9  # Convert to seconds
++                # Convert to an actual datetime series first. A numeric-dtype
++                # column (e.g. a source file that already stores dates as Unix
++                # timestamps) must be parsed with unit='s': pd.to_datetime()
++                # treats a bare number as nanoseconds-since-epoch by default,
++                # which silently collapses every real date down to a fraction
++                # of a second after 1970-01-01. A string/object column (e.g.
++                # "2023-05-08") has no such ambiguity and parses as-is.
++                if pd.api.types.is_numeric_dtype(df[column]):
++                    parsed_dates = pd.to_datetime(df[column], unit='s', errors='coerce')
++                else:
++                    parsed_dates = pd.to_datetime(df[column], errors='coerce')
++
++                # Convert datetime to numeric (seconds since epoch). Not
++                # parsed_dates.astype(np.int64) // 10**9: that assumes
++                # datetime64 is always nanosecond-resolution, which pandas
++                # guaranteed through 1.x but no longer does from 2.0 on --
++                # pd.to_datetime(..., unit='s') can return datetime64[s]
++                # directly, and .astype(int64) on THAT is already seconds,
++                # so dividing by 10**9 again silently truncates every
++                # timestamp down to ~0-1. Timedelta.total_seconds() gives
++                # the right answer regardless of the underlying resolution.
++                timestamps = (parsed_dates - pd.Timestamp('1970-01-01')).dt.total_seconds()
+ 
+                 # Create transformer
+                 transformer = QuantileTransformer(output_distribution='normal')
+@@ -96,8 +116,8 @@ class GaussianCopula:
+                 # Store datetime information
+                 self.categorical_encoders[column] = {
+                     'type': 'datetime',
+-                    'min': pd.to_datetime(df[column]).min(),
+-                    'max': pd.to_datetime(df[column]).max()
++                    'min': parsed_dates.min(),
++                    'max': parsed_dates.max()
+                 }
+ 
+                 # Convert to uniform
+@@ -149,7 +169,20 @@ class GaussianCopula:
+                 original_values = transformer.inverse_transform(
+                     normal_values.reshape(-1, 1)
+                 ).flatten()
+-                result[column] = original_values
++
++                # Datetime columns are also fit through this numeric
++                # transformer (see fit(), column_type == 'datetime'), with
++                # original_values coming back as seconds-since-epoch floats.
++                # Without this conversion those raw numbers were assigned to
++                # result[column] as-is, so every synthetic date column came
++                # out as a plain number instead of a date.
++                encoder_info = self.categorical_encoders.get(column)
++                if encoder_info and encoder_info.get('type') == 'datetime':
++                    result[column] = pd.to_datetime(
++                        original_values, unit='s', errors='coerce'
++                    ).strftime('%Y-%m-%d %H:%M:%S')
++                else:
++                    result[column] = original_values
+             elif column in self.categorical_encoders:
+                 # Handle categorical columns
+                 encoder = self.categorical_encoders[column]
+diff --git a/pipeline.py b/pipeline.py
+index e3010ba..1419385 100644
+--- a/pipeline.py
++++ b/pipeline.py
+@@ -1914,6 +1914,17 @@ class SyntheticDataPipeline:
+                 continue
+             if info.get('user_protected', False):
+                 continue
++            if info.get('type') == 'datetime':
++                # A date column (e.g. "2025-05-14") can match the restricted-
++                # text regex purely by character shape (digits/hyphens), but
++                # it isn't an opaque ID -- detect_temporal_relationships()
++                # already upgraded its base 'type' to 'datetime' once it
++                # confirmed the column actually parses as dates, and
++                # GaussianCopula already synthesizes it properly via its
++                # dedicated datetime branch. Regenerating it here as a random
++                # digit string the same way an ID column would be undid that
++                # and produced invalid dates (e.g. month 79, day 49).
++                continue
+ 
+             real_values = set()
+             if original_df is not None and column in original_df.columns:
+@@ -2364,7 +2375,15 @@ class SyntheticDataPipeline:
+                     for column in df.columns:
+                         info = table_columns.get(column, {})
+                         col_type = info.get('type', 'categorical')
+-                        if info.get('dmd_type') in ('integer', 'decimal'):
++                        # Only promote categorical-by-default columns whose values
++                        # turned out to be numeric-looking strings (e.g. "$45,231").
++                        # A column detect_temporal_relationships() already upgraded
++                        # to 'datetime' keeps that type even though its dmd_type is
++                        # 'integer'/'decimal' (epoch timestamps are still numeric at
++                        # heart) -- downgrading it back to 'numeric' here was why
++                        # date columns got modeled as plain numbers and never
++                        # converted back to dates (see GaussianCopula.fit/sample).
++                        if col_type != 'datetime' and info.get('dmd_type') in ('integer', 'decimal'):
+                             col_type = 'numeric'
+                         flat_schema[column] = {'type': col_type}
+                     self.generator.schema = flat_schema

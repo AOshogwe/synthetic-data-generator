@@ -120,10 +120,15 @@ class PrivacyRiskEvaluator:
         Evaluate risk based on distance to closest record in original data
         Small distances indicate potential privacy leakage
         """
-        # Select common numeric columns for distance calculation
+        # Select common numeric columns for distance calculation. Must be
+        # numeric in synthetic_df too, not just original_df: a datetime
+        # column stored as a raw timestamp in the source data is numeric
+        # there, but a correctly synthesized copy comes back as a formatted
+        # date string, which would crash scaler.transform() below if included.
         numeric_cols = [col for col in original_df.columns
                         if pd.api.types.is_numeric_dtype(original_df[col]) and
-                        col in synthetic_df.columns]
+                        col in synthetic_df.columns and
+                        pd.api.types.is_numeric_dtype(synthetic_df[col])]
 
         if not numeric_cols:
             return {

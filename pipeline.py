@@ -1914,6 +1914,17 @@ class SyntheticDataPipeline:
                 continue
             if info.get('user_protected', False):
                 continue
+            if info.get('type') == 'datetime':
+                # A date column (e.g. "2025-05-14") can match the restricted-
+                # text regex purely by character shape (digits/hyphens), but
+                # it isn't an opaque ID -- detect_temporal_relationships()
+                # already upgraded its base 'type' to 'datetime' once it
+                # confirmed the column actually parses as dates, and
+                # GaussianCopula already synthesizes it properly via its
+                # dedicated datetime branch. Regenerating it here as a random
+                # digit string the same way an ID column would be undid that
+                # and produced invalid dates (e.g. month 79, day 49).
+                continue
 
             real_values = set()
             if original_df is not None and column in original_df.columns:
@@ -2364,7 +2375,15 @@ class SyntheticDataPipeline:
                     for column in df.columns:
                         info = table_columns.get(column, {})
                         col_type = info.get('type', 'categorical')
-                        if info.get('dmd_type') in ('integer', 'decimal'):
+                        # Only promote categorical-by-default columns whose values
+                        # turned out to be numeric-looking strings (e.g. "$45,231").
+                        # A column detect_temporal_relationships() already upgraded
+                        # to 'datetime' keeps that type even though its dmd_type is
+                        # 'integer'/'decimal' (epoch timestamps are still numeric at
+                        # heart) -- downgrading it back to 'numeric' here was why
+                        # date columns got modeled as plain numbers and never
+                        # converted back to dates (see GaussianCopula.fit/sample).
+                        if col_type != 'datetime' and info.get('dmd_type') in ('integer', 'decimal'):
                             col_type = 'numeric'
                         flat_schema[column] = {'type': col_type}
                     self.generator.schema = flat_schema

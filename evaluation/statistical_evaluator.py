@@ -238,9 +238,18 @@ class StatisticalSimilarityEvaluator:
 
     def _evaluate_correlation_similarity(self, original_df: pd.DataFrame, synthetic_df: pd.DataFrame) -> float:
         """Evaluate similarity between correlation matrices"""
-        # Select numeric columns
+        # Select columns that are numeric in BOTH frames. original_df alone
+        # isn't enough: a datetime column (e.g. one stored as a raw Unix
+        # timestamp in the source data) is numeric there but, once correctly
+        # synthesized, comes back from GaussianCopula as a formatted date
+        # string in synthetic_df -- indexing synthetic_df with a
+        # numeric_cols list built from original_df alone then crashes
+        # .corr() trying to convert those strings to float. Date columns
+        # already get their own comparison in _evaluate_date_range_similarity.
         numeric_cols = [col for col in original_df.columns
-                        if pd.api.types.is_numeric_dtype(original_df[col])]
+                        if pd.api.types.is_numeric_dtype(original_df[col])
+                        and col in synthetic_df.columns
+                        and pd.api.types.is_numeric_dtype(synthetic_df[col])]
 
         if len(numeric_cols) < 2:
             return 1.0  # Not enough numeric columns for correlation
@@ -265,9 +274,12 @@ class StatisticalSimilarityEvaluator:
         """Evaluate similarity in principal component explained variance"""
         from sklearn.decomposition import PCA
 
-        # Select numeric columns
+        # Select columns that are numeric in BOTH frames -- see the same
+        # guard (and why it's needed) in _evaluate_correlation_similarity.
         numeric_cols = [col for col in original_df.columns
-                        if pd.api.types.is_numeric_dtype(original_df[col])]
+                        if pd.api.types.is_numeric_dtype(original_df[col])
+                        and col in synthetic_df.columns
+                        and pd.api.types.is_numeric_dtype(synthetic_df[col])]
 
         if len(numeric_cols) < 2:
             return 1.0  # Not enough numeric columns for PCA
