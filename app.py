@@ -922,6 +922,16 @@ def create_copy_with_privacy_features(pipeline):
                     level=getattr(pipeline, 'correlation_preservation_level', 'moderate')
                 )
 
+            # Final plausibility pass -- this copy-with-privacy-features
+            # path had none of this (it predates it), so Age/DOB could
+            # drift here too whenever DP noise or correlation preservation
+            # above touched Age. Same order as the other two generation
+            # paths: fix DOB-vs-reference-date ordering, then Age, then
+            # Height/Weight.
+            synthetic_df = pipeline._fix_dob_after_reference(synthetic_df, table_name)
+            synthetic_df = pipeline.reconcile_age_with_dob(synthetic_df, table_name)
+            synthetic_df = pipeline.reconcile_biometrics_with_age(synthetic_df, table_name)
+
             # Store the result
             pipeline.synthetic_data[table_name] = synthetic_df
             app.logger.info(f"Created privacy-enhanced copy for {table_name}: {len(synthetic_df)} rows")
@@ -1210,6 +1220,13 @@ def evaluate_data():
             # Add data quality report
             quality_report = {}
             for table_name, results in evaluation_results.items():
+                # Relationship/fidelity monitor: real-vs-synthetic checks for
+                # Age/DOB consistency, DOB-after-reference-date ordering,
+                # Age-Height-Weight correlation preservation, and duplicate
+                # rate on near-unique columns. Falls back to the previous
+                # all-True placeholders only if fidelity wasn't computed
+                # (e.g. an older evaluation_results shape).
+                fidelity = results.get('fidelity', {})
                 quality_report[table_name] = {
                     'data_quality_score': results.get('overall_score', 0),
                     'relationship_preservation': len(
@@ -1220,9 +1237,16 @@ def evaluate_data():
                         'address_synthesis': getattr(pipeline, 'should_apply_address_synthesis', False)
                     },
                     'data_consistency': {
-                        'age_format_valid': True,
-                        'date_format_valid': True,
-                        'temporal_relationships_valid': True
+                        'age_format_valid': fidelity.get('age_format_valid', True),
+                        'date_format_valid': fidelity.get('date_format_valid', True),
+                        'temporal_relationships_valid': fidelity.get('temporal_relationships_valid', True),
+                        'age_dob_mismatches': fidelity.get('age_dob_mismatches', 0),
+                        'age_dob_checked': fidelity.get('age_dob_checked', 0),
+                        'dob_after_reference_violations': fidelity.get('dob_after_reference_violations', 0),
+                        'max_correlation_delta': fidelity.get('max_correlation_delta', 0.0),
+                        'correlation_deltas': fidelity.get('correlation_deltas', {}),
+                        'duplicate_columns': fidelity.get('duplicate_columns', {}),
+                        'issues': fidelity.get('issues', [])
                     }
                 }
         else:

@@ -1,0 +1,737 @@
+diff --git a/app.py b/app.py
+index b287baf..bdddaad 100644
+--- a/app.py
++++ b/app.py
+@@ -922,6 +922,16 @@ def create_copy_with_privacy_features(pipeline):
+                     level=getattr(pipeline, 'correlation_preservation_level', 'moderate')
+                 )
+ 
++            # Final plausibility pass -- this copy-with-privacy-features
++            # path had none of this (it predates it), so Age/DOB could
++            # drift here too whenever DP noise or correlation preservation
++            # above touched Age. Same order as the other two generation
++            # paths: fix DOB-vs-reference-date ordering, then Age, then
++            # Height/Weight.
++            synthetic_df = pipeline._fix_dob_after_reference(synthetic_df, table_name)
++            synthetic_df = pipeline.reconcile_age_with_dob(synthetic_df, table_name)
++            synthetic_df = pipeline.reconcile_biometrics_with_age(synthetic_df, table_name)
++
+             # Store the result
+             pipeline.synthetic_data[table_name] = synthetic_df
+             app.logger.info(f"Created privacy-enhanced copy for {table_name}: {len(synthetic_df)} rows")
+@@ -1210,6 +1220,13 @@ def evaluate_data():
+             # Add data quality report
+             quality_report = {}
+             for table_name, results in evaluation_results.items():
++                # Relationship/fidelity monitor: real-vs-synthetic checks for
++                # Age/DOB consistency, DOB-after-reference-date ordering,
++                # Age-Height-Weight correlation preservation, and duplicate
++                # rate on near-unique columns. Falls back to the previous
++                # all-True placeholders only if fidelity wasn't computed
++                # (e.g. an older evaluation_results shape).
++                fidelity = results.get('fidelity', {})
+                 quality_report[table_name] = {
+                     'data_quality_score': results.get('overall_score', 0),
+                     'relationship_preservation': len(
+@@ -1220,9 +1237,16 @@ def evaluate_data():
+                         'address_synthesis': getattr(pipeline, 'should_apply_address_synthesis', False)
+                     },
+                     'data_consistency': {
+-                        'age_format_valid': True,
+-                        'date_format_valid': True,
+-                        'temporal_relationships_valid': True
++                        'age_format_valid': fidelity.get('age_format_valid', True),
++                        'date_format_valid': fidelity.get('date_format_valid', True),
++                        'temporal_relationships_valid': fidelity.get('temporal_relationships_valid', True),
++                        'age_dob_mismatches': fidelity.get('age_dob_mismatches', 0),
++                        'age_dob_checked': fidelity.get('age_dob_checked', 0),
++                        'dob_after_reference_violations': fidelity.get('dob_after_reference_violations', 0),
++                        'max_correlation_delta': fidelity.get('max_correlation_delta', 0.0),
++                        'correlation_deltas': fidelity.get('correlation_deltas', {}),
++                        'duplicate_columns': fidelity.get('duplicate_columns', {}),
++                        'issues': fidelity.get('issues', [])
+                     }
+                 }
+         else:
+diff --git a/pipeline.py b/pipeline.py
+index 1419385..964c8d8 100644
+--- a/pipeline.py
++++ b/pipeline.py
+@@ -943,8 +943,36 @@ class SyntheticDataPipeline:
+                     # Try to detect date columns by name or content
+                     if 'date' in column.lower() or 'time' in column.lower():
+                         try:
+-                            # Try to convert to datetime and store in temporary dataframe
+-                            temp_df[column] = pd.to_datetime(df[column], errors='coerce')
++                            is_numeric_col = pd.api.types.is_numeric_dtype(df[column])
++                            if is_numeric_col:
++                                # A numeric column matching the name heuristic is
++                                # either a genuine epoch-seconds date (large
++                                # magnitude, e.g. a "collection date" stored as
++                                # a timestamp) or a plain duration/measurement
++                                # that happens to have "time" in its name (e.g.
++                                # "Average time" in minutes). Bare pd.to_datetime
++                                # on numeric input defaults to nanosecond-epoch,
++                                # so small values like 5.2 "convert" to a
++                                # near-1970 timestamp instead of failing --
++                                # that false success previously got columns like
++                                # "Average time" misclassified as dates. Only
++                                # accept values large enough in magnitude to
++                                # be a real epoch-seconds timestamp (year
++                                # 1973+; ~1e8 seconds) -- a duration or
++                                # measurement column's small values (minutes,
++                                # counts, percentages) would otherwise
++                                # round-trip to an in-range-looking but bogus
++                                # 1970 date.
++                                numeric_values = pd.to_numeric(df[column], errors='coerce')
++                                plausible = numeric_values.abs() >= 1e8
++                                parsed = pd.to_datetime(
++                                    numeric_values.where(plausible), unit='s', errors='coerce'
++                                )
++                                parsed = parsed.where(parsed.dt.year.between(1950, 2100))
++                            else:
++                                parsed = pd.to_datetime(df[column], errors='coerce')
++
++                            temp_df[column] = parsed
+ 
+                             # Only include if conversion worked for some values
+                             if not temp_df[column].isna().all():
+@@ -1938,6 +1966,68 @@ class SyntheticDataPipeline:
+ 
+         return result_df
+ 
++    def regenerate_high_cardinality_text_columns(self, df, table_name):
++        """Roadmap item 2: a near-unique free-text column (e.g. an image
++        filename, a free-text description) comes out of the copula with
++        duplicates it shouldn't have, even when the requested row count is
++        at or below the real dataset's size -- confirmed in practice (58
++        unique values out of 100 rows for an "image" column that's 100/100
++        unique in the real data).
++
++        The root cause is that these columns get modeled as generic
++        'categorical' in GaussianCopula: a value is chosen by rounding a
++        continuous quantile to the nearest of ~n category codes, which
++        collides by construction once the number of categories approaches
++        the number of rows -- the birthday-paradox problem, not something
++        any correlation setting fixes. There's also no good generative
++        model for arbitrary free text in the first place.
++
++        Fix: for every 'free text' column (restricted-text/ID columns are
++        already handled, with fresh non-reused values, by
++        regenerate_restricted_text_identifiers), replace the copula's
++        output with values resampled from the real column's own pool,
++        without replacement up to the pool size -- duplicates only appear
++        once more rows are requested than the real data has. All qualifying
++        columns in a table share ONE row permutation rather than each
++        getting its own independent one, so a pair like
++        Picture/Description that's supposed to describe the same thing
++        stays matched instead of being shuffled apart.
++        """
++        schema_info = self.schema.get(table_name, {}).get('columns', {})
++        if not schema_info:
++            return df
++
++        original_df = self.original_data.get(table_name)
++        if original_df is None:
++            return df
++
++        target_cols = [
++            c for c in df.columns
++            if c in schema_info
++            and schema_info[c].get('dmd_type') == 'free text'
++            and not schema_info[c].get('user_protected', False)
++            and c in original_df.columns
++        ]
++        if not target_cols:
++            return df
++
++        result_df = df.copy()
++        n_samples = len(result_df)
++        pool_size = len(original_df)
++        # One shared permutation/sample for every qualifying column in this
++        # table, so linked free-text columns move together.
++        row_map = np.random.choice(pool_size, size=n_samples, replace=n_samples > pool_size)
++
++        for column in target_cols:
++            result_df[column] = original_df[column].iloc[row_map].reset_index(drop=True)
++
++        logging.info(
++            f"Table {table_name}: resampled high-cardinality free-text column(s) {target_cols} "
++            f"from the real value pool without replacement (up to {pool_size} rows) instead of "
++            f"letting the categorical model produce avoidable duplicates"
++        )
++        return result_df
++
+     def apply_data_quality_options(self, df, table_name, handle_missing=True,
+                                     remove_duplicates=False, handle_outliers=False):
+         """Data Quality options from the Advanced Options tab -- these
+@@ -2340,6 +2430,20 @@ class SyntheticDataPipeline:
+                 else:
+                     columns_to_copy.append(column)
+ 
++            # Task (roadmap item 1): a "copy" column and a "synthesize"
++            # column for the same output row have no connection to each
++            # other -- copied columns are pulled from one real row via
++            # row_map, synthesized columns come from an independent draw
++            # off the fitted model. Splitting a demographically-linked group
++            # (DOB/Age/Height/Weight) across that boundary doesn't just
++            # weaken their relationship, it makes it arbitrary. If any
++            # member of such a group is marked synthesize, pull the whole
++            # group into columns_to_synthesize so it's modeled/finalized
++            # together instead of half-copied, half-drawn independently.
++            columns_to_synthesize, columns_to_copy = self._enforce_linked_column_groups(
++                df, columns_to_synthesize, columns_to_copy, table_name
++            )
++
+             logging.info(
+                 f"Columns to synthesize: {len(columns_to_synthesize)}, Columns to copy: {len(columns_to_copy)}")
+ 
+@@ -2492,6 +2596,12 @@ class SyntheticDataPipeline:
+                 final_df, table_name, skip_columns=[linkage_key_on_master] if linkage_key_on_master else None
+             )
+ 
++            # Roadmap item 2: free-text columns (image references,
++            # free-text descriptions) get avoidable duplicates from the
++            # copula's categorical encoding -- fix those up the same way,
++            # right alongside the restricted-text/ID fixup above.
++            final_df = self.regenerate_high_cardinality_text_columns(final_df, table_name)
++
+             # Store the final synthetic data
+             self.synthetic_data[table_name] = final_df
+ 
+@@ -2509,13 +2619,6 @@ class SyntheticDataPipeline:
+                     self.synthetic_data[table_name], table_name
+                 )
+ 
+-        # Keep Age and Date-of-Birth consistent regardless of whether age
+-        # grouping ran above or each column was synthesized independently.
+-        for table_name in self.synthetic_data.keys():
+-            self.synthetic_data[table_name] = self.reconcile_age_with_dob(
+-                self.synthetic_data[table_name], table_name
+-            )
+-
+         # Apply address synthesis if configured
+         if hasattr(self, 'should_apply_address_synthesis') and self.should_apply_address_synthesis:
+             logging.info("Applying address synthesis to all synthetic data tables")
+@@ -2558,6 +2661,29 @@ class SyntheticDataPipeline:
+                     self.synthetic_data[table_name], table_name, level=correlation_level
+                 )
+ 
++        # Final plausibility pass. This must run LAST, after address
++        # synthesis, DP noise, and correlation preservation: DP noise
++        # perturbs every numeric column (Age included) and
++        # correlation-preservation's rank restoration reorders each numeric
++        # column independently to hit a target correlation, which reshuffles
++        # Age onto different rows than the DOB/reference-date columns it was
++        # just reconciled against (those stay string-typed and untouched by
++        # either step, so only Age drifts). Running the whole rule set here,
++        # in this order, is what actually guarantees the final output can't
++        # show something impossible:
++        #   1. DOB can't fall after the reference/collection date (roadmap
++        #      item 4 -- a date-level ordering rule, independent of Age).
++        #   2. Age is recomputed from the now-ordered DOB + reference date.
++        #   3. Height/Weight are redrawn from an age-conditional
++        #      distribution so they stay plausible against the now-correct
++        #      Age (roadmap item 4/5) -- must come after step 2, not before.
++        for table_name in self.synthetic_data.keys():
++            synthetic_df = self.synthetic_data[table_name]
++            synthetic_df = self._fix_dob_after_reference(synthetic_df, table_name)
++            synthetic_df = self.reconcile_age_with_dob(synthetic_df, table_name)
++            synthetic_df = self.reconcile_biometrics_with_age(synthetic_df, table_name)
++            self.synthetic_data[table_name] = synthetic_df
++
+         # Check overall success
+         if not success:
+             logging.error("Failed to generate any synthetic data")
+@@ -3240,9 +3366,9 @@ class SyntheticDataPipeline:
+                 # the definitive fix, regardless of which path touched it.
+                 perturbed_df = self.regenerate_restricted_text_identifiers(perturbed_df, table_name)
+ 
+-                # Age grouping and perturbation each touch Age/DOB
+-                # independently above -- reconcile them before storing.
+-                perturbed_df = self.reconcile_age_with_dob(perturbed_df, table_name)
++                # Roadmap item 2: same free-text duplicate fixup as the
++                # main synthesis path.
++                perturbed_df = self.regenerate_high_cardinality_text_columns(perturbed_df, table_name)
+ 
+                 # Apply differential-privacy-style noise if configured
+                 if getattr(self, 'apply_differential_privacy', False):
+@@ -3268,6 +3394,18 @@ class SyntheticDataPipeline:
+                         level=getattr(self, 'correlation_preservation_level', 'moderate')
+                     )
+ 
++                # Age grouping, perturbation, DP noise, and correlation
++                # preservation each touch Age/DOB independently above (DP
++                # noise perturbs Age directly, and correlation preservation's
++                # rank restoration reorders Age onto different rows) -- this
++                # must run LAST, after all of them, to be the final word on
++                # plausibility rather than getting undone by a later step.
++                # See generate_synthetic_data() for why this exact order
++                # (DOB-vs-reference ordering, then Age, then Height/Weight).
++                perturbed_df = self._fix_dob_after_reference(perturbed_df, table_name)
++                perturbed_df = self.reconcile_age_with_dob(perturbed_df, table_name)
++                perturbed_df = self.reconcile_biometrics_with_age(perturbed_df, table_name)
++
+                 # Store the perturbed data
+                 self.synthetic_data[table_name] = perturbed_df
+                 logging.info(f"Successfully generated perturbed data for {table_name} with {len(perturbed_df)} rows")
+@@ -3316,6 +3454,180 @@ class SyntheticDataPipeline:
+ 
+         return evaluation_results
+ 
++    def evaluate_fidelity(self, table_name):
++        """Compare the synthetic data for `table_name` against the real
++        data for the specific relationship/plausibility properties the
++        rest of this pipeline tries to protect: Age/DOB consistency, DOB
++        never falling after the reference/collection date, Age-Height-
++        Weight correlation preservation, and duplicate rate on near-unique
++        ('free text') columns.
++
++        This is the computed counterpart to what used to be hardcoded
++        `True` placeholders in app.py's /api/evaluate route -- it's the
++        relationship/fidelity monitor, surfaced through the normal
++        evaluation API instead of only existing as a one-off analysis.
++        """
++        result = {
++            'age_format_valid': True,
++            'date_format_valid': True,
++            'temporal_relationships_valid': True,
++            'age_dob_checked': 0,
++            'age_dob_mismatches': 0,
++            'dob_after_reference_checked': 0,
++            'dob_after_reference_violations': 0,
++            'correlation_deltas': {},
++            'max_correlation_delta': 0.0,
++            'duplicate_columns': {},
++            'issues': []
++        }
++
++        synthetic_df = self.synthetic_data.get(table_name)
++        original_df = self.original_data.get(table_name)
++        if synthetic_df is None:
++            return result
++
++        dob_cols = self._detect_dob_columns(synthetic_df)
++        age_cols = [c for c in synthetic_df.columns if re.search(r'\bage\b', str(c), re.IGNORECASE)]
++
++        # --- Age / DOB consistency, and DOB-after-reference-date ordering ---
++        if dob_cols and age_cols:
++            dob_col = dob_cols[0]
++            ref_col = self._detect_reference_date_column(synthetic_df, exclude=set(dob_cols))
++            # format='mixed': this is a monitor whose job is to catch data
++            # problems, so it must not let a column holding more than one
++            # date convention (e.g. a few stray ISO-formatted values among
++            # mostly M/D/YYYY ones) silently parse to NaT en masse under
++            # pandas' default single-format inference -- that would hide
++            # real violations instead of reporting them.
++            dob = pd.to_datetime(synthetic_df[dob_col], errors='coerce', format='mixed')
++            if ref_col is not None:
++                ref = pd.to_datetime(synthetic_df[ref_col], errors='coerce', format='mixed')
++                ref_filled = ref.fillna(pd.Timestamp.now())
++            else:
++                ref = pd.Series(pd.Timestamp.now(), index=synthetic_df.index)
++                ref_filled = ref
++
++            valid = dob.notna() & ref_filled.notna()
++            if valid.any():
++                years = ref_filled.dt.year - dob.dt.year
++                had_birthday = (ref_filled.dt.month > dob.dt.month) | (
++                    (ref_filled.dt.month == dob.dt.month) & (ref_filled.dt.day >= dob.dt.day)
++                )
++                expected_age = years - (~had_birthday).astype(int)
++
++                age_col = age_cols[0]
++                actual_age = self._coerce_numeric(synthetic_df[age_col])
++                if actual_age is not None:
++                    # Age may legitimately be bucketed (e.g. "40-49") rather
++                    # than exact -- only compare rows where it still looks
++                    # numeric.
++                    checkable = valid & actual_age.notna()
++                    if checkable.any():
++                        mismatches = int(
++                            (expected_age[checkable].astype(int) != actual_age[checkable].astype(int)).sum()
++                        )
++                        result['age_dob_checked'] = int(checkable.sum())
++                        result['age_dob_mismatches'] = mismatches
++                        result['age_format_valid'] = mismatches == 0
++                        if mismatches:
++                            result['issues'].append(
++                                f"{mismatches}/{result['age_dob_checked']} rows have an Age inconsistent with DOB"
++                            )
++
++            # DOB must not fall after the reference/collection date.
++            violation = dob.notna() & ref.notna() & (dob > ref)
++            checked = dob.notna() & ref.notna()
++            result['dob_after_reference_checked'] = int(checked.sum())
++            result['dob_after_reference_violations'] = int(violation.sum())
++            result['date_format_valid'] = int(violation.sum()) == 0
++            if violation.any():
++                result['issues'].append(
++                    f"{int(violation.sum())} rows have a '{dob_col}' after the reference date "
++                    f"('{ref_col}')" if ref_col else f"{int(violation.sum())} rows have a '{dob_col}' after today"
++                )
++
++        # --- Age-conditional Height/Weight correlation preservation ---
++        if original_df is not None:
++            height_cols = self._detect_height_columns(synthetic_df)
++            weight_cols = self._detect_weight_columns(synthetic_df)
++            candidate_cols = [
++                c for c in (age_cols[:1] + height_cols[:1] + weight_cols[:1])
++                if c in synthetic_df.columns and c in original_df.columns
++            ]
++            coerced_real, coerced_synth, numeric_cols = {}, {}, []
++            for c in candidate_cols:
++                rc = self._coerce_numeric(original_df[c])
++                sc = self._coerce_numeric(synthetic_df[c])
++                if rc is None or sc is None:
++                    continue
++                coerced_real[c] = rc.reset_index(drop=True)
++                coerced_synth[c] = sc.reset_index(drop=True)
++                numeric_cols.append(c)
++
++            if len(numeric_cols) >= 2:
++                real_valid = pd.DataFrame(coerced_real).dropna()
++                synth_valid = pd.DataFrame(coerced_synth).dropna()
++                if len(real_valid) >= 5 and len(synth_valid) >= 5:
++                    real_corr = real_valid.corr()
++                    synth_corr = synth_valid.corr()
++                    max_delta = 0.0
++                    for i in range(len(numeric_cols)):
++                        for j in range(i + 1, len(numeric_cols)):
++                            c1, c2 = numeric_cols[i], numeric_cols[j]
++                            r_val = real_corr.loc[c1, c2]
++                            s_val = synth_corr.loc[c1, c2]
++                            if pd.isna(r_val) or pd.isna(s_val):
++                                continue
++                            delta = abs(float(r_val) - float(s_val))
++                            result['correlation_deltas'][f"{c1}~{c2}"] = {
++                                'real': round(float(r_val), 3),
++                                'synthetic': round(float(s_val), 3),
++                                'delta': round(float(delta), 3)
++                            }
++                            max_delta = max(max_delta, delta)
++                    result['max_correlation_delta'] = round(float(max_delta), 3)
++                    result['temporal_relationships_valid'] = max_delta < 0.15
++                    if max_delta >= 0.15 and result['correlation_deltas']:
++                        worst_pair, worst_vals = max(
++                            result['correlation_deltas'].items(), key=lambda kv: kv[1]['delta']
++                        )
++                        result['issues'].append(
++                            f"Correlation drift of {worst_vals['delta']} between "
++                            f"{worst_pair.replace('~', ' and ')}"
++                        )
++
++        # --- Duplicate rate on near-unique / free-text columns ---
++        schema_info = self.schema.get(table_name, {}).get('columns', {})
++        if original_df is not None and len(original_df) > 0 and len(synthetic_df) > 0:
++            for column in synthetic_df.columns:
++                if column not in original_df.columns:
++                    continue
++                col_schema = schema_info.get(column, {})
++                is_near_unique = col_schema.get('dmd_type') == 'free text'
++                if not is_near_unique:
++                    real_uniqueness = original_df[column].nunique() / len(original_df)
++                    is_near_unique = real_uniqueness > 0.9
++                if not is_near_unique:
++                    continue
++
++                synth_dup_rate = 1 - (synthetic_df[column].nunique() / len(synthetic_df))
++                real_dup_rate = 1 - (original_df[column].nunique() / len(original_df))
++                # Some repetition is expected once the requested dataset is
++                # larger than the real pool being sampled from -- only flag
++                # duplication that clearly exceeds what the real data itself
++                # shows.
++                if synth_dup_rate > real_dup_rate + 0.1:
++                    result['duplicate_columns'][column] = {
++                        'synthetic_duplicate_rate': round(float(synth_dup_rate), 3),
++                        'real_duplicate_rate': round(float(real_dup_rate), 3)
++                    }
++                    result['issues'].append(
++                        f"'{column}' is {round(synth_dup_rate * 100)}% duplicated in the synthetic data "
++                        f"(real data: {round(real_dup_rate * 100)}%)"
++                    )
++
++        return result
++
+     def evaluate_synthetic_data(self):
+         """Comprehensive evaluation of the synthetic data"""
+         logging.info("Evaluating synthetic data")
+@@ -3341,12 +3653,19 @@ class SyntheticDataPipeline:
+             # Correlation analysis
+             correlation_analysis = self._analyze_correlations_detailed(df, "Synthetic")
+ 
++            # Fidelity/relationship monitor -- real-vs-synthetic checks for
++            # Age/DOB consistency, DOB-after-reference ordering, Age-Height-
++            # Weight correlation preservation, and duplicate rate on
++            # near-unique columns.
++            fidelity = self.evaluate_fidelity(table_name)
++
+             # Store results
+             evaluation_results[table_name] = {
+                 'basic_statistics': basic_stats,
+                 'data_quality': quality_metrics,
+                 'distributions': distribution_analysis,
+                 'correlations': correlation_analysis,
++                'fidelity': fidelity,
+                 'data_type': 'Synthetic',
+                 'table_name': table_name
+             }
+@@ -4086,6 +4405,59 @@ class SyntheticDataPipeline:
+                 dob_cols.append(column)
+         return dob_cols
+ 
++    def _detect_height_columns(self, df):
++        """Find height-like columns by name."""
++        return [c for c in df.columns if re.search(r'\bheight\b', str(c), re.IGNORECASE)]
++
++    def _detect_weight_columns(self, df):
++        """Find weight-like columns by name."""
++        return [c for c in df.columns if re.search(r'\bweight\b', str(c), re.IGNORECASE)]
++
++    def _linked_column_groups(self, df):
++        """Groups of columns whose relationship to each other matters more
++        than any one column's own fidelity -- Age only means something next
++        to a DOB it's consistent with, and Height/Weight are only plausible
++        next to the Age they're appropriate for. Used both to keep
++        copy/synthesize splits from cutting a group in half (see
++        _enforce_linked_column_groups) and to decide which columns
++        reconcile_biometrics_with_age() should touch.
++
++        Each entry is a list of columns actually present in `df`; a group
++        with fewer than 2 members present isn't a group worth enforcing.
++        """
++        dob_cols = self._detect_dob_columns(df)
++        age_cols = [c for c in df.columns if re.search(r'\bage\b', str(c), re.IGNORECASE)]
++        height_cols = self._detect_height_columns(df)
++        weight_cols = self._detect_weight_columns(df)
++        group = dob_cols + age_cols + height_cols + weight_cols
++        return [group] if len(group) >= 2 else []
++
++    def _enforce_linked_column_groups(self, df, columns_to_synthesize, columns_to_copy, table_name):
++        """If any column in a linked group (see _linked_column_groups) is
++        marked to synthesize, move every other member of that group into
++        columns_to_synthesize too, so the group is modeled and finalized
++        together rather than being split between an independent draw and a
++        copy of one real row."""
++        synth_set = set(columns_to_synthesize)
++        copy_set = set(columns_to_copy)
++        for group in self._linked_column_groups(df):
++            present = [c for c in group if c in synth_set or c in copy_set]
++            if len(present) < 2:
++                continue
++            if any(c in synth_set for c in present) and any(c in copy_set for c in present):
++                moved = [c for c in present if c in copy_set]
++                logging.info(
++                    f"Table {table_name}: moving {moved} into columns_to_synthesize to keep "
++                    f"linked group {present} from being split across copy/synthesize"
++                )
++                for c in moved:
++                    copy_set.discard(c)
++                    synth_set.add(c)
++        # Preserve original relative ordering rather than set iteration order.
++        new_synth = [c for c in df.columns if c in synth_set]
++        new_copy = [c for c in df.columns if c in copy_set]
++        return new_synth, new_copy
++
+     def _detect_reference_date_column(self, df, exclude=None):
+         """Find a plausible 'as of' date column (collection/visit/assessment
+         date) to compute age against. Falls back to None (caller uses today)."""
+@@ -4114,6 +4486,198 @@ class SyntheticDataPipeline:
+             return int(m.group(1)), None
+         return None
+ 
++    def _fix_dob_after_reference(self, df, table_name):
++        """Plausibility rule: a Date-of-Birth can never fall after the
++        reference date (date of collection/visit/etc.) it's paired with --
++        that would mean the record was collected before the person was
++        born. DOB and the reference date are typically synthesized
++        independently (each fit its own marginal distribution), so nothing
++        upstream enforces this ordering; left unchecked it produces
++        impossible rows (confirmed in practice: ~3% of rows in a sample
++        run).
++
++        Repaired by resampling DOB, for just the violating rows, from the
++        real DOB values in the original data that are themselves <= that
++        row's reference date -- reusing real, already-plausible values
++        rather than inventing a new one. Falls back to clipping DOB to the
++        reference date when no such real value exists (e.g. a very early
++        reference date).
++        """
++        dob_cols = self._detect_dob_columns(df)
++        if not dob_cols:
++            return df
++        dob_col = dob_cols[0]
++        ref_col = self._detect_reference_date_column(df, exclude=set(dob_cols))
++        if ref_col is None:
++            return df
++
++        result_df = df.copy()
++        dob = pd.to_datetime(result_df[dob_col], errors='coerce')
++        ref = pd.to_datetime(result_df[ref_col], errors='coerce')
++        violation = dob.notna() & ref.notna() & (dob > ref)
++        if not violation.any():
++            return result_df
++
++        original_df = self.original_data.get(table_name)
++        candidate_pool = None
++        if original_df is not None and dob_col in original_df.columns:
++            candidate_pool = pd.to_datetime(original_df[dob_col], errors='coerce').dropna()
++
++        # Match whatever string convention the column is actually using
++        # (e.g. the copula's own synthetic output is always ISO
++        # 'YYYY-MM-DD HH:MM:SS', but a raw copy of the source data -- as in
++        # app.py's copy-with-privacy-features path -- may still be in the
++        # original file's own format, such as 'M/D/YYYY'). Writing one
++        # format for a handful of rows while the rest of the column uses
++        # another breaks later pd.to_datetime() calls on this column.
++        is_numeric_col = pd.api.types.is_numeric_dtype(df[dob_col])
++        uses_slash_format = False
++        if not is_numeric_col:
++            non_violating_sample = df.loc[~violation, dob_col].dropna().astype(str)
++            if len(non_violating_sample) > 0:
++                uses_slash_format = non_violating_sample.iloc[0].count('/') == 2
++
++        violating_idx = result_df.index[violation]
++        for idx in violating_idx:
++            row_ref = ref.loc[idx]
++            replacement = None
++            if candidate_pool is not None:
++                eligible = candidate_pool[candidate_pool <= row_ref]
++                if len(eligible) > 0:
++                    replacement = eligible.sample(1).iloc[0]
++            if replacement is None:
++                replacement = row_ref  # last resort: clip to the reference date itself
++            if is_numeric_col:
++                result_df.loc[idx, dob_col] = (replacement - pd.Timestamp('1970-01-01')).total_seconds()
++            elif uses_slash_format:
++                result_df.loc[idx, dob_col] = f"{replacement.month}/{replacement.day}/{replacement.year}"
++            else:
++                result_df.loc[idx, dob_col] = replacement.strftime('%Y-%m-%d %H:%M:%S')
++
++        logging.info(
++            f"Table {table_name}: repaired {int(violation.sum())} row(s) where '{dob_col}' "
++            f"fell after '{ref_col}' (impossible collection-before-birth ordering)"
++        )
++        return result_df
++
++    def reconcile_biometrics_with_age(self, df, table_name):
++        """Keep Height and Weight jointly plausible for each row's (already
++        reconciled) Age -- call this AFTER reconcile_age_with_dob, so Age is
++        correct first.
++
++        Generic correlation-preservation treats Height/Weight/Age as just
++        three numeric columns with a target Pearson correlation; at n~100
++        that only loosely constrains them, and it has no notion of what a
++        physically plausible Height/Weight pair looks like for a given Age
++        on its own. This instead fits, from the REAL data, a linear
++        age-conditional mean for each of Height/Weight (pooling every real
++        row for a stable trend line, rather than binning by age and risking
++        a handful of samples per bin) plus the covariance of the
++        *residuals* left after removing that trend -- which is where
++        Height/Weight's own relationship to each other, beyond what age
++        explains, lives. Every synthetic row's Height/Weight is then drawn
++        as trend(age) + a residual from that fitted covariance, so a
++        row's Height, Weight and Age end up mutually consistent by
++        construction, not just correlated on average across the table.
++        """
++        age_cols = [c for c in df.columns if re.search(r'\bage\b', str(c), re.IGNORECASE)]
++        height_cols = self._detect_height_columns(df)
++        weight_cols = self._detect_weight_columns(df)
++        if not age_cols or not (height_cols or weight_cols):
++            return df
++
++        original_df = self.original_data.get(table_name)
++        if original_df is None:
++            return df
++
++        age_col = age_cols[0]
++        biometric_cols = [c for c in (height_cols[:1] + weight_cols[:1]) if c in original_df.columns]
++        if not biometric_cols:
++            return df
++
++        real_age = self._coerce_numeric(original_df[age_col])
++        real_bio = original_df[biometric_cols].apply(lambda s: self._coerce_numeric(s))
++        valid_real = real_age.notna() & real_bio.notna().all(axis=1)
++        if valid_real.sum() < 5:
++            return df
++        real_age = real_age[valid_real].values.astype(float)
++        real_bio = real_bio[valid_real]
++
++        # Fit value ~ a + b*age per biometric column by pooling every real
++        # row (np.polyfit degree 1) instead of binning by age -- with only
++        # ~100 rows, binning starves most bins and the age trend gets
++        # diluted by shrinkage toward the population mean. A single
++        # pooled line uses every row for the trend itself.
++        trend_coeffs = {}
++        residuals = {}
++        for col in biometric_cols:
++            y = real_bio[col].values.astype(float)
++            b, a = np.polyfit(real_age, y, 1)
++            trend_coeffs[col] = (a, b)
++            residuals[col] = y - (a + b * real_age)
++        residual_matrix = np.column_stack([residuals[c] for c in biometric_cols])
++        residual_cov = np.atleast_2d(np.cov(residual_matrix, rowvar=False))
++        # Guard against a degenerate (near-singular) covariance.
++        residual_cov = residual_cov + np.eye(len(biometric_cols)) * 1e-6
++
++        result_df = df.copy()
++        synth_age = self._coerce_numeric(result_df[age_col])
++        if synth_age is None:
++            return df
++
++        valid_synth = synth_age.notna()
++        n_valid = int(valid_synth.sum())
++        if n_valid == 0:
++            return df
++
++        rng = np.random.default_rng()
++        residual_draws = rng.multivariate_normal(
++            mean=np.zeros(len(biometric_cols)), cov=residual_cov, size=n_valid
++        )
++
++        lo = real_bio.min().values * 0.8
++        hi = real_bio.max().values * 1.2
++
++        target_idx = result_df.index[valid_synth]
++        ages_for_targets = synth_age[valid_synth].values.astype(float)
++        drawn = {}
++        for j, col in enumerate(biometric_cols):
++            a, b = trend_coeffs[col]
++            trend = a + b * ages_for_targets
++            values = np.clip(trend + residual_draws[:, j], lo[j], hi[j])
++            drawn[col] = pd.Series(values, index=target_idx)
++
++        for col in biometric_cols:
++            # float64 scratch space: result_df's own columns are often
++            # int64 (Height/Weight are whole numbers in this kind of data),
++            # and pandas raises rather than silently upcasting when a float
++            # value is assigned into an int column.
++            full_col = result_df[col].astype(float)
++            full_col.loc[target_idx] = drawn[col]
++
++            # Match the real column's own precision -- most anthropometric
++            # fields in this kind of data are recorded as whole numbers.
++            real_numeric = self._coerce_numeric(original_df[col].dropna())
++            whole_numbers = (
++                real_numeric is not None and len(real_numeric) > 0
++                and (real_numeric == real_numeric.round()).all()
++            )
++            if whole_numbers:
++                full_col = full_col.round()
++                try:
++                    full_col = full_col.astype('Int64')
++                except Exception:
++                    pass
++            else:
++                full_col = full_col.round(1)
++            result_df[col] = full_col
++
++        logging.info(
++            f"Table {table_name}: redrew {biometric_cols} from age-conditional distributions "
++            f"to keep them plausible against '{age_col}'"
++        )
++        return result_df
++
+     def reconcile_age_with_dob(self, df, table_name):
+         """Keep an Age column and a Date-of-Birth column mathematically
+         consistent after independent synthesis/perturbation.
