@@ -12,7 +12,9 @@ from datetime import datetime
 from preprocessing.cleaning import DataCleaningPipeline
 from stats.relationships import RelationshipDiscoverer
 from models.generation_engine import SyntheticGenerationEngine
-from evaluation.statistical_evaluator import SyntheticDataEvaluator
+from evaluation.statistical_evaluator import StatisticalSimilarityEvaluator
+from evaluation.privacy_evaluator import PrivacyRiskEvaluator
+from evaluation.ml_evaluator import MLUtilityEvaluator
 from export.validator import DataValidator, DMDConsistencyValidator
 from export.adapters import ExportAdapter
 from models.address_synthesis import AddressSynthesizer
@@ -2821,89 +2823,6 @@ class SyntheticDataPipeline:
                 logging.error(f"Even minimal fallback generation failed: {str(e)}")
                 return pd.DataFrame(columns=original_df.columns)
 
-    def evaluate_synthetic_data(self):
-        """Evaluate the quality of synthetic data"""
-        logging.info("Evaluating synthetic data")
-
-        # Initialize evaluator if not already done
-        if self.evaluator is None:
-            self.evaluator = SyntheticDataEvaluator()
-            self.evaluator.set_schema(self.schema)
-
-        # Evaluate each table
-        results = {}
-
-        for table_name in self.original_data.keys():
-            if table_name not in self.synthetic_data:
-                continue
-
-            logging.info(f"Evaluating table: {table_name}")
-
-            original_df = self.original_data[table_name]
-            synthetic_df = self.synthetic_data[table_name]
-
-            # Ensure consistent types before evaluation
-            for column in original_df.columns:
-                if column not in synthetic_df.columns:
-                    continue
-
-                # Check if it's a datetime column in schema
-                is_datetime = False
-                if (table_name in self.schema and
-                        'columns' in self.schema[table_name] and
-                        column in self.schema[table_name]['columns']):
-                    is_datetime = self.schema[table_name]['columns'][column].get('type') == 'datetime'
-
-                if is_datetime or 'date' in column.lower():
-                    try:
-                        # For date columns, convert both to strings in a consistent format
-                        original_df[column] = pd.to_datetime(original_df[column], errors='coerce')
-                        synthetic_df[column] = pd.to_datetime(synthetic_df[column], errors='coerce')
-
-                        # Convert to string to avoid comparison issues
-                        original_df[column] = original_df[column].dt.strftime('%Y-%m-%d')
-                        synthetic_df[column] = synthetic_df[column].dt.strftime('%Y-%m-%d')
-                    except Exception as e:
-                        logging.warning(f"Could not process date column {column}: {str(e)}")
-                        # Convert both to string to be safe
-                        original_df[column] = original_df[column].astype(str)
-                        synthetic_df[column] = synthetic_df[column].astype(str)
-
-            # Evaluate statistical similarity
-            stats_results = self.evaluator.evaluate_statistical_similarity(
-                original_df, synthetic_df
-            )
-
-            # Evaluate privacy risk
-            privacy_results = self.evaluator.evaluate_privacy_risk(
-                original_df, synthetic_df
-            )
-
-            # Evaluate ML utility
-            ml_results = self.evaluator.evaluate_ml_utility(
-                original_df, synthetic_df
-            )
-
-            # Combine results
-            results[table_name] = {
-                'statistical_similarity': stats_results,
-                'privacy_risk': privacy_results,
-                'ml_utility': ml_results,
-                'overall_score': (
-                        0.4 * stats_results['overall_score'] +
-                        0.4 * ml_results['overall_score'] +
-                        0.2 * (1.0 - privacy_results['overall_score'])  # Lower privacy risk is better
-                )
-            }
-
-        self.evaluation_results = results
-
-        # Log overall scores
-        for table_name, table_results in results.items():
-            logging.info(f"Table {table_name} - Overall score: {table_results['overall_score']:.4f}")
-
-        return results
-
     def validate_synthetic_data(self):
         """Validate synthetic data against constraints"""
         logging.info("Validating synthetic data")
@@ -3628,6 +3547,106 @@ class SyntheticDataPipeline:
 
         return result
 
+    def evaluate_quality_scores(self, table_name):
+        """Score this table's synthetic output on the three axes a
+        synthetic-data evaluation report conventionally covers, each on a
+        0-1 scale where higher is better, plus a weighted overall score.
+        These are the fields app.py's /api/evaluate route has always
+        expected (`statistical_similarity`, `privacy_score`,
+        `utility_score`, `overall_score`) but the active
+        evaluate_synthetic_data() never computed, so its overall_stats
+        summary silently averaged to 0 for every table.
+
+        - statistical_similarity: StatisticalSimilarityEvaluator (already
+          built in evaluation/statistical_evaluator.py) -- per-column
+          distribution similarity (JS divergence / KS-test / Wasserstein),
+          correlation-matrix similarity, and PCA explained-variance
+          similarity, averaged into its own overall_score.
+        - privacy_score: 1 - (distance-to-closest-record risk). A small
+          distance between a synthetic row and its nearest real row is a
+          privacy leak (PrivacyRiskEvaluator._evaluate_distance_to_closest).
+          Deliberately NOT using PrivacyRiskEvaluator.evaluate()'s full
+          composite: its membership-disclosure sub-metric is an unfinished
+          stub upstream (builds its feature matrix, never trains or
+          returns anything, so it silently contributes a vacuous 0.0 risk)
+          and would bias the composite toward looking safer than it is.
+        - utility_score: a train-on-synthetic, test-on-real check
+          (MLUtilityEvaluator) -- for every plausible target column,
+          trains the same model once on real data and once on synthetic
+          data, scores both against a REAL holdout, and reports how close
+          synthetic-trained performance gets to real-trained performance.
+
+        overall_score is a weighted average (similarity 0.4, utility 0.4,
+        privacy 0.2) -- a starting weighting, not a correctness threshold;
+        adjust if a different balance matters more for a given dataset.
+
+        Each axis is independently wrapped in try/except: one axis
+        failing (e.g. too few rows for a train/test split) degrades that
+        axis to 0.0 rather than losing the other two or failing evaluation
+        for every table.
+        """
+        scores = {
+            'statistical_similarity': 0.0,
+            'privacy_score': 0.0,
+            'utility_score': 0.0,
+            'overall_score': 0.0
+        }
+
+        original_df = self.original_data.get(table_name)
+        synthetic_df = self.synthetic_data.get(table_name)
+        if original_df is None or synthetic_df is None or original_df.empty or synthetic_df.empty:
+            return scores
+
+        # These evaluators do dtype-sensitive work (.corr(), nearest-
+        # neighbor distance, model fitting) directly on original_df vs
+        # synthetic_df columns, so give them date columns in a matching,
+        # comparable form rather than one side as a raw epoch number and
+        # the other as a formatted date string -- a real failure mode
+        # already hit in this pipeline (see date-columns-numeric-bug-fix
+        # history). Evaluate-only copies; self.original_data/
+        # self.synthetic_data themselves are untouched.
+        table_schema = self.schema.get(table_name, {}).get('columns', {})
+        original_df = original_df.copy()
+        synthetic_df = synthetic_df.copy()
+        for column, info in table_schema.items():
+            if column not in original_df.columns or column not in synthetic_df.columns:
+                continue
+            if info.get('type') != 'datetime':
+                continue
+            try:
+                original_df[column] = pd.to_datetime(original_df[column], errors='coerce').dt.strftime('%Y-%m-%d')
+                synthetic_df[column] = pd.to_datetime(synthetic_df[column], errors='coerce').dt.strftime('%Y-%m-%d')
+            except Exception:
+                original_df[column] = original_df[column].astype(str)
+                synthetic_df[column] = synthetic_df[column].astype(str)
+
+        try:
+            stats_results = StatisticalSimilarityEvaluator(table_schema).evaluate(original_df, synthetic_df)
+            scores['statistical_similarity'] = stats_results.get('overall_score') or 0.0
+        except Exception as e:
+            logging.warning(f"Table {table_name}: statistical similarity scoring failed: {e}")
+
+        try:
+            distance_result = PrivacyRiskEvaluator(table_schema)._evaluate_distance_to_closest(
+                original_df, synthetic_df
+            )
+            scores['privacy_score'] = 1.0 - (distance_result.get('risk_score') or 0.0)
+        except Exception as e:
+            logging.warning(f"Table {table_name}: privacy scoring failed: {e}")
+
+        try:
+            ml_results = MLUtilityEvaluator(table_schema).evaluate(original_df, synthetic_df)
+            scores['utility_score'] = ml_results.get('overall_score') or 0.0
+        except Exception as e:
+            logging.warning(f"Table {table_name}: utility scoring failed: {e}")
+
+        scores['overall_score'] = (
+            0.4 * scores['statistical_similarity'] +
+            0.4 * scores['utility_score'] +
+            0.2 * scores['privacy_score']
+        )
+        return scores
+
     def evaluate_synthetic_data(self):
         """Comprehensive evaluation of the synthetic data"""
         logging.info("Evaluating synthetic data")
@@ -3659,6 +3678,13 @@ class SyntheticDataPipeline:
             # near-unique columns.
             fidelity = self.evaluate_fidelity(table_name)
 
+            # Statistical-similarity / privacy / utility / overall scores
+            # -- app.py's /api/evaluate route has always read these four
+            # fields (flat, top-level) to build its overall_stats summary;
+            # they previously didn't exist here, so that summary silently
+            # averaged to 0 for every table.
+            quality_scores = self.evaluate_quality_scores(table_name)
+
             # Store results
             evaluation_results[table_name] = {
                 'basic_statistics': basic_stats,
@@ -3666,6 +3692,10 @@ class SyntheticDataPipeline:
                 'distributions': distribution_analysis,
                 'correlations': correlation_analysis,
                 'fidelity': fidelity,
+                'statistical_similarity': quality_scores['statistical_similarity'],
+                'privacy_score': quality_scores['privacy_score'],
+                'utility_score': quality_scores['utility_score'],
+                'overall_score': quality_scores['overall_score'],
                 'data_type': 'Synthetic',
                 'table_name': table_name
             }
