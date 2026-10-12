@@ -1366,7 +1366,15 @@ def export_data():
             for table_name, df in pipeline.synthetic_data.items():
                 if export_format == 'csv':
                     csv_buffer = io.StringIO()
-                    df.to_csv(csv_buffer, index=False)
+                    # Age-grouping buckets ('10-19', '40-49', ...) are plain
+                    # text to us, but Excel/Sheets/Numbers guess a CSV
+                    # cell's type from its text on open and misread the
+                    # ones that happen to look like a valid day/month pair
+                    # as a date. protect_range_text_for_csv() only affects
+                    # this CSV copy -- pipeline.synthetic_data itself (and
+                    # every other export format below) is untouched.
+                    csv_export_df = pipeline.protect_range_text_for_csv(df, table_name)
+                    csv_export_df.to_csv(csv_buffer, index=False)
                     zf.writestr(f"{file_prefix}_{table_name}.csv", csv_buffer.getvalue())
 
                 elif export_format == 'excel':

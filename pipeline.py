@@ -4396,6 +4396,61 @@ class SyntheticDataPipeline:
             logging.error(f"Error in custom boundary grouping: {str(e)}")
             return series
 
+    def protect_range_text_for_csv(self, df, table_name):
+        """CSV has no per-cell type metadata, so a hyphenated range label
+        like an age-grouping bucket ('10-19', '40-49', '100+') is just text
+        to the file itself -- but Excel, Google Sheets, and Numbers all
+        guess a cell's type from its text when they OPEN a CSV, and a label
+        that happens to look like a valid day/month pair gets silently
+        reinterpreted as a date (e.g. '10-19' -> Oct 19). A label like
+        '40-49' is left alone only because month 40 isn't valid -- so the
+        symptom is exactly "some age ranges show up as dates and others
+        don't". This is a well-known spreadsheet CSV-import quirk, not a
+        bug in this pipeline's own generation logic.
+
+        Prefixes every value in a bucketed/range-like column with a
+        leading apostrophe -- the standard convention spreadsheet apps use
+        to force a cell to be read as literal text (the apostrophe itself
+        isn't shown once opened). This only affects the returned copy used
+        for a CSV export; it never touches self.synthetic_data, so Excel/
+        JSON/Parquet/SQL exports and anything else reading the data in
+        memory are unaffected. Trade-off: any OTHER tool that reads this
+        CSV as plain text (pandas, a script, a text editor) will see the
+        literal leading apostrophe as part of the value.
+        """
+        schema_info = self.schema.get(table_name, {}).get('columns', {})
+        result_df = df.copy()
+        # Ages realistically run 0-150, so cap each side at 3 digits --
+        # this keeps the fallback pattern match from firing on something
+        # that just happens to share the shape, like a ZIP+4 postal code
+        # ('12345-6789').
+        range_pattern = re.compile(r'^\s*\d{1,3}\s*(-\s*\d{1,3}|\+)\s*$')
+
+        for column in result_df.columns:
+            col_schema = schema_info.get(column, {})
+            is_range_column = col_schema.get('age_grouping') is not None
+            if not is_range_column:
+                non_null = result_df[column].dropna().astype(str)
+                if len(non_null) > 0:
+                    is_range_column = non_null.str.match(range_pattern).mean() > 0.8
+
+            if not is_range_column:
+                continue
+
+            def protect(value):
+                if pd.isna(value):
+                    return value
+                s = str(value)
+                return s if s.startswith("'") else f"'{s}"
+
+            result_df[column] = result_df[column].apply(protect)
+            logging.info(
+                f"Table {table_name}: protected range-text column '{column}' "
+                f"from spreadsheet auto-date reinterpretation in CSV export"
+            )
+
+        return result_df
+
     def _detect_dob_columns(self, df):
         """Find date-of-birth-like columns by name."""
         dob_cols = []
