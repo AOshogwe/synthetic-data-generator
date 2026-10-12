@@ -1,0 +1,51 @@
+diff --git a/app.py b/app.py
+index bdddaad..b4769a3 100644
+--- a/app.py
++++ b/app.py
+@@ -3,6 +3,7 @@ import os
+ import re
+ import sys
+ from flask import Flask, request, jsonify, send_file, send_from_directory
++from flask.json.provider import DefaultJSONProvider
+ from flask_cors import CORS
+ import pandas as pd
+ import numpy as np
+@@ -109,6 +110,38 @@ def setup_logging(app):
+ # Create Flask app
+ app = create_app()
+ 
++
++# jsonify() (Flask's default JSON provider) only knows plain Python types.
++# Pipeline/evaluation results are built from pandas/numpy computations --
++# df[col].count(), .sum(), .mean(), .min()/.max() on a datetime column, etc.
++# -- which hand back np.int64/np.float64/np.bool_/pd.Timestamp/NaT rather
++# than the plain int/float/str jsonify expects, so any route returning
++# those values directly (e.g. /api/evaluate's evaluation_results) raises
++# "Object of type int64 is not JSON serializable" instead of actually
++# responding. Registering this converter once, app-wide, fixes it for
++# every route rather than requiring each one to sanitize its own response.
++class NumpyCompatJSONProvider(DefaultJSONProvider):
++    @staticmethod
++    def default(obj):
++        if isinstance(obj, np.integer):
++            return int(obj)
++        if isinstance(obj, np.floating):
++            return float(obj)
++        if isinstance(obj, np.bool_):
++            return bool(obj)
++        if isinstance(obj, np.ndarray):
++            return obj.tolist()
++        if obj is pd.NaT:
++            return None
++        if isinstance(obj, (pd.Timestamp, datetime)):
++            return obj.isoformat()
++        if isinstance(obj, pd.Series):
++            return obj.tolist()
++        return DefaultJSONProvider.default(obj)
++
++
++app.json = NumpyCompatJSONProvider(app)
++
+ # Import the advanced pipeline - UPDATED IMPORT
+ from pipeline import SyntheticDataPipeline
+ 
